@@ -1,0 +1,43 @@
+{
+  "points" : 0,
+  "questions" : [
+    {
+      "question": "Who did this?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false
+    },{
+      "question": "Who did that?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false
+    },{
+      "question": "Who messed up everything?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false
+    },{
+      "question": "Who needs guidance?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false
+    }
+  ],
+  "player": {
+    "id": 123,
+    "userName": "Benjamin",
+    "subscribed": false
+  }
+}
