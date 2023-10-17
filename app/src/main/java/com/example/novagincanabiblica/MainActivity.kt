@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             NovaGincanaBiblicaTheme {
                 // A surface container using the 'background' color from the theme
                 navController = rememberNavController()
-                SetupNavGraph(navController = navController)
+                SetupNavGraph(navController = navController, context = baseContext)
             }
         }
     }

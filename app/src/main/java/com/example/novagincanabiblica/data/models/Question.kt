@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.data
+package com.example.novagincanabiblica.data.models
 
 data class Question(
     val question: String,
