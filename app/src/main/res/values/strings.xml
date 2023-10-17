@@ -2,4 +2,6 @@
     <string name="app_name">The Bible Quiz</string>
     <string name="spm_title">Play alone</string>
     <string name="mpm_title">Play with friends</string>
+    <string name="the_quiz">The Quiz</string>
+    <string name="go_back">Go Back</string>
 </resources>
