@@ -28,7 +28,7 @@ import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 fun PreSoloScreen(
     navController: NavHostController,
     context: Context,
-    viewModel: SoloModeViewModel = SoloModeViewModel()
+    viewModel: SoloModeViewModel
 ) {
     val questions by viewModel.question.collectAsState()
     runCatching {
@@ -68,6 +68,6 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(), LocalContext.current)
+        PreSoloScreen(rememberNavController(), LocalContext.current, SoloModeViewModel())
     }
 }

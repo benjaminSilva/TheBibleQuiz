@@ -29,7 +29,7 @@ fun HomeScreen(navController: NavHostController) {
             Column {
                 Button(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = { navController.navigate(Routes.PreSoloScreen.value) }) {
+                    onClick = { navController.navigate(Routes.SOLOMODE.value) }) {
                     Text(text = stringResource(R.string.spm_title).uppercase())
                 }
                 Button(
