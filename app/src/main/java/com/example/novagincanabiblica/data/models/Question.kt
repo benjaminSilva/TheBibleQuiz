@@ -7,5 +7,6 @@ data class Question(
     val wrongAnswerTwo: String,
     val wrongAnswerThree: String,
     val bibleVerse: String,
-    val answeredCorrectly: Boolean
+    val answeredCorrectly: Boolean,
+    val difficulty: QuestionDifficulty
 )

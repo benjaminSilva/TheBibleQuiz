@@ -5,6 +5,6 @@ import com.google.gson.Gson
 
 class SoloModeRepo {
 
-    suspend fun loadLocalQuestions(jsonString: String): SoloGameMode = Gson().fromJson(jsonString, SoloGameMode::class.java)
+    fun loadLocalQuestions(jsonString: String): SoloGameMode = Gson().fromJson(jsonString, SoloGameMode::class.java)
 
 }

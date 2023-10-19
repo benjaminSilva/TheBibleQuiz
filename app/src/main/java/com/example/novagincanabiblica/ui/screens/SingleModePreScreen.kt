@@ -25,10 +25,14 @@ import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 @Composable
-fun PreSoloScreen(navController : NavHostController, context: Context, viewModel: SoloModeViewModel = SoloModeViewModel()) {
+fun PreSoloScreen(
+    navController: NavHostController,
+    context: Context,
+    viewModel: SoloModeViewModel = SoloModeViewModel()
+) {
     val questions by viewModel.question.collectAsState()
     runCatching {
-        viewModel.loadQuestionsForSoloMode(context.assets.open("questions.json").bufferedReader().use {
+        viewModel.loadQuestionsForSoloMode(context.assets.open("game.json").bufferedReader().use {
             it.readText()
         })
     }
@@ -41,10 +45,15 @@ fun PreSoloScreen(navController : NavHostController, context: Context, viewModel
             if (questions.isNotEmpty()) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = questions[0].question
+                    text = "Question 1"
                 )
             }
             Column {
+                Button(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    onClick = { }) {
+                    Text(text = stringResource(R.string.start_question))
+                }
                 Button(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     onClick = { navController.popBackStack() }) {
