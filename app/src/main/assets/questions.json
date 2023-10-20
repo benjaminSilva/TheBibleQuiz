@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "question": "Who did this?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false,
+      "difficulty": "EASY"
+    },
+    {
+      "question": "Who did that?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false,
+      "difficulty": "MEDIUM"
+    },
+    {
+      "question": "Who messed up everything?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false,
+      "difficulty": "HARD"
+    },
+    {
+      "question": "Who needs guidance?",
+      "correctAnswer": "David",
+      "wrongAnswerOne": "Eric",
+      "wrongAnswerTwo": "Eric",
+      "wrongAnswerThree": "Eric",
+      "bibleVerse": "Tha number",
+      "answeredCorrectly": false,
+      "difficulty": "GOD"
+    }
+  ]
+}
