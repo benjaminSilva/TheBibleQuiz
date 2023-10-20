@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.ui.screens
+package com.example.novagincanabiblica.ui.screens.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 
 @Composable

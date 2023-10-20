@@ -11,9 +11,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.novagincanabiblica.ui.screens.HomeScreen
-import com.example.novagincanabiblica.ui.screens.PreSoloScreen
 import com.example.novagincanabiblica.ui.screens.Routes
+import com.example.novagincanabiblica.ui.screens.home.HomeScreen
+import com.example.novagincanabiblica.ui.screens.solomode.InitializePreSoloScreen
+import com.example.novagincanabiblica.ui.screens.solomode.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.solomode.PreSoloScreen
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 @Composable
@@ -30,7 +32,15 @@ fun SetupNavGraph(navController: NavHostController, context: Context) {
         navigation(startDestination = Routes.SOLOPREQUESTION.value, route = Routes.SOLOMODE.value) {
             composable(route = Routes.SOLOPREQUESTION.value) {
                 val soloViewModel = it.sharedViewModel<SoloModeViewModel>(navController = navController)
-                PreSoloScreen(navController = navController, context = context, viewModel = soloViewModel)
+                InitializePreSoloScreen(
+                    navController = navController, context = context,
+                    soloViewModel = soloViewModel
+                )
+            }
+            composable(route = Routes.SOLOQUESTION.value) {
+                val soloViewModel =
+                    it.sharedViewModel<SoloModeViewModel>(navController = navController)
+                InitializeSoloQuestionScreen(navController = navController, soloViewModel)
             }
         }
     }
