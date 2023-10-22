@@ -24,16 +24,12 @@ import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 @Composable
 fun InitializePreSoloScreen(
     navController: NavHostController,
-    context: Context,
     soloViewModel: SoloModeViewModel
 ) {
     runCatching {
-        if (soloViewModel.questions.value == listOf<Question>()) {
-            soloViewModel.loadQuestionsForSoloMode(context.assets.open("game.json").bufferedReader().use {
-                it.readText()
-            })
-        }
+        soloViewModel.loadQuestionsForSoloMode()
     }
+    soloViewModel.setupNewQuestion()
     val questionNumber by soloViewModel.currentQuestionNumber.collectAsStateWithLifecycle()
     PreSoloScreen(
         navController = navController,

@@ -3,16 +3,17 @@ package com.example.novagincanabiblica.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.SoloGameMode
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SoloModeViewModel : ViewModel() {
-
-    val repo = SoloModeRepo()
-    val game = SoloGameMode()
+@HiltViewModel
+class SoloModeViewModel @Inject constructor(
+    private val repo : SoloModeRepo
+) : ViewModel() {
 
     private val _questions = MutableStateFlow(listOf<Question>())
     val questions = _questions.asStateFlow()
@@ -23,11 +24,9 @@ class SoloModeViewModel : ViewModel() {
     private val _currentQuestionNumber = MutableStateFlow(1)
     val currentQuestionNumber = _currentQuestionNumber.asStateFlow()
 
-    fun loadQuestionsForSoloMode(jsonString: String) {
+    fun loadQuestionsForSoloMode() {
         viewModelScope.launch {
-            _questions.value = repo.loadLocalQuestions(jsonString).questions.apply {
-                game.questions = this
-            }
+            _questions.value = repo.loadLocalQuestions()
         }
     }
 

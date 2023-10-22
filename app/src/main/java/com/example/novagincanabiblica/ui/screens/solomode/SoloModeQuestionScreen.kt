@@ -21,7 +21,6 @@ import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 @Composable
 fun InitializeSoloQuestionScreen(navController: NavHostController, soloViewModel: SoloModeViewModel) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    soloViewModel.setupNewQuestion()
     SoloQuestionScreen(navController = navController, currentQuestion)
 }
 
