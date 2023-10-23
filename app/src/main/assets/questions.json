@@ -1,41 +1,97 @@
 {
   "questions": [
     {
-      "question": "Who did this?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "question": "Who left Rupert alone?",
+      "listOfAnswers": [
+        {
+          "answerText": "David",
+          "isCorrect": true
+        },
+        {
+          "answerText": "Natalie",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Abbie",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Eric",
+          "isCorrect": false
+        }
+      ],
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "EASY"
     },
     {
-      "question": "Who did that?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "question": "Who said 'I'm gonna shoot you'?",
+      "listOfAnswers": [
+        {
+          "answerText": "David",
+          "isCorrect": true
+        },
+        {
+          "answerText": "Hitler",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Trump",
+          "isCorrect": false
+        },
+        {
+          "answerText": "George Floyd",
+          "isCorrect": false
+        }
+      ],
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "MEDIUM"
     },
     {
-      "question": "Who messed up everything?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "question": "Who doesn't have AC?",
+      "listOfAnswers": [
+        {
+          "answerText": "David",
+          "isCorrect": true
+        },
+        {
+          "answerText": "Jesse",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Eevee",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Penguins",
+          "isCorrect": false
+        }
+      ],
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "HARD"
     },
     {
       "question": "Who needs guidance?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "listOfAnswers": [
+        {
+          "answerText": "David",
+          "isCorrect": true
+        },
+        {
+          "answerText": "Josiah",
+          "isCorrect": false
+        },
+        {
+          "answerText": "Daniel",
+          "isCorrect": false
+        },
+        {
+          "answerText": "A car",
+          "isCorrect": false
+        }
+      ],
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "GOD"

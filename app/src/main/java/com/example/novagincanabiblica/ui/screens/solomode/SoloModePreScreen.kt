@@ -26,10 +26,9 @@ fun InitializePreSoloScreen(
     navController: NavHostController,
     soloViewModel: SoloModeViewModel
 ) {
-    runCatching {
-        soloViewModel.loadQuestionsForSoloMode()
-    }
+    soloViewModel.loadQuestionsForSoloMode()
     soloViewModel.setupNewQuestion()
+
     val questionNumber by soloViewModel.currentQuestionNumber.collectAsStateWithLifecycle()
     PreSoloScreen(
         navController = navController,
@@ -70,6 +69,6 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(),8)
+        PreSoloScreen(rememberNavController(), 8)
     }
 }

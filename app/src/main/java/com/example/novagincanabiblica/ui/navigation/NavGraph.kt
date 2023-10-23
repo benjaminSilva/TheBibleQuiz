@@ -19,9 +19,9 @@ import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Routes.START.value) {
-        navigation(startDestination = Routes.Home.value, route = Routes.START.value) {
+        navigation(startDestination = Routes.HOME.value, route = Routes.START.value) {
             composable(
-                route = Routes.Home.value
+                route = Routes.HOME.value
             ) {
                 HomeScreen(navController = navController)
             }

@@ -2,29 +2,29 @@
   "points" : 0,
   "questions" : [
     {
-      "question": "Who did this?",
+      "question": "Who left Rupert alone?",
       "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
+      "wrongAnswerOne": "Natalie",
       "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "wrongAnswerThree": "Leia",
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "EASY"
     },{
-      "question": "Who did that?",
+      "question": "Who said 'I'm gonna shoot you'",
       "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
+      "wrongAnswerOne": "Benny",
+      "wrongAnswerTwo": "Natalie",
       "wrongAnswerThree": "Eric",
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "MEDIUM"
     },{
-      "question": "Who messed up everything?",
+      "question": "Who doesn't have AC?",
       "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "wrongAnswerOne": "Josiah",
+      "wrongAnswerTwo": "Eevee",
+      "wrongAnswerThree": "Big mama",
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "HARD"
@@ -32,8 +32,8 @@
       "question": "Who needs guidance?",
       "correctAnswer": "David",
       "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
+      "wrongAnswerTwo": "Daniel",
+      "wrongAnswerThree": "Michel",
       "bibleVerse": "Tha number",
       "answeredCorrectly": false,
       "difficulty": "GOD"

@@ -2,12 +2,13 @@ package com.example.novagincanabiblica.data.models
 
 data class Question(
     val question: String = "",
-    val correctAnswer: String = "",
-    val wrongAnswerOne: String = "",
-    val wrongAnswerTwo: String = "",
-    val wrongAnswerThree: String = "",
+    var listOfAnswers: List<Answer> = listOf(),
     val bibleVerse: String = "",
-    var listOfAnswers: List<String> = listOf("","","",""),
     val answeredCorrectly: Boolean = false,
     val difficulty: QuestionDifficulty = QuestionDifficulty.EASY
+)
+
+data class Answer(
+    val answerText: String = "",
+    val isCorrect: Boolean = false
 )

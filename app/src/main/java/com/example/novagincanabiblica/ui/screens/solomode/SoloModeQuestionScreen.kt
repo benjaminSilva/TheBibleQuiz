@@ -13,21 +13,86 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
+import com.example.novagincanabiblica.data.models.QuestionAnswerState
+import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 
 @Composable
-fun InitializeSoloQuestionScreen(navController: NavHostController, soloViewModel: SoloModeViewModel) {
-    val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    SoloQuestionScreen(navController = navController, currentQuestion)
+fun InitializeSoloQuestionScreen(
+    navController: NavHostController,
+    soloViewModel: SoloModeViewModel
+) {
+    val currentQuestionState by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
+    val answerState by soloViewModel.answerState.collectAsStateWithLifecycle()
+
+    handleAnotherNavigation(
+        navController = navController,
+        answerState = answerState
+    )
+
+    SoloQuestionScreen(
+        navController = navController,
+        currentQuestion = currentQuestionState
+    ) { isCorrect ->
+        soloViewModel.verifyAnswer(isCorrect)
+        //handleNavigation(isCorrect, navController, soloViewModel)
+    }
+
 }
+
+//This seems more proper
+fun handleAnotherNavigation(
+    navController: NavHostController,
+    answerState: QuestionAnswerState
+) {
+    when (answerState) {
+        QuestionAnswerState.CORRECT -> navController.navigate(Routes.SOLOPREQUESTION.value) {
+            popUpTo(Routes.SOLOPREQUESTION.value) {
+                inclusive = true
+            }
+        }
+
+        QuestionAnswerState.WRONG -> navController.navigate(Routes.HOME.value) {
+            popUpTo(Routes.HOME.value) {
+                inclusive = true
+            }
+        }
+
+        else -> Unit
+    }
+}
+
+//This Works Faster
+/*fun handleNavigation(
+    isCorrect: Boolean,
+    navController: NavHostController,
+    soloViewModel: SoloModeViewModel
+) {
+    if (isCorrect) {
+        navController.navigate(Routes.SOLOPREQUESTION.value) {
+            popUpTo(Routes.SOLOPREQUESTION.value) {
+                inclusive = true
+            }
+        }
+    } else {
+        navController.navigate(Routes.HOME.value) {
+            popUpTo(Routes.HOME.value) {
+                inclusive = true
+            }
+        }
+    }
+    soloViewModel.updateQuestionNumber()
+}*/
 
 @Composable
 fun SoloQuestionScreen(
     navController: NavHostController,
-    currentQuestion: Question
+    currentQuestion: Question,
+    answerClick: (Boolean) -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -40,23 +105,34 @@ fun SoloQuestionScreen(
             )
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { }) {
-                Text(text = currentQuestion.listOfAnswers[0])
+                onClick = { answerClick(currentQuestion.listOfAnswers[0].isCorrect) }) {
+                Text(text = currentQuestion.listOfAnswers[0].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { navController.popBackStack() }) {
-                Text(text = currentQuestion.listOfAnswers[1])
+                onClick = { answerClick(currentQuestion.listOfAnswers[1].isCorrect) }) {
+                Text(text = currentQuestion.listOfAnswers[1].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { navController.popBackStack() }) {
-                Text(text = currentQuestion.listOfAnswers[2])
+                onClick = { answerClick(currentQuestion.listOfAnswers[2].isCorrect) }) {
+                Text(text = currentQuestion.listOfAnswers[2].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { navController.popBackStack() }) {
-                Text(text = currentQuestion.listOfAnswers[3])
+                onClick = { answerClick(currentQuestion.listOfAnswers[3].isCorrect) }) {
+                Text(text = currentQuestion.listOfAnswers[3].answerText)
+            }
+            Button(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = {
+                    navController.navigate(Routes.HOME.value) {
+                        popUpTo(Routes.HOME.value) {
+                            inclusive = true
+                        }
+                    }
+                }) {
+                Text(text = "Give Up")
             }
         }
     }
@@ -70,8 +146,13 @@ fun PreviewSoloQuestionScreen() {
             rememberNavController(),
             Question(
                 question = "Who did that?",
-                listOfAnswers = listOf("He", "David", "Eric", "Leia")
+                listOfAnswers = listOf(
+                    Answer("David", true),
+                    Answer("Eric", true),
+                    Answer("Leia", true),
+                    Answer("Abbie", true)
+                ).shuffled(),
             )
-        )
+        ) {}
     }
 }
