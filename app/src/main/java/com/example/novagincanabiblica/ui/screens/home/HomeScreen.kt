@@ -30,7 +30,7 @@ fun HomeScreen(navController: NavHostController) {
             Column {
                 Button(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = { navController.navigate(Routes.SOLOMODE.value) }) {
+                    onClick = { navController.navigate(Routes.SoloMode.value) }) {
                     Text(text = stringResource(R.string.spm_title).uppercase())
                 }
                 Button(

@@ -21,7 +21,7 @@
         }
       ],
       "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
+      "answered": false,
       "difficulty": "EASY"
     },
     {
@@ -45,7 +45,7 @@
         }
       ],
       "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
+      "answered": false,
       "difficulty": "MEDIUM"
     },
     {
@@ -69,7 +69,7 @@
         }
       ],
       "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
+      "answered": false,
       "difficulty": "HARD"
     },
     {
@@ -93,7 +93,7 @@
         }
       ],
       "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
+      "answered": false,
       "difficulty": "GOD"
     }
   ]

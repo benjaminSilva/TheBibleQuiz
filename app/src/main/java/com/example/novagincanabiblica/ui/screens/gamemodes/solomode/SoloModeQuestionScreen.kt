@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.ui.screens.solomode
+package com.example.novagincanabiblica.ui.screens.gamemodes.solomode
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.QuestionAnswerState
+import com.example.novagincanabiblica.data.models.AnswerDestinationState
+import com.example.novagincanabiblica.ui.navigation.navigateWithoutRemembering
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
@@ -27,7 +28,7 @@ fun InitializeSoloQuestionScreen(
     soloViewModel: SoloModeViewModel
 ) {
     val currentQuestionState by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    val answerState by soloViewModel.answerState.collectAsStateWithLifecycle()
+    val answerState by soloViewModel.nextDestination.collectAsStateWithLifecycle(initialValue = AnswerDestinationState.STAY)
 
     handleAnotherNavigation(
         navController = navController,
@@ -37,9 +38,8 @@ fun InitializeSoloQuestionScreen(
     SoloQuestionScreen(
         navController = navController,
         currentQuestion = currentQuestionState
-    ) { isCorrect ->
-        soloViewModel.verifyAnswer(isCorrect)
-        //handleNavigation(isCorrect, navController, soloViewModel)
+    ) { answer ->
+        soloViewModel.verifyAnswer(answer)
     }
 
 }
@@ -47,20 +47,16 @@ fun InitializeSoloQuestionScreen(
 //This seems more proper
 fun handleAnotherNavigation(
     navController: NavHostController,
-    answerState: QuestionAnswerState
+    answerState: AnswerDestinationState
 ) {
     when (answerState) {
-        QuestionAnswerState.CORRECT -> navController.navigate(Routes.SOLOPREQUESTION.value) {
-            popUpTo(Routes.SOLOPREQUESTION.value) {
-                inclusive = true
-            }
-        }
+        AnswerDestinationState.NEXT_QUESTION -> navController.navigateWithoutRemembering(
+            route = Routes.SoloModePreQuestion
+        )
 
-        QuestionAnswerState.WRONG -> navController.navigate(Routes.HOME.value) {
-            popUpTo(Routes.HOME.value) {
-                inclusive = true
-            }
-        }
+        AnswerDestinationState.RESULTS -> navController.navigateWithoutRemembering(
+            route = Routes.Results
+        )
 
         else -> Unit
     }
@@ -92,7 +88,7 @@ fun handleAnotherNavigation(
 fun SoloQuestionScreen(
     navController: NavHostController,
     currentQuestion: Question,
-    answerClick: (Boolean) -> Unit
+    answerClick: (Answer) -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -105,32 +101,28 @@ fun SoloQuestionScreen(
             )
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { answerClick(currentQuestion.listOfAnswers[0].isCorrect) }) {
+                onClick = { answerClick(currentQuestion.listOfAnswers[0]) }) {
                 Text(text = currentQuestion.listOfAnswers[0].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { answerClick(currentQuestion.listOfAnswers[1].isCorrect) }) {
+                onClick = { answerClick(currentQuestion.listOfAnswers[1]) }) {
                 Text(text = currentQuestion.listOfAnswers[1].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { answerClick(currentQuestion.listOfAnswers[2].isCorrect) }) {
+                onClick = { answerClick(currentQuestion.listOfAnswers[2]) }) {
                 Text(text = currentQuestion.listOfAnswers[2].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { answerClick(currentQuestion.listOfAnswers[3].isCorrect) }) {
+                onClick = { answerClick(currentQuestion.listOfAnswers[3]) }) {
                 Text(text = currentQuestion.listOfAnswers[3].answerText)
             }
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 onClick = {
-                    navController.navigate(Routes.HOME.value) {
-                        popUpTo(Routes.HOME.value) {
-                            inclusive = true
-                        }
-                    }
+                    navController.popBackStack()
                 }) {
                 Text(text = "Give Up")
             }
