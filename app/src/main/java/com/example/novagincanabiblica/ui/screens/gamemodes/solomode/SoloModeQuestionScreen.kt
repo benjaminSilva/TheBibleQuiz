@@ -15,7 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.AnswerDestinationState
+import com.example.novagincanabiblica.data.models.state.AnswerDestinationState
 import com.example.novagincanabiblica.ui.navigation.navigateWithoutRemembering
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
@@ -27,6 +27,10 @@ fun InitializeSoloQuestionScreen(
     navController: NavHostController,
     soloViewModel: SoloModeViewModel
 ) {
+    /*BackHandler {
+        navController.popBackStack(Routes.Home.value, false)
+    }*/
+
     val currentQuestionState by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     val answerState by soloViewModel.nextDestination.collectAsStateWithLifecycle(initialValue = AnswerDestinationState.STAY)
 
@@ -122,7 +126,7 @@ fun SoloQuestionScreen(
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 onClick = {
-                    navController.popBackStack()
+                    navController.popBackStack(Routes.Home.value, false)
                 }) {
                 Text(text = "Give Up")
             }

@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.AnswerDestinationState
-import com.example.novagincanabiblica.data.models.QuestionAnswerState
+import com.example.novagincanabiblica.data.models.state.AnswerDestinationState
+import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,8 +27,8 @@ class SoloModeViewModel @Inject constructor(
     private val _currentQuestionNumber = MutableStateFlow(1)
     val currentQuestionNumber = _currentQuestionNumber.asStateFlow()
 
-    private val _nextDestination = MutableStateFlow(AnswerDestinationState.STAY)
-    val nextDestination = _nextDestination.asStateFlow()
+    private val _nextDestination = MutableSharedFlow<AnswerDestinationState>()
+    val nextDestination = _nextDestination.asSharedFlow()
 
     init {
         viewModelScope.launch {

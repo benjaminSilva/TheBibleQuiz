@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.data.models
+package com.example.novagincanabiblica.data.models.state
 
 import androidx.compose.ui.graphics.Color
 import com.example.novagincanabiblica.ui.theme.Purple40

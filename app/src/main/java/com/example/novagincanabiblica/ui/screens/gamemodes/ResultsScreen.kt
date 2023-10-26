@@ -1,6 +1,5 @@
 package com.example.novagincanabiblica.ui.screens.gamemodes
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -28,9 +27,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.Answer
-import com.example.novagincanabiblica.data.models.ButtonAnswerState
+import com.example.novagincanabiblica.data.models.state.ButtonAnswerState
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.QuestionAnswerState
+import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
+import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
@@ -39,9 +39,6 @@ fun InitializeSoloResultScreen(
     navController: NavHostController,
     soloViewModel: SoloModeViewModel
 ) {
-    BackHandler {
-        navController.popBackStack()
-    }
     PreSoloScreen(
         navController = navController,
         questionsAnswered = soloViewModel.getAnsweredQuestions(),
@@ -80,7 +77,9 @@ fun PreSoloScreen(
             item {
                 Button(
                     modifier = Modifier.align(Alignment.Center),
-                    onClick = { navController.popBackStack() }) {
+                    onClick = {
+                        navController.popBackStack(Routes.Home.value, false)
+                    }) {
                     Text(text = stringResource(R.string.go_back))
                 }
             }

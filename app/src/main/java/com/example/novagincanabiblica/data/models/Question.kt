@@ -1,5 +1,7 @@
 package com.example.novagincanabiblica.data.models
 
+import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
+
 data class Question(
     val question: String = "",
     var listOfAnswers: List<Answer> = listOf(),

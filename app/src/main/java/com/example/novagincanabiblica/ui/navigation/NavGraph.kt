@@ -9,6 +9,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.get
 import androidx.navigation.navigation
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.screens.gamemodes.InitializeSoloResultScreen
@@ -19,7 +20,7 @@ import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Routes.Start.value) {
+    NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
         navigation(startDestination = Routes.Home.value, route = Routes.Start.value) {
             composable(
                 route = Routes.Home.value
@@ -28,7 +29,10 @@ fun SetupNavGraph(navController: NavHostController) {
             }
         }
 
-        navigation(startDestination = Routes.SoloModePreQuestion.value, route = Routes.SoloMode.value) {
+        navigation(
+            startDestination = Routes.SoloModePreQuestion.value,
+            route = Routes.SoloMode.value
+        ) {
             composable(route = Routes.SoloModePreQuestion.value) {
                 val soloViewModel = it.sharedViewModel<SoloModeViewModel>(navController = navController)
                 InitializePreSoloScreen(
@@ -39,11 +43,18 @@ fun SetupNavGraph(navController: NavHostController) {
             composable(route = Routes.SoloModeQuestion.value) {
                 val soloViewModel =
                     it.sharedViewModel<SoloModeViewModel>(navController = navController)
-                InitializeSoloQuestionScreen(navController = navController, soloViewModel)
+                InitializeSoloQuestionScreen(
+                    navController = navController,
+                    soloViewModel = soloViewModel
+                )
             }
             composable(route = Routes.Results.value) {
-                val soloViewModel = it.sharedViewModel<SoloModeViewModel>(navController = navController)
-                InitializeSoloResultScreen(navController = navController, soloViewModel)
+                val soloViewModel =
+                    it.sharedViewModel<SoloModeViewModel>(navController = navController)
+                InitializeSoloResultScreen(
+                    navController = navController,
+                    soloViewModel = soloViewModel
+                )
             }
         }
     }
@@ -59,9 +70,7 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navControll
 }
 
 fun NavHostController.navigateWithoutRemembering(route: Routes) {
-    navigate(route.value) {
-        popUpTo(route.value) {
-            inclusive = true
-        }
+    navigate(route = route.value) {
+        popUpTo(graph[Routes.SoloMode.value].id)
     }
 }

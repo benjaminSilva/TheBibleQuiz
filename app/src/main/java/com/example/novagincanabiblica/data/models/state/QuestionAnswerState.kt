@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.data.models
+package com.example.novagincanabiblica.data.models.state
 
 enum class QuestionAnswerState {
     ANSWERED_CORRECTLY,
