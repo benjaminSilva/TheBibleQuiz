@@ -4,4 +4,5 @@
     <string name="biblical_wordle">Biblical Wordle</string>
     <string name="go_back">Go Back</string>
     <string name="start_question">Start Question</string>
+    <string name="title_activity_splash_screen">The Bible Quiz</string>
 </resources>

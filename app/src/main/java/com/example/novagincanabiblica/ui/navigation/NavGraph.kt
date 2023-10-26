@@ -16,11 +16,13 @@ import com.example.novagincanabiblica.ui.screens.gamemodes.InitializeSoloResultS
 import com.example.novagincanabiblica.ui.screens.home.HomeScreen
 import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializePreSoloScreen
 import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.home.SplashScreen
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
+
         navigation(startDestination = Routes.Home.value, route = Routes.Start.value) {
             composable(
                 route = Routes.Home.value

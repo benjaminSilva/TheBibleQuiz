@@ -27,8 +27,14 @@ import androidx.compose.ui.unit.sp
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 
 @Composable
-fun BasicText(modifier: Modifier = Modifier, text: String, fontSize: Int = 12) {
-    Text(text = text, modifier = modifier, fontSize = fontSize.sp, fontFamily = zillasFontFamily)
+fun BasicText(
+    modifier: Modifier = Modifier,
+    text: String,
+    fontSize: Int = 12,
+    fontFamily: FontFamily = zillasFontFamily,
+    lineHeight: Int = 18
+) {
+    Text(text = text, modifier = modifier, fontSize = fontSize.sp, fontFamily = fontFamily, lineHeight = lineHeight.sp)
 }
 
 @Composable

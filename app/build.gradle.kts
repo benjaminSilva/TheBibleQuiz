@@ -64,13 +64,16 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     //Hilt
     implementation("com.google.dagger:hilt-android:2.44")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
     implementation("androidx.hilt:hilt-work:1.0.0")
-    implementation("androidx.work:work-runtime-ktx:2.7.1")
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
