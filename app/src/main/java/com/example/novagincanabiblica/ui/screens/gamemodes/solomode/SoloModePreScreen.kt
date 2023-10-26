@@ -28,6 +28,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.ui.basicviews.BasicButton
+import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.basicviews.animateAngle
 import com.example.novagincanabiblica.ui.basicviews.animatePosition
@@ -41,10 +42,6 @@ fun InitializePreSoloScreen(
     navController: NavHostController,
     soloViewModel: SoloModeViewModel
 ) {
-    LaunchedEffect(Unit) {
-        soloViewModel.setupNewQuestion()
-    }
-
     val questionNumber by soloViewModel.currentQuestionNumber.collectAsStateWithLifecycle()
     PreSoloScreen(
         navController = navController,
@@ -73,14 +70,12 @@ fun PreSoloScreen(
     )
     val animateScreenAlpha by animateAlpha(startAnimation)
 
-    //Question Number
+    //Question Number and buttons
     val animateNumberPosition by animatePosition(
         startAnimation,
         IntOffset(500, -70),
         IntOffset(0, -70)
     )
-
-    //Buttons
     val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1500)
 
     Box(
@@ -90,7 +85,7 @@ fun PreSoloScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
-                    .fillMaxHeight(0.5f)
+                    .fillMaxHeight(0.75f)
                     .fillMaxWidth()
             ) {
                 Column(modifier = Modifier.align(Alignment.Center)) {
@@ -117,7 +112,18 @@ fun PreSoloScreen(
                         style = MaterialTheme.typography.displayLarge
                     )
                 }
-
+                BasicText(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .alpha(animateButtonsAlpha),
+                    text = when (questionNumber) {
+                        1 -> "Easy"
+                        2 -> "Medium"
+                        3 -> "Hard"
+                        else -> "Pastor Level"
+                    },
+                    fontSize = 25,
+                )
             }
             Box(
                 modifier = Modifier

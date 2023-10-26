@@ -9,6 +9,7 @@ import com.example.novagincanabiblica.data.models.state.AnswerDestinationState
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -18,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SoloModeViewModel @Inject constructor(
-    private val repo : SoloModeRepo
+    private val repo: SoloModeRepo
 ) : ViewModel() {
 
     private val _questions = mutableStateListOf<Question>()
@@ -30,17 +31,15 @@ class SoloModeViewModel @Inject constructor(
     private val _nextDestination = MutableSharedFlow<AnswerDestinationState>()
     val nextDestination = _nextDestination.asSharedFlow()
 
-    init {
-        viewModelScope.launch {
-            _questions.addAll(repo.loadLocalQuestions())
-            _questions
-        }
-    }
-
-    private val _currentQuestion = MutableStateFlow(questions[0])
+    private val _currentQuestion = MutableStateFlow(Question())
     val currentQuestion = _currentQuestion.asStateFlow()
 
-    fun setupNewQuestion() = viewModelScope.launch {
+    init {
+        _questions.addAll(repo.loadLocalQuestions())
+        setupNewQuestion()
+    }
+
+    private fun setupNewQuestion() = viewModelScope.launch {
         _nextDestination.emit(AnswerDestinationState.STAY)
         _currentQuestion.emit(
             questions[currentQuestionNumber.value - 1].apply {
@@ -49,28 +48,34 @@ class SoloModeViewModel @Inject constructor(
         )
     }
 
-    private fun updateQuestionNumber() = viewModelScope.launch {
-        _currentQuestionNumber.emit(currentQuestionNumber.value + 1)
+    private fun updateQuestionNumber() {
+        _currentQuestionNumber.value = (currentQuestionNumber.value + 1)
     }
 
     fun verifyAnswer(answer: Answer) = viewModelScope.launch {
         answer.selected = true
         if (answer.isCorrect) {
-            _questions[currentQuestionNumber.value - 1].answerState = QuestionAnswerState.ANSWERED_CORRECTLY
-            if(currentQuestionNumber.value < questions.size) {
-                updateQuestionNumber()
+            _questions[currentQuestionNumber.value - 1].answerState =
+                QuestionAnswerState.ANSWERED_CORRECTLY
+            if (currentQuestionNumber.value < questions.size) {
                 _nextDestination.emit(AnswerDestinationState.NEXT_QUESTION)
+                delay(200)
+                updateQuestionNumber()
+                setupNewQuestion()
             } else {
                 _nextDestination.emit(AnswerDestinationState.RESULTS)
             }
         } else {
-            _questions[currentQuestionNumber.value - 1].answerState = QuestionAnswerState.ANSWERED_WRONGLY
+            _questions[currentQuestionNumber.value - 1].answerState =
+                QuestionAnswerState.ANSWERED_WRONGLY
             _nextDestination.emit(AnswerDestinationState.RESULTS)
         }
     }
 
-    fun getAnsweredQuestions(): List<Question> = questions.filter { it.answerState != QuestionAnswerState.NOT_ANSWERED }.reversed()
+    fun getAnsweredQuestions(): List<Question> =
+        questions.filter { it.answerState != QuestionAnswerState.NOT_ANSWERED }.reversed()
 
-    fun getCorrectAnswerQuestionSize(): Int = questions.filter { it.answerState == QuestionAnswerState.ANSWERED_CORRECTLY }.size
+    fun getCorrectAnswerQuestionSize(): Int =
+        questions.filter { it.answerState == QuestionAnswerState.ANSWERED_CORRECTLY }.size
 
 }
