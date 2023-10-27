@@ -17,6 +17,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity: ComponentActivity() {
@@ -27,9 +28,7 @@ class SplashActivity: ComponentActivity() {
             splashScreen.setKeepOnScreenCondition { true }
         }
         super.onCreate(savedInstanceState)
-        lifecycleScope.launchWhenCreated {
-            delay(500)
-
+        lifecycleScope.launch {
             val intent = Intent(this@SplashActivity, MainActivity::class.java)
             startActivity(intent)
             finish()

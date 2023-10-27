@@ -8,7 +8,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.ui.navigation.SetupNavGraph
-import com.example.novagincanabiblica.ui.screens.home.HomeScreen
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,6 +32,5 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     NovaGincanaBiblicaTheme {
-        HomeScreen(rememberNavController())
     }
 }

@@ -16,7 +16,8 @@ import com.example.novagincanabiblica.ui.screens.gamemodes.InitializeSoloResultS
 import com.example.novagincanabiblica.ui.screens.home.HomeScreen
 import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializePreSoloScreen
 import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializeSoloQuestionScreen
-import com.example.novagincanabiblica.ui.screens.home.SplashScreen
+import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
+import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
 
 @Composable
@@ -27,7 +28,8 @@ fun SetupNavGraph(navController: NavHostController) {
             composable(
                 route = Routes.Home.value
             ) {
-                HomeScreen(navController = navController)
+                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
+                InitializeHomeScreen(navController = navController, homeViewModel)
             }
         }
 

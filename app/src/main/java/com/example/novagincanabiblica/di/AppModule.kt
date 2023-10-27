@@ -2,8 +2,10 @@ package com.example.novagincanabiblica.di
 
 import android.content.Context
 import android.content.res.AssetManager
+import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import com.example.novagincanabiblica.data.repositories.SoloModeRepoImpl
+import com.google.android.gms.auth.api.identity.Identity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,5 +24,12 @@ object AppModule {
     @Singleton
     @Provides
     fun getSoloModeRepo(assetManager: AssetManager) : SoloModeRepo = SoloModeRepoImpl(assetManager)
+
+    @Singleton
+    @Provides
+    fun getGoogleAuthClient(@ApplicationContext appContext: Context) = GoogleAuthUiClient(
+        context = appContext,
+        oneTapClient = Identity.getSignInClient(appContext)
+    )
 
 }
