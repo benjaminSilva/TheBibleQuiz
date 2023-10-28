@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
 import androidx.navigation.navigation
+import com.example.novagincanabiblica.ui.screens.InitializeProfileScreen
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.screens.gamemodes.InitializeSoloResultScreen
 import com.example.novagincanabiblica.ui.screens.home.HomeScreen
@@ -29,7 +30,14 @@ fun SetupNavGraph(navController: NavHostController) {
                 route = Routes.Home.value
             ) {
                 val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
-                InitializeHomeScreen(navController = navController, homeViewModel)
+                InitializeHomeScreen(navController = navController, homeViewModel = homeViewModel)
+            }
+
+            composable(
+                route = Routes.Profile.value
+            ) {
+                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
+                InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)
             }
         }
 

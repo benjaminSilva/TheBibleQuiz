@@ -4,5 +4,5 @@ enum class QuestionDifficulty {
     EASY,
     MEDIUM,
     HARD,
-    PASTOR
+    IMPOSSIBLE
 }

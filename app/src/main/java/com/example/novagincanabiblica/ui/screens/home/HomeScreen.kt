@@ -43,7 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
-import com.example.novagincanabiblica.data.models.SignInResult
+import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.SignInState
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.generateSubSequentialAlphaAnimations
@@ -52,7 +52,6 @@ import com.example.novagincanabiblica.ui.basicviews.shadowWithAnimation
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
-import com.example.novagincanabiblica.ui.theme.startDelayAnimation
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import java.util.Calendar
 
@@ -94,7 +93,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 fun HomeScreen(
     navController: NavHostController,
     signInState: SignInState,
-    signedInUser: SignInResult,
+    signedInUser: Session,
     hourOfTheDay: Int,
     onClickSignIn: () -> Unit
 ) {
@@ -116,11 +115,16 @@ fun HomeScreen(
     }
 
     val animationLayoutList =
-        generateSubSequentialAlphaAnimations(numberOfViews = 4, condition = startAnimation)
+        generateSubSequentialAlphaAnimations(
+            numberOfViews = 4,
+            condition = startAnimation,
+            duration = 500
+        )
     val animationPositionList = generateSubSequentialPositionAnimations(
         numberOfViews = 4,
         condition = startAnimation,
-        offsetStart = IntOffset(-80, 0)
+        offsetStart = IntOffset(-80, 0),
+        duration = 500
     )
 
     val sendIntent: Intent = Intent().apply {
@@ -306,12 +310,17 @@ fun HomeScreen(
             }
             .alpha(animationLayoutList[3].value)
         ) {
-            //if (signInState.isSignInSuccessful) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(16.dp))
-                    .clickable { onClickSignIn() }
+                    .clickable {
+                        if (signInState.isSignInSuccessful) {
+                            navController.navigate(Routes.Profile.value)
+                        } else {
+                            onClickSignIn()
+                        }
+                    }
                     .background(almostWhite)
             ) {
                 Row(

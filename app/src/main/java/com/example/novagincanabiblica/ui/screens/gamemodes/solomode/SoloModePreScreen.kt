@@ -1,11 +1,15 @@
 package com.example.novagincanabiblica.ui.screens.gamemodes.solomode
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,15 +22,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.QuestionDifficulty
 import com.example.novagincanabiblica.ui.basicviews.BasicButton
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
@@ -42,17 +49,17 @@ fun InitializePreSoloScreen(
     navController: NavHostController,
     soloViewModel: SoloModeViewModel
 ) {
-    val questionNumber by soloViewModel.currentQuestionNumber.collectAsStateWithLifecycle()
+    val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     PreSoloScreen(
         navController = navController,
-        questionNumber = questionNumber
+        currentQuestionDifficulty = currentQuestion.difficulty
     )
 }
 
 @Composable
 fun PreSoloScreen(
     navController: NavHostController,
-    questionNumber: Int
+    currentQuestionDifficulty: QuestionDifficulty
 ) {
     var startAnimation by remember {
         mutableStateOf(true)
@@ -79,7 +86,9 @@ fun PreSoloScreen(
     val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1500)
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -89,6 +98,7 @@ fun PreSoloScreen(
                     .fillMaxWidth()
             ) {
                 Column(modifier = Modifier.align(Alignment.Center)) {
+
                     Text(
                         modifier = Modifier
                             .rotate(animateTitleAngle)
@@ -96,8 +106,14 @@ fun PreSoloScreen(
                                 animateQuestionPosition
                             }
                             .alpha(animateScreenAlpha),
-                        text = "Question",
-                        style = MaterialTheme.typography.displayLarge
+                        text = currentQuestionDifficulty.name,
+                        style = MaterialTheme.typography.displayLarge,
+                        fontSize = when (currentQuestionDifficulty) {
+                            QuestionDifficulty.EASY -> 115.sp
+                            QuestionDifficulty.MEDIUM -> 75.sp
+                            QuestionDifficulty.HARD -> 115.sp
+                            QuestionDifficulty.IMPOSSIBLE -> 45.sp
+                        }
                     )
                     Text(
                         modifier = Modifier
@@ -107,42 +123,37 @@ fun PreSoloScreen(
                                 animateNumberPosition
                             }
                             .alpha(animateScreenAlpha),
-                        text = "$questionNumber",
-                        fontSize = 115.sp,
+                        text = "Question",
                         style = MaterialTheme.typography.displayLarge
                     )
                 }
-                BasicText(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .alpha(animateButtonsAlpha),
-                    text = when (questionNumber) {
-                        1 -> "Easy"
-                        2 -> "Medium"
-                        3 -> "Hard"
-                        else -> "Pastor Level"
-                    },
-                    fontSize = 25,
-                )
             }
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .alpha(animateButtonsAlpha)
             ) {
-                Column(modifier = Modifier.align(Alignment.Center)) {
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     BasicButton(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        text = stringResource(R.string.start_question)
-                    ) {
-                        navController.navigateWithoutRemembering(route = Routes.SoloModeQuestion)
-                    }
-                    BasicButton(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(0.3f)
+                            .clip(RoundedCornerShape(16.dp)),
                         text = stringResource(id = R.string.go_back)
                     ) {
                         navController.popBackStack()
+                    }
+                    BasicButton(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(0.7f)
+                            .clip(RoundedCornerShape(16.dp)),
+                        text = stringResource(R.string.start_question)
+                    ) {
+                        navController.navigateWithoutRemembering(route = Routes.SoloModeQuestion)
                     }
                 }
             }
@@ -154,6 +165,6 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(), 8)
+        PreSoloScreen(rememberNavController(), QuestionDifficulty.EASY)
     }
 }

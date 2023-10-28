@@ -2,12 +2,15 @@ package com.example.novagincanabiblica.ui.basicviews
 
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.example.novagincanabiblica.ui.theme.animationDuration
 import com.example.novagincanabiblica.ui.theme.startDelayAnimation
 
@@ -92,16 +95,37 @@ fun animateAlpha(
 }
 
 @Composable
+fun animateDp(
+    condition: Boolean,
+    startValue: Dp = 0.dp,
+    endValue: Dp = 0.dp,
+    duration: Int = animationDuration,
+    delay: Int = startDelayAnimation,
+    easing: Easing = LinearOutSlowInEasing
+): State<Dp> {
+    return animateDpAsState(
+        targetValue = if (condition) startValue else endValue,
+        animationSpec = tween(
+            durationMillis = duration,
+            delayMillis = delay,
+            easing = easing
+        ),
+        label = "dp"
+    )
+}
+
+@Composable
 fun generateSubSequentialAlphaAnimations(
     numberOfViews: Int,
-    condition: Boolean
+    condition: Boolean,
+    duration: Int = 500
 ): List<State<Float>> {
     val list = mutableListOf<State<Float>>()
     var delay = 0
     for (i in 0..numberOfViews) {
         delay += 200
         list.add(
-            animateAlpha(condition = condition, duration = 500, delay = delay)
+            animateAlpha(condition = condition, duration = duration, delay = delay)
         )
     }
     return list
@@ -111,7 +135,8 @@ fun generateSubSequentialAlphaAnimations(
 fun generateSubSequentialPositionAnimations(
     numberOfViews: Int,
     condition: Boolean,
-    offsetStart: IntOffset
+    offsetStart: IntOffset,
+    duration: Int = 500
 ): List<State<IntOffset>> {
     val list = mutableListOf<State<IntOffset>>()
     var delay = 0
@@ -122,7 +147,7 @@ fun generateSubSequentialPositionAnimations(
                 condition = condition,
                 startValue = offsetStart,
                 endValue = IntOffset.Zero,
-                duration = 500,
+                duration = duration,
                 delay = delay
             )
         )

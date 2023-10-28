@@ -6,13 +6,11 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
-import com.example.novagincanabiblica.data.models.SignInResult
+import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.SessionCache
 import com.example.novagincanabiblica.data.models.SignInState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,13 +18,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val googleAuthUiClient: GoogleAuthUiClient
+    private val googleAuthUiClient: GoogleAuthUiClient,
+    private val session: SessionCache
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignInState())
     val state = _state.asStateFlow()
 
-    private val _signInResult = MutableStateFlow(SignInResult())
+    private val _signInResult = MutableStateFlow(Session())
     val signInResult = _signInResult.asStateFlow()
 
     init {
@@ -36,6 +35,7 @@ class HomeViewModel @Inject constructor(
     private fun isUserSignedIn() {
         val signedUser = googleAuthUiClient.getSignerUser()
         if (signedUser != null) {
+            session.saveSession(Session(data = signedUser))
             _signInResult.update {
                 it.copy(data = signedUser, errorMessage = null)
             }
@@ -45,18 +45,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onSignInResult(result: SignInResult) {
+    private fun onSignInResult(result: Session) {
         _state.update {
             it.copy(isSignInSuccessful = result.data != null, signInError = result.errorMessage)
         }
         if (result.data != null) {
+            session.saveSession(_signInResult.value)
             _signInResult.value = result
         }
     }
 
-    fun resetState() {
+    private fun resetState() {
         _state.update {
             SignInState()
+        }
+        _signInResult.update {
+            Session()
         }
     }
 
@@ -76,5 +80,11 @@ class HomeViewModel @Inject constructor(
                 ).build()
             )
         }
+
+    fun signOut() = viewModelScope.launch {
+        googleAuthUiClient.signOut()
+        session.clearSession()
+        resetState()
+    }
 
 }

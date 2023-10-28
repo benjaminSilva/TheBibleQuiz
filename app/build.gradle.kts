@@ -30,6 +30,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -94,5 +95,7 @@ dependencies {
 
     //Koil
     implementation("io.coil-kt:coil-compose:2.4.0")
-    
+
+    //Moshi
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 }

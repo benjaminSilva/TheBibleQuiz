@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import com.example.novagincanabiblica.R
-import com.example.novagincanabiblica.data.models.SignInResult
+import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions
@@ -36,13 +36,13 @@ class GoogleAuthUiClient(
         return result?.pendingIntent?.intentSender
     }
 
-    suspend fun signInWithIntent(intent: Intent): SignInResult {
+    suspend fun signInWithIntent(intent: Intent): Session {
         val credential = oneTapClient.getSignInCredentialFromIntent(intent)
         val googleIdToken = credential.googleIdToken
         val googleCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
             val user = auth.signInWithCredential(googleCredential).await().user
-            SignInResult(
+            Session(
                 data = user?.run {
                     UserData(
                         userId = uid,
@@ -54,14 +54,14 @@ class GoogleAuthUiClient(
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
-            SignInResult(
+            Session(
                 data = null,
                 errorMessage = e.message
             )
         }
     }
 
-    suspend fun signOut() {
+    fun signOut() {
         try {
             auth.signOut()
         } catch (e: Exception) {
