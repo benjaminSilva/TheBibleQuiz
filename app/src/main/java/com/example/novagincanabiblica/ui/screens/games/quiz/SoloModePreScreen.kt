@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.ui.screens.gamemodes.solomode
+package com.example.novagincanabiblica.ui.screens.games.quiz
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +34,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.QuestionDifficulty
 import com.example.novagincanabiblica.ui.basicviews.BasicButton
-import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.basicviews.animateAngle
 import com.example.novagincanabiblica.ui.basicviews.animatePosition
@@ -53,13 +51,17 @@ fun InitializePreSoloScreen(
     PreSoloScreen(
         navController = navController,
         currentQuestionDifficulty = currentQuestion.difficulty
-    )
+    ) {
+        soloViewModel.updateSession()
+        navController.navigateWithoutRemembering(route = Routes.SoloModeQuestion)
+    }
 }
 
 @Composable
 fun PreSoloScreen(
     navController: NavHostController,
-    currentQuestionDifficulty: QuestionDifficulty
+    currentQuestionDifficulty: QuestionDifficulty,
+    startQuestionClick: () -> Unit
 ) {
     var startAnimation by remember {
         mutableStateOf(true)
@@ -153,7 +155,7 @@ fun PreSoloScreen(
                             .clip(RoundedCornerShape(16.dp)),
                         text = stringResource(R.string.start_question)
                     ) {
-                        navController.navigateWithoutRemembering(route = Routes.SoloModeQuestion)
+                        startQuestionClick()
                     }
                 }
             }
@@ -165,6 +167,8 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(), QuestionDifficulty.EASY)
+        PreSoloScreen(rememberNavController(), QuestionDifficulty.EASY) {
+
+        }
     }
 }

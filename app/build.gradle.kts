@@ -24,7 +24,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -75,9 +79,12 @@ dependencies {
     implementation("androidx.hilt:hilt-work:1.0.0")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation("androidx.test:runner:1.5.2")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
+    testImplementation("com.google.dagger:hilt-android-testing:2.44")
+
 
     //Test
     testImplementation("junit:junit:4.13.2")
@@ -87,6 +94,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation("org.robolectric:robolectric:4.10.3")
+    testImplementation("io.mockk:mockk:1.13.8")
+
+
 
     //Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.4.0"))

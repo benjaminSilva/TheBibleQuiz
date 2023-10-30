@@ -7,7 +7,6 @@ import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.SessionCache
-import com.example.novagincanabiblica.data.models.state.AnswerDestinationState
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +15,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
@@ -29,7 +29,7 @@ class SoloModeViewModel @Inject constructor(
     private val _questions = mutableStateListOf<Question>()
     val questions = _questions
 
-    private val _nextDestination = MutableSharedFlow<AnswerDestinationState>()
+    private val _nextDestination = MutableSharedFlow<Boolean>()
     val nextDestination = _nextDestination.asSharedFlow()
 
     private val _currentQuestion = MutableStateFlow(Question())
@@ -71,12 +71,11 @@ class SoloModeViewModel @Inject constructor(
             delay(1000)
         }
         _screenClickable.emit(false)
-        _nextDestination.emit(AnswerDestinationState.RESULTS)
+        _nextDestination.emit(true)
     }
 
     private fun setupNewQuestion() = viewModelScope.launch {
         _screenClickable.emit(true)
-        _nextDestination.emit(AnswerDestinationState.STAY)
         _currentQuestion.emit(
             questions[Random.nextInt(0, 3)].apply {
                 listOfAnswers = listOfAnswers.shuffled()
@@ -89,21 +88,28 @@ class SoloModeViewModel @Inject constructor(
         selectedAnswer.selected = true
 
         if (selectedAnswer.isCorrect) {
-            delay(1000)
+            delay(500)
             _startSecondAnimation.emit(true)
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_CORRECTLY
             delay(2000)
-            _nextDestination.emit(AnswerDestinationState.RESULTS)
 
         } else {
-            delay(1000)
+            delay(500)
             _startSecondAnimation.emit(true)
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_WRONGLY
             delay(2000)
-            _nextDestination.emit(AnswerDestinationState.RESULTS)
         }
+        _nextDestination.emit(true)
+
+    }
+
+    fun updateSession() = viewModelScope.launch {
+        _sessionState.update {
+            it.copy(hasPlayedQuizGame = true)
+        }
+        session.saveSession(sessionState.value)
     }
 
 }

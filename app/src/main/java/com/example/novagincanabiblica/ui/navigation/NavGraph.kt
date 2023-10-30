@@ -13,10 +13,9 @@ import androidx.navigation.get
 import androidx.navigation.navigation
 import com.example.novagincanabiblica.ui.screens.InitializeProfileScreen
 import com.example.novagincanabiblica.ui.screens.Routes
-import com.example.novagincanabiblica.ui.screens.gamemodes.InitializeSoloResultScreen
-import com.example.novagincanabiblica.ui.screens.home.HomeScreen
-import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializePreSoloScreen
-import com.example.novagincanabiblica.ui.screens.gamemodes.solomode.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.InitializeSoloResultScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.InitializePreSoloScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloQuestionScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.SoloModeViewModel

@@ -7,7 +7,10 @@ import javax.inject.Inject
 
 data class Session(
     val data: UserData? = UserData(),
-    val errorMessage: String? = ""
+    val errorMessage: String? = "",
+    val hasPlayedQuizGame: Boolean = false,
+    val hasPlayerWordleGame: Boolean = false,
+    val dayReset: Boolean = false
 )
 
 data class UserData (
@@ -32,7 +35,7 @@ class SessionCacheImpl @Inject constructor(
     }
 
     override fun getActiveSession(): Session? {
-        val json = sharedPreferences.getString("session", null) ?: return null
+        val json = sharedPreferences.getString("session", null) ?: return Session()
         return adapter.fromJson(json)
     }
 

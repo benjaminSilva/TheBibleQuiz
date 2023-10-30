@@ -28,14 +28,26 @@ class HomeViewModel @Inject constructor(
     private val _signInResult = MutableStateFlow(Session())
     val signInResult = _signInResult.asStateFlow()
 
+    private val _localSession = MutableStateFlow(Session())
+    val localSession = _localSession.asStateFlow()
+
+
     init {
         isUserSignedIn()
+    }
+
+    fun updateSession() {
+        session.getActiveSession()?.apply {
+            _localSession.value = this
+        }
     }
 
     private fun isUserSignedIn() {
         val signedUser = googleAuthUiClient.getSignerUser()
         if (signedUser != null) {
-            session.saveSession(Session(data = signedUser))
+            if (session.getActiveSession() == null) {
+                session.saveSession(Session(data = signedUser))
+            }
             _signInResult.update {
                 it.copy(data = signedUser, errorMessage = null)
             }

@@ -59,9 +59,14 @@ import java.util.Calendar
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val signInState by homeViewModel.state.collectAsStateWithLifecycle()
     val signedInUser by homeViewModel.signInResult.collectAsStateWithLifecycle()
+    val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
     var hourOfTheDay by remember {
         mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(Unit) {
+        homeViewModel.updateSession()
     }
 
     LaunchedEffect(Unit) {
@@ -82,7 +87,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         navController = navController,
         signInState = signInState,
         signedInUser = signedInUser,
-        hourOfTheDay = hourOfTheDay
+        hourOfTheDay = hourOfTheDay,
+        localSession = localSession
     ) {
         homeViewModel.signIn(launcher)
     }
@@ -95,6 +101,7 @@ fun HomeScreen(
     signInState: SignInState,
     signedInUser: Session,
     hourOfTheDay: Int,
+    localSession: Session,
     onClickSignIn: () -> Unit
 ) {
 
@@ -235,7 +242,12 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(16.dp))
-                    .clickable { navController.navigate(Routes.SoloMode.value) }
+                    .clickable {
+                        if (localSession.hasPlayedQuizGame)
+                            navController.navigate(Routes.Results.value)
+                        else
+                            navController.navigate(Routes.SoloMode.value)
+                    }
                     .background(almostWhite)
             ) {
                 Row(

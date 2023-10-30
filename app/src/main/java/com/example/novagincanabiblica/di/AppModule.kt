@@ -23,11 +23,9 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideAssetManager(@ApplicationContext appContext: Context) : AssetManager = appContext.assets
+    fun provideAssetManager(@ApplicationContext appContext: Context): AssetManager =
+        appContext.assets
 
-    @Singleton
-    @Provides
-    fun getSoloModeRepo(assetManager: AssetManager) : SoloModeRepo = SoloModeRepoImpl(assetManager)
 
     @Singleton
     @Provides
@@ -45,7 +43,18 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSessionCache(sharedPreferences: SharedPreferences): SessionCache {
-        return SessionCacheImpl(sharedPreferences)
+        return SessionCacheImpl(sharedPreferences = sharedPreferences)
     }
+
+    @Singleton
+    @Provides
+    fun getSoloModeRepo(
+        assetManager: AssetManager,
+        googleAuthUiClient: GoogleAuthUiClient,
+        sessionCache: SessionCache
+    ): SoloModeRepo = SoloModeRepoImpl(
+        assetManager = assetManager,
+        googleAuthUiClient = googleAuthUiClient, session = sessionCache
+    )
 
 }

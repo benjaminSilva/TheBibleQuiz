@@ -1,11 +1,13 @@
-package com.example.novagincanabiblica.ui.screens.gamemodes.solomode
+package com.example.novagincanabiblica.ui.screens.games.quiz
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.repeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,8 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -40,7 +40,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.state.AnswerDestinationState
 import com.example.novagincanabiblica.ui.basicviews.AutoResizeText
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.ClockTimer
@@ -64,12 +63,10 @@ fun InitializeSoloQuestionScreen(
 ) {
 
     val currentQuestionState by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    val answerState by soloViewModel.nextDestination.collectAsStateWithLifecycle(initialValue = AnswerDestinationState.STAY)
+    val navigateNextScreen by soloViewModel.nextDestination.collectAsStateWithLifecycle(false)
     val remainingTime by soloViewModel.remainingTime.collectAsStateWithLifecycle()
     val secondAnimation by soloViewModel.startSecondAnimation.collectAsStateWithLifecycle()
-    val session by soloViewModel.sessionState.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
+    val screenClickable by soloViewModel.screenClickable.collectAsStateWithLifecycle()
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -82,13 +79,14 @@ fun InitializeSoloQuestionScreen(
 
     handleAnotherNavigation(
         navController = navController,
-        answerState = answerState
+        navigateNextScreen = navigateNextScreen
     )
 
     SoloQuestionScreen(
         currentQuestion = currentQuestionState,
         startAnimation = startAnimation,
         remainingTime = remainingTime,
+        screenClickable = screenClickable,
         startSecondAnimation = secondAnimation
     ) { answer ->
         soloViewModel.verifyAnswer(answer)
@@ -98,14 +96,12 @@ fun InitializeSoloQuestionScreen(
 
 fun handleAnotherNavigation(
     navController: NavHostController,
-    answerState: AnswerDestinationState
+    navigateNextScreen: Boolean
 ) {
-    when (answerState) {
-        AnswerDestinationState.RESULTS -> navController.navigateWithoutRemembering(
+    if (navigateNextScreen) {
+        navController.navigateWithoutRemembering(
             route = Routes.Results
         )
-
-        else -> Unit
     }
 }
 
@@ -115,6 +111,7 @@ fun SoloQuestionScreen(
     startAnimation: Boolean,
     startSecondAnimation: Boolean,
     remainingTime: String,
+    screenClickable: Boolean,
     answerClick: (Answer) -> Unit
 ) {
 
@@ -205,7 +202,8 @@ fun SoloQuestionScreen(
                         alphaAnimation = listOfAnimations[0].value,
                         positionAnimation = listOfPositionAnimations[0].value,
                         startSecondAnimation = startSecondAnimation,
-                        answer = currentQuestion.listOfAnswers[0]
+                        answer = currentQuestion.listOfAnswers[0],
+                        screenClickable = screenClickable
                     ) {
                         answerClick(currentQuestion.listOfAnswers[0])
                     }
@@ -218,7 +216,8 @@ fun SoloQuestionScreen(
                         alphaAnimation = listOfAnimations[1].value,
                         positionAnimation = listOfPositionAnimations[1].value,
                         startSecondAnimation = startSecondAnimation,
-                        answer = currentQuestion.listOfAnswers[1]
+                        answer = currentQuestion.listOfAnswers[1],
+                        screenClickable = screenClickable
                     ) {
                         answerClick(currentQuestion.listOfAnswers[1])
                     }
@@ -231,7 +230,8 @@ fun SoloQuestionScreen(
                         alphaAnimation = listOfAnimations[2].value,
                         positionAnimation = listOfPositionAnimations[2].value,
                         startSecondAnimation = startSecondAnimation,
-                        answer = currentQuestion.listOfAnswers[2]
+                        answer = currentQuestion.listOfAnswers[2],
+                        screenClickable = screenClickable
                     ) {
                         answerClick(currentQuestion.listOfAnswers[2])
                     }
@@ -244,7 +244,8 @@ fun SoloQuestionScreen(
                         alphaAnimation = listOfAnimations[3].value,
                         positionAnimation = listOfPositionAnimations[3].value,
                         startSecondAnimation = startSecondAnimation,
-                        answer = currentQuestion.listOfAnswers[3]
+                        answer = currentQuestion.listOfAnswers[3],
+                        screenClickable = screenClickable
                     ) {
                         answerClick(currentQuestion.listOfAnswers[3])
                     }
@@ -261,21 +262,25 @@ fun AnswerButton(
     positionAnimation: IntOffset,
     startSecondAnimation: Boolean,
     answer: Answer,
+    screenClickable: Boolean,
     answerClick: () -> Unit
 ) {
+
 
     val animateColor by animateColorAsState(
         targetValue = when {
             startSecondAnimation && answer.isCorrect -> correctAnswer
             startSecondAnimation && answer.selected && !answer.isCorrect -> wrongAnswer
             else -> lessWhite
-                           }
-        /*if (startSecondAnimation && answer.selected == QuestionPickState.SELECTED) {
-            if (answer.isCorrect) correctAnswer else wrongAnswer
-        } else {
-            lessWhite
-        }*/, animationSpec = tween(
-            durationMillis = if (!answer.selected && answer.isCorrect) 1000 else 500,
+        }, animationSpec = if (!answer.selected && answer.isCorrect) repeatable(
+            iterations = 3,
+            animation = tween(
+                durationMillis = 200,
+                easing = LinearOutSlowInEasing,
+            ), repeatMode = RepeatMode.Reverse,
+            initialStartOffset = StartOffset(500)
+        ) else tween(
+            durationMillis = 500,
             easing = LinearOutSlowInEasing
         ), label = "animateColor"
     )
@@ -285,7 +290,9 @@ fun AnswerButton(
         .alpha(alphaAnimation)
         .background(animateColor)
         .clickable {
-            answerClick()
+            if (screenClickable) {
+                answerClick()
+            }
         }
         .offset {
             positionAnimation
@@ -297,7 +304,7 @@ fun AnswerButton(
             AnimatedVisibility(visible = startSecondAnimation && answer.selected) {
                 BasicText(text = if (answer.isCorrect) "Correct Answer" else "Wrong Answer")
             }
-            if (!startSecondAnimation || answer.selected) {
+            if (!startSecondAnimation || !answer.selected) {
                 BasicText(text = answer.answerText)
             }
         }

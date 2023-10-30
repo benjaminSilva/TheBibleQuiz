@@ -24,18 +24,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.example.novagincanabiblica.ui.theme.closeToBlack
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 
 @Composable
 fun BasicText(
     modifier: Modifier = Modifier,
     text: String?,
-    fontSize: Int = 12,
+    fontSize: Int = 14,
     fontFamily: FontFamily = zillasFontFamily,
-    lineHeight: Int = 18
+    lineHeight: Int = 18,
+    fontColor: Color = closeToBlack
 ) {
     val notNullText = text ?: ""
-    Text(text = notNullText, modifier = modifier, fontSize = fontSize.sp, fontFamily = fontFamily, lineHeight = lineHeight.sp)
+    Text(text = notNullText, modifier = modifier, fontSize = fontSize.sp, fontFamily = fontFamily, lineHeight = lineHeight.sp, color = fontColor)
 }
 
 @Composable
