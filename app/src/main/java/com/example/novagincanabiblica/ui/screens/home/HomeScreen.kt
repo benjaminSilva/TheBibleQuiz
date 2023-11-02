@@ -2,9 +2,11 @@ package com.example.novagincanabiblica.ui.screens.home
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.SignInState
 import com.example.novagincanabiblica.ui.basicviews.BasicText
@@ -53,6 +56,7 @@ import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
+import com.google.firebase.database.getValue
 import java.util.Calendar
 
 @Composable
@@ -60,13 +64,19 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     val signInState by homeViewModel.state.collectAsStateWithLifecycle()
     val signedInUser by homeViewModel.signInResult.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
+    val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
+    val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
 
     var hourOfTheDay by remember {
         mutableIntStateOf(0)
     }
 
-    LaunchedEffect(Unit) {
-        homeViewModel.updateSession()
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = errorMessage) {
+        if (errorMessage.isNotEmpty()) {
+            Toast.makeText(context,errorMessage, Toast.LENGTH_LONG).show()
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -88,7 +98,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         signInState = signInState,
         signedInUser = signedInUser,
         hourOfTheDay = hourOfTheDay,
-        localSession = localSession
+        localSession = localSession,
+        dailyBibleVerse = dailyBibleVerse
     ) {
         homeViewModel.signIn(launcher)
     }
@@ -102,6 +113,7 @@ fun HomeScreen(
     signedInUser: Session,
     hourOfTheDay: Int,
     localSession: Session,
+    dailyBibleVerse: BibleVerse,
     onClickSignIn: () -> Unit
 ) {
 
@@ -138,7 +150,7 @@ fun HomeScreen(
         action = Intent.ACTION_SEND
         putExtra(
             Intent.EXTRA_TEXT,
-            "I want to share this verse with you:\n\nBut you are a chosen people, a royal priesthood, a holy nation, God’s special possession, that you may declare the praises of him who called you out of darkness into his wonderful light.\n\n1 Peter 2:9"
+            "I want to share this verse with you:\n\n${dailyBibleVerse.verse}\n\n${dailyBibleVerse.reference}"
         )
         type = "text/plain"
     }
@@ -169,9 +181,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(start = 8.dp), text = when {
-                    (6..12).contains(hourOfTheDay) -> "Good morning ${signedInUser.data?.userName}"
-                    (12..18).contains(hourOfTheDay) -> "Good afternoon ${signedInUser.data?.userName}"
-                    else -> "Good evening ${signedInUser.data?.userName}"
+                    (6..12).contains(hourOfTheDay) -> "Good morning ${signedInUser.userInfo?.userName}"
+                    (12..18).contains(hourOfTheDay) -> "Good afternoon ${signedInUser.userInfo?.userName}"
+                    else -> "Good evening ${signedInUser.userInfo?.userName}"
                 }
             )
 
@@ -196,6 +208,7 @@ fun HomeScreen(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         context.startActivity(shareIntent)
                     }) {}
+                    .animateContentSize()
                     .background(almostWhite)
             ) {
                 Column(
@@ -211,7 +224,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.Start),
-                        text = "But you are a chosen people, a royal priesthood, a holy nation, God’s special possession, that you may declare the praises of him who called you out of darkness into his wonderful light.",
+                        text = dailyBibleVerse.verse,
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -220,7 +233,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .align(Alignment.End),
-                        text = "1 Peter 2:9"
+                        text = dailyBibleVerse.reference
                     )
 
                 }
@@ -286,7 +299,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(16.dp))
-                    .clickable { navController.navigate(Routes.SoloMode.value) }
+                    .clickable {
+
+                    }
                     .background(almostWhite)
             ) {
                 Row(
@@ -344,7 +359,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape),
-                            model = signedInUser.data?.profilePictureUrl,
+                            model = signedInUser.userInfo?.profilePictureUrl,
                             contentDescription = null
                         )
                     } else {

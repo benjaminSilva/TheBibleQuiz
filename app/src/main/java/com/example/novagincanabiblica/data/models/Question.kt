@@ -12,6 +12,6 @@ data class Question(
 
 data class Answer(
     val answerText: String = "",
-    val isCorrect: Boolean = false,
+    val correct: Boolean = false,
     var selected: Boolean = false
 )

@@ -97,7 +97,7 @@ fun PreSoloScreen(
             
             QuestionStats(questionStatsData = generateStatsData())
 
-            if (session.data?.userId.isNullOrBlank()) {
+            if (session.userInfo?.userId.isNullOrBlank()) {
                 BasicText(text = "Login to Keep up with you stats and add friends.")
             }
 
@@ -118,7 +118,7 @@ fun QuestionGridResultView(question: Question) {
             BasicText(text = question.question)
             Row {
                 BasicText(text = "Correct Answer:")
-                BasicText(text = question.listOfAnswers.find { it.isCorrect }?.answerText)
+                BasicText(text = question.listOfAnswers.find { it.correct }?.answerText)
             }
             Row {
                 BasicText(text = "Bible Verse:")
@@ -132,8 +132,8 @@ fun QuestionGridResultView(question: Question) {
 fun Answer.displayAnswerColor(): ButtonColors =
     ButtonDefaults.buttonColors(
         containerColor = when {
-            isCorrect && selected -> ButtonAnswerState.CorrectAnswer.value
-            isCorrect -> ButtonAnswerState.CorrectAnswer.value
+            correct && selected -> ButtonAnswerState.CorrectAnswer.value
+            correct -> ButtonAnswerState.CorrectAnswer.value
             selected -> ButtonAnswerState.WrongAnswerSelected.value
             else -> ButtonAnswerState.WrongAnswer.value
         }

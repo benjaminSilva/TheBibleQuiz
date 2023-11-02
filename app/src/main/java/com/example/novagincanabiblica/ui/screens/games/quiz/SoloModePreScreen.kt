@@ -85,7 +85,7 @@ fun PreSoloScreen(
         IntOffset(500, -70),
         IntOffset(0, -70)
     )
-    val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1500)
+    val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1000)
 
     Box(
         modifier = Modifier

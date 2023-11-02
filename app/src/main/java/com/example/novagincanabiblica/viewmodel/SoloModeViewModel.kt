@@ -1,13 +1,11 @@
 package com.example.novagincanabiblica.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.models.SessionCache
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
+import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -15,19 +13,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class SoloModeViewModel @Inject constructor(
-    private val repo: SoloModeRepo,
-    private val session: SessionCache
-) : ViewModel() {
-
-    private val _questions = mutableStateListOf<Question>()
-    val questions = _questions
+    private val repo: SoloModeRepo
+) : BaseViewModel() {
 
     private val _nextDestination = MutableSharedFlow<Boolean>()
     val nextDestination = _nextDestination.asSharedFlow()
@@ -48,14 +41,41 @@ class SoloModeViewModel @Inject constructor(
     val sessionState = _sessionState.asStateFlow()
 
     init {
-        _questions.addAll(repo.loadLocalQuestions())
-        setupNewQuestion()
-        emitSession()
+        getDay()
     }
 
-    private fun emitSession() = viewModelScope.launch {
-        session.getActiveSession()?.apply {
-            _sessionState.emit(this)
+    private fun getDay() = viewModelScope.launch {
+        repo.getDay().collectLatest { day ->
+            day.handleSuccessAndFailure {
+                listenToQuestion(it)
+            }
+            when (day) {
+                is ResultOf.Success -> {
+                    repo.loadDailyQuestion(day.value).collectLatest { questionResult ->
+                        when (questionResult) {
+                            is ResultOf.Success -> {
+                                _currentQuestion.emit(questionResult.value)
+                            }
+
+                            is ResultOf.Failure -> {
+                                _errorMessage.emit(questionResult.errorMessage)
+                            }
+                        }
+                    }
+                }
+
+                is ResultOf.Failure -> {
+                    _errorMessage.emit(day.errorMessage)
+                }
+            }
+        }
+    }
+
+    private fun listenToQuestion(day: Int) = viewModelScope.launch {
+        repo.loadDailyQuestion(day).collectLatest { questionResult ->
+            questionResult.handleSuccessAndFailure {
+                _currentQuestion.emit(it.copy(listOfAnswers = it.listOfAnswers.shuffled()))
+            }
         }
     }
 
@@ -72,44 +92,39 @@ class SoloModeViewModel @Inject constructor(
         }
         _screenClickable.emit(false)
         _nextDestination.emit(true)
-    }
-
-    private fun setupNewQuestion() = viewModelScope.launch {
-        _screenClickable.emit(true)
-        _currentQuestion.emit(
-            questions[Random.nextInt(0, 3)].apply {
-                listOfAnswers = listOfAnswers.shuffled()
-            }
-        )
+        repo.updateStats(currentQuestion.value, false).collectLatest {
+            _errorMessage.emit(it)
+        }
     }
 
     fun verifyAnswer(selectedAnswer: Answer) = viewModelScope.launch {
         _screenClickable.emit(false)
         selectedAnswer.selected = true
-
-        if (selectedAnswer.isCorrect) {
+        if (selectedAnswer.correct) {
             delay(500)
             _startSecondAnimation.emit(true)
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_CORRECTLY
             delay(2000)
-
+            repo.updateStats(currentQuestion.value, true).collectLatest {
+                _errorMessage.emit(it)
+            }
         } else {
             delay(500)
             _startSecondAnimation.emit(true)
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_WRONGLY
             delay(2000)
+            /*repo.updateStats(currentQuestion.value, true).collectLatest {
+                _errorMessage.emit(it)
+            }*/
         }
         _nextDestination.emit(true)
 
     }
 
     fun updateSession() = viewModelScope.launch {
-        _sessionState.update {
-            it.copy(hasPlayedQuizGame = true)
-        }
-        session.saveSession(sessionState.value)
+        repo.updateHasPlayedBibleQuiz()
     }
 
 }

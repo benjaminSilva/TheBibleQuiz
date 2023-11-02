@@ -269,10 +269,10 @@ fun AnswerButton(
 
     val animateColor by animateColorAsState(
         targetValue = when {
-            startSecondAnimation && answer.isCorrect -> correctAnswer
-            startSecondAnimation && answer.selected && !answer.isCorrect -> wrongAnswer
+            startSecondAnimation && answer.correct -> correctAnswer
+            startSecondAnimation && answer.selected && !answer.correct -> wrongAnswer
             else -> lessWhite
-        }, animationSpec = if (!answer.selected && answer.isCorrect) repeatable(
+        }, animationSpec = if (!answer.selected && answer.correct) repeatable(
             iterations = 3,
             animation = tween(
                 durationMillis = 200,
@@ -302,7 +302,7 @@ fun AnswerButton(
             modifier = Modifier.align(Alignment.Center)
         ) {
             AnimatedVisibility(visible = startSecondAnimation && answer.selected) {
-                BasicText(text = if (answer.isCorrect) "Correct Answer" else "Wrong Answer")
+                BasicText(text = if (answer.correct) "Correct Answer" else "Wrong Answer")
             }
             if (!startSecondAnimation || !answer.selected) {
                 BasicText(text = answer.answerText)

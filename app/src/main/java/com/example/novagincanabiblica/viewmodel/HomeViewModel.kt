@@ -3,24 +3,23 @@ package com.example.novagincanabiblica.viewmodel
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.novagincanabiblica.client.GoogleAuthUiClient
+import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.models.SessionCache
 import com.example.novagincanabiblica.data.models.SignInState
+import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val googleAuthUiClient: GoogleAuthUiClient,
-    private val session: SessionCache
-) : ViewModel() {
+    private val repo: SoloModeRepo
+) : BaseViewModel() {
 
     private val _state = MutableStateFlow(SignInState())
     val state = _state.asStateFlow()
@@ -31,25 +30,42 @@ class HomeViewModel @Inject constructor(
     private val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
+    private val _dailyBibleVerse = MutableStateFlow(BibleVerse())
+    val dailyBibleVerse = _dailyBibleVerse.asStateFlow()
 
     init {
         isUserSignedIn()
+        getDay()
     }
 
-    fun updateSession() {
-        session.getActiveSession()?.apply {
-            _localSession.value = this
+    private fun getDay() = viewModelScope.launch {
+        repo.getDay().collectLatest { day ->
+            loadSession()
+            day.handleSuccessAndFailure {
+                listenToBibleVerseUpdate(it)
+            }
         }
     }
 
-    private fun isUserSignedIn() {
-        val signedUser = googleAuthUiClient.getSignerUser()
-        if (signedUser != null) {
-            if (session.getActiveSession() == null) {
-                session.saveSession(Session(data = signedUser))
+    private fun loadSession() = viewModelScope.launch {
+        repo.getSession().collectLatest {
+            _localSession.emit(it)
+        }
+    }
+
+    private fun listenToBibleVerseUpdate(day: Int) = viewModelScope.launch {
+        repo.getDailyBibleVerse(day).collectLatest {
+            it.handleSuccessAndFailure { bibleVerse ->
+                _dailyBibleVerse.emit(bibleVerse)
             }
+        }
+    }
+
+    private fun isUserSignedIn() = viewModelScope.launch {
+        val signedUser = repo.getSignedInUser()
+        if (signedUser != null) {
             _signInResult.update {
-                it.copy(data = signedUser, errorMessage = null)
+                it.copy(userInfo = signedUser, errorMessage = null)
             }
             _state.update {
                 it.copy(isSignInSuccessful = true)
@@ -57,12 +73,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+
     private fun onSignInResult(result: Session) {
         _state.update {
-            it.copy(isSignInSuccessful = result.data != null, signInError = result.errorMessage)
+            it.copy(isSignInSuccessful = result.userInfo != null, signInError = result.errorMessage)
         }
-        if (result.data != null) {
-            session.saveSession(_signInResult.value)
+        if (result.userInfo != null) {
             _signInResult.value = result
         }
     }
@@ -77,25 +93,16 @@ class HomeViewModel @Inject constructor(
     }
 
     fun signInSomething(result: ActivityResult) = viewModelScope.launch {
-        val signInLocalResult = googleAuthUiClient.signInWithIntent(
-            intent = result.data ?: return@launch
-        )
-        onSignInResult(signInLocalResult)
+        onSignInResult(repo.getSession(result))
     }
 
     fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) =
         viewModelScope.launch {
-            val signInIntentSender = googleAuthUiClient.signIn()
-            launcher.launch(
-                IntentSenderRequest.Builder(
-                    signInIntentSender ?: return@launch
-                ).build()
-            )
+            repo.signIn(launcher)
         }
 
     fun signOut() = viewModelScope.launch {
-        googleAuthUiClient.signOut()
-        session.clearSession()
+        repo.signOut()
         resetState()
     }
 

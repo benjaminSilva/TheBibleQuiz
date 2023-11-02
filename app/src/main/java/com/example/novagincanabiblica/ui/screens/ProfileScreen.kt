@@ -39,7 +39,7 @@ import com.example.novagincanabiblica.viewmodel.HomeViewModel
 @Composable
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val userData by homeViewModel.signInResult.collectAsStateWithLifecycle()
-    userData.data?.apply {
+    userData.userInfo?.apply {
         ProfileScreen(userData = this) {
             homeViewModel.signOut()
             navController.popBackStack()

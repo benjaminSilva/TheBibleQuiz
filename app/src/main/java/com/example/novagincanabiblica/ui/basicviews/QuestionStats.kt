@@ -67,7 +67,7 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
     val animateEasyCorrect by animateIntAsState(
         targetValue = if (startAnimation) 0 else questionStatsData.easyCorrect,
         animationSpec = tween(
-            durationMillis = 400,
+            durationMillis = 1000,
             delayMillis = 100,
             easing = LinearOutSlowInEasing
         ),
@@ -77,7 +77,7 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
     val animate2 by animateIntAsState(
         targetValue = if (startAnimation) 0 else questionStatsData.mediumCorrect,
         animationSpec = tween(
-            durationMillis = 400,
+            durationMillis = 1000,
             delayMillis = 100,
             easing = LinearOutSlowInEasing
         ),
@@ -87,7 +87,7 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
     val animate3 by animateIntAsState(
         targetValue = if (startAnimation) 0 else questionStatsData.hardCorrect,
         animationSpec = tween(
-            durationMillis = 400,
+            durationMillis = 1000,
             delayMillis = 100,
             easing = LinearOutSlowInEasing
         ),
@@ -97,7 +97,7 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
     val animate4 by animateIntAsState(
         targetValue = if (startAnimation) 0 else questionStatsData.impossibleCorrect,
         animationSpec = tween(
-            durationMillis = 400,
+            durationMillis = 1000,
             delayMillis = 100,
             easing = LinearOutSlowInEasing
         ),
@@ -191,10 +191,16 @@ fun PointsProgressRow(
                 .fillMaxWidth()
                 .weight(.1f)
         ) {
-            AnimatedCounter(
+            BasicText(
+                modifier = Modifier.align(Alignment.Center),
+                text = correctPoints,
+                fontSize = 22
+            )
+            /*AnimatedCounter(
                 modifier = Modifier.align(Alignment.Center),
                 count = correctPoints
-            )
+            )*/
+
         }
 
         MyProgressBar(

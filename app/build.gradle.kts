@@ -80,6 +80,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.test:runner:1.5.2")
+    implementation("com.google.firebase:firebase-database:20.3.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
@@ -109,4 +110,11 @@ dependencies {
 
     //Moshi
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+
+    //Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.4.0")
+
+
 }
