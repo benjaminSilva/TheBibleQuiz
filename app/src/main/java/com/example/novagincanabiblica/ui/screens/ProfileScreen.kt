@@ -38,7 +38,7 @@ import com.example.novagincanabiblica.viewmodel.HomeViewModel
 
 @Composable
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
-    val userData by homeViewModel.signInResult.collectAsStateWithLifecycle()
+    val userData by homeViewModel.localSession.collectAsStateWithLifecycle()
     userData.userInfo?.apply {
         ProfileScreen(userData = this) {
             homeViewModel.signOut()

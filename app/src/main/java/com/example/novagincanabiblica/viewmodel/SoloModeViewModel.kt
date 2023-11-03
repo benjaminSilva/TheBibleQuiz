@@ -3,9 +3,7 @@ package com.example.novagincanabiblica.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.Question
-import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
-import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -20,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SoloModeViewModel @Inject constructor(
     private val repo: SoloModeRepo
-) : BaseViewModel() {
+) : BaseViewModel(repo) {
 
     private val _nextDestination = MutableSharedFlow<Boolean>()
     val nextDestination = _nextDestination.asSharedFlow()
@@ -37,9 +35,6 @@ class SoloModeViewModel @Inject constructor(
     private val _startSecondAnimation = MutableStateFlow(false)
     val startSecondAnimation = _startSecondAnimation.asStateFlow()
 
-    private val _sessionState = MutableStateFlow(Session())
-    val sessionState = _sessionState.asStateFlow()
-
     init {
         getDay()
     }
@@ -48,25 +43,6 @@ class SoloModeViewModel @Inject constructor(
         repo.getDay().collectLatest { day ->
             day.handleSuccessAndFailure {
                 listenToQuestion(it)
-            }
-            when (day) {
-                is ResultOf.Success -> {
-                    repo.loadDailyQuestion(day.value).collectLatest { questionResult ->
-                        when (questionResult) {
-                            is ResultOf.Success -> {
-                                _currentQuestion.emit(questionResult.value)
-                            }
-
-                            is ResultOf.Failure -> {
-                                _errorMessage.emit(questionResult.errorMessage)
-                            }
-                        }
-                    }
-                }
-
-                is ResultOf.Failure -> {
-                    _errorMessage.emit(day.errorMessage)
-                }
             }
         }
     }
@@ -92,7 +68,7 @@ class SoloModeViewModel @Inject constructor(
         }
         _screenClickable.emit(false)
         _nextDestination.emit(true)
-        repo.updateStats(currentQuestion.value, false).collectLatest {
+        repo.updateStats(currentQuestion.value, false, localSession.value).collectLatest {
             _errorMessage.emit(it)
         }
     }
@@ -106,7 +82,7 @@ class SoloModeViewModel @Inject constructor(
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_CORRECTLY
             delay(2000)
-            repo.updateStats(currentQuestion.value, true).collectLatest {
+            repo.updateStats(currentQuestion.value, true, localSession.value).collectLatest {
                 _errorMessage.emit(it)
             }
         } else {
@@ -115,9 +91,9 @@ class SoloModeViewModel @Inject constructor(
             _currentQuestion.value.answerState =
                 QuestionAnswerState.ANSWERED_WRONGLY
             delay(2000)
-            /*repo.updateStats(currentQuestion.value, true).collectLatest {
+            repo.updateStats(currentQuestion.value, true, localSession.value).collectLatest {
                 _errorMessage.emit(it)
-            }*/
+            }
         }
         _nextDestination.emit(true)
 

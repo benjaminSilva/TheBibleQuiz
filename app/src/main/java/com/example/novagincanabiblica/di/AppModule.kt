@@ -3,11 +3,8 @@ package com.example.novagincanabiblica.di
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.content.res.AssetManager
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.client.WordleService
-import com.example.novagincanabiblica.data.models.SessionCache
-import com.example.novagincanabiblica.data.models.SessionCacheImpl
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import com.example.novagincanabiblica.data.repositories.SoloModeRepoImpl
 import com.google.android.gms.auth.api.identity.Identity
@@ -38,22 +35,14 @@ object AppModule {
         return context.getSharedPreferences("session_prefs", MODE_PRIVATE)
     }
 
-    @Provides
-    @Singleton
-    fun provideSessionCache(sharedPreferences: SharedPreferences): SessionCache {
-        return SessionCacheImpl(sharedPreferences = sharedPreferences)
-    }
-
     @Singleton
     @Provides
     fun getSoloModeRepo(
         googleAuthUiClient: GoogleAuthUiClient,
-        sessionCache: SessionCache,
         firebaseDatabase: FirebaseDatabase,
         wordleService: WordleService
     ): SoloModeRepo = SoloModeRepoImpl(
         googleAuthUiClient = googleAuthUiClient,
-        sessionCache = sessionCache,
         firebaseDatabase = firebaseDatabase,
         wordleService = wordleService
     )

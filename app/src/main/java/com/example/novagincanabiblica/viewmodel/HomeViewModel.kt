@@ -19,22 +19,18 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repo: SoloModeRepo
-) : BaseViewModel() {
+) : BaseViewModel(repo) {
 
-    private val _state = MutableStateFlow(SignInState())
-    val state = _state.asStateFlow()
+    /*private val _state = MutableStateFlow(SignInState())
+    val state = _state.asStateFlow()*/
 
-    private val _signInResult = MutableStateFlow(Session())
-    val signInResult = _signInResult.asStateFlow()
-
-    private val _localSession = MutableStateFlow(Session())
-    val localSession = _localSession.asStateFlow()
+    /*private val _signInResult = MutableStateFlow(Session())
+    val signInResult = _signInResult.asStateFlow()*/
 
     private val _dailyBibleVerse = MutableStateFlow(BibleVerse())
     val dailyBibleVerse = _dailyBibleVerse.asStateFlow()
 
     init {
-        isUserSignedIn()
         getDay()
     }
 
@@ -61,39 +57,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun isUserSignedIn() = viewModelScope.launch {
-        val signedUser = repo.getSignedInUser()
-        if (signedUser != null) {
-            _signInResult.update {
-                it.copy(userInfo = signedUser, errorMessage = null)
-            }
-            _state.update {
-                it.copy(isSignInSuccessful = true)
-            }
-        }
-    }
-
-
-    private fun onSignInResult(result: Session) {
-        _state.update {
-            it.copy(isSignInSuccessful = result.userInfo != null, signInError = result.errorMessage)
-        }
-        if (result.userInfo != null) {
-            _signInResult.value = result
-        }
-    }
-
     private fun resetState() {
-        _state.update {
-            SignInState()
-        }
-        _signInResult.update {
+        _localSession.update {
             Session()
         }
     }
 
     fun signInSomething(result: ActivityResult) = viewModelScope.launch {
-        onSignInResult(repo.getSession(result))
+        repo.getSession().collectLatest {
+
+        }
+        repo.getSession(result).collectLatest {
+            it.handleSuccessAndFailure { session ->
+                //onSignInResult(session)
+                _localSession.emit(session)
+            }
+        }
     }
 
     fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) =

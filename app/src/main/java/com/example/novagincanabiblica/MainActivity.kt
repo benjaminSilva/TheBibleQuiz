@@ -9,6 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.ui.navigation.SetupNavGraph
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,5 +34,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     NovaGincanaBiblicaTheme {
+        SetupNavGraph(navController = rememberNavController())
     }
 }

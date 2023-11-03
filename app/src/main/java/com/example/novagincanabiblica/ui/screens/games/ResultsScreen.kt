@@ -43,7 +43,7 @@ fun InitializeSoloResultScreen(
     soloViewModel: SoloModeViewModel
 ) {
     val question by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    val session by soloViewModel.sessionState.collectAsStateWithLifecycle()
+    val session by soloViewModel.localSession.collectAsStateWithLifecycle()
 
     PreSoloScreen(
         navController = navController,
@@ -94,8 +94,10 @@ fun PreSoloScreen(
                     )
                 }
             }
-            
-            QuestionStats(questionStatsData = generateStatsData())
+
+            if (!session.userInfo?.userId.isNullOrBlank()) {
+                QuestionStats(questionStatsData = session.userStats)
+            }
 
             if (session.userInfo?.userId.isNullOrBlank()) {
                 BasicText(text = "Login to Keep up with you stats and add friends.")
@@ -127,18 +129,6 @@ fun QuestionGridResultView(question: Question) {
         }
     }
 }
-
-@Composable
-fun Answer.displayAnswerColor(): ButtonColors =
-    ButtonDefaults.buttonColors(
-        containerColor = when {
-            correct && selected -> ButtonAnswerState.CorrectAnswer.value
-            correct -> ButtonAnswerState.CorrectAnswer.value
-            selected -> ButtonAnswerState.WrongAnswerSelected.value
-            else -> ButtonAnswerState.WrongAnswer.value
-        }
-    )
-
 
 @Preview(showBackground = true)
 @Composable

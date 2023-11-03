@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,24 +45,55 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
         startAnimation = false
     }
 
+    val totalEasy by remember {
+        mutableIntStateOf(questionStatsData.easyWrong + questionStatsData.easyCorrect)
+    }
+
+    val totalMedium by remember {
+        mutableIntStateOf(questionStatsData.mediumWrong + questionStatsData.mediumCorrect)
+    }
+
+    val totalHard by remember {
+        mutableIntStateOf(questionStatsData.hardWrong + questionStatsData.hardCorrect)
+    }
+
+    val totalImpossible by remember {
+        mutableIntStateOf(questionStatsData.impossibleWrong + questionStatsData.impossibleCorrect)
+    }
+
     val animateEasy by animateAlpha(
         condition = startAnimation,
-        endValue = (questionStatsData.easyCorrect.toFloat() / questionStatsData.totalEasy)
+        endValue = if (itDoesntBreak(questionStatsData.easyCorrect, questionStatsData.easyWrong)) {
+            (questionStatsData.easyCorrect.toFloat() / totalEasy)
+        } else 0f
     )
 
     val animateMedium by animateAlpha(
         condition = startAnimation,
-        endValue = (questionStatsData.mediumCorrect.toFloat() / questionStatsData.totalMedium)
+        endValue = if (itDoesntBreak(
+                questionStatsData.mediumCorrect,
+                questionStatsData.mediumWrong
+            )
+        )
+            (questionStatsData.mediumCorrect.toFloat() / totalMedium) else 0f
     )
 
     val animateHard by animateAlpha(
         condition = startAnimation,
-        endValue = (questionStatsData.hardCorrect.toFloat() / questionStatsData.totalHard)
+        endValue = if (itDoesntBreak(
+                questionStatsData.hardCorrect,
+                questionStatsData.hardWrong
+            )
+        ) (questionStatsData.hardCorrect.toFloat() / totalHard) else 0f
     )
 
     val animateImpossible by animateAlpha(
         condition = startAnimation,
-        endValue = (questionStatsData.impossibleCorrect.toFloat() / questionStatsData.totalImpossible)
+        endValue = if (itDoesntBreak(
+                questionStatsData.impossibleCorrect,
+                questionStatsData.impossibleWrong
+            )
+        ) (questionStatsData.impossibleCorrect.toFloat() / totalImpossible) else 0f
     )
 
     val animateEasyCorrect by animateIntAsState(
@@ -143,34 +175,38 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
                 PointsProgressRow(
                     correctPoints = animateEasyCorrect.toString(),
                     progress = animateEasy,
-                    totalPoints = questionStatsData.totalEasy.toString(),
+                    totalPoints = totalEasy.toString(),
                     difficulty = "EASY"
                 )
 
                 PointsProgressRow(
                     correctPoints = animate2.toString(),
                     progress = animateMedium,
-                    totalPoints = questionStatsData.totalMedium.toString(),
+                    totalPoints = totalMedium.toString(),
                     difficulty = "MEDIUM"
                 )
 
                 PointsProgressRow(
                     correctPoints = animate3.toString(),
                     progress = animateHard,
-                    totalPoints = questionStatsData.totalHard.toString(),
+                    totalPoints = totalHard.toString(),
                     difficulty = "HARD"
                 )
 
                 PointsProgressRow(
                     correctPoints = animate4.toString(),
                     progress = animateImpossible,
-                    totalPoints = questionStatsData.totalImpossible.toString(),
+                    totalPoints = totalImpossible.toString(),
                     difficulty = "IMPOSSIBLE"
                 )
             }
         }
     }
 
+}
+
+fun itDoesntBreak(correct: Int, wrong: Int): Boolean {
+    return !(correct == 0 || correct + wrong == 0)
 }
 
 @Composable
@@ -261,4 +297,5 @@ fun PreviewQuestionStats() {
     }
 }
 
-fun generateStatsData(): QuestionStatsData = QuestionStatsData(43, 3, 30, 88, 77, 80, 10, 60, 6)
+fun generateStatsData(): QuestionStatsData =
+    QuestionStatsData(43, 3, 30, 88, 77, 80, 10, 60, 6)

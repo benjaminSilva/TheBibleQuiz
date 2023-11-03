@@ -61,8 +61,6 @@ import java.util.Calendar
 
 @Composable
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
-    val signInState by homeViewModel.state.collectAsStateWithLifecycle()
-    val signedInUser by homeViewModel.signInResult.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
     val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
@@ -95,8 +93,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 
     HomeScreen(
         navController = navController,
-        signInState = signInState,
-        signedInUser = signedInUser,
         hourOfTheDay = hourOfTheDay,
         localSession = localSession,
         dailyBibleVerse = dailyBibleVerse
@@ -109,21 +105,12 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    signInState: SignInState,
-    signedInUser: Session,
     hourOfTheDay: Int,
     localSession: Session,
     dailyBibleVerse: BibleVerse,
     onClickSignIn: () -> Unit
 ) {
-
     val context = LocalContext.current
-
-    LaunchedEffect(key1 = signInState.signInError) {
-        signInState.signInError?.let { error ->
-            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
-        }
-    }
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -181,9 +168,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(start = 8.dp), text = when {
-                    (6..12).contains(hourOfTheDay) -> "Good morning ${signedInUser.userInfo?.userName}"
-                    (12..18).contains(hourOfTheDay) -> "Good afternoon ${signedInUser.userInfo?.userName}"
-                    else -> "Good evening ${signedInUser.userInfo?.userName}"
+                    (6..12).contains(hourOfTheDay) -> "Good morning ${localSession.userInfo?.userName}"
+                    (12..18).contains(hourOfTheDay) -> "Good afternoon ${localSession.userInfo?.userName}"
+                    else -> "Good evening ${localSession.userInfo?.userName}"
                 }
             )
 
@@ -342,7 +329,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(16.dp))
                     .clickable {
-                        if (signInState.isSignInSuccessful) {
+                        if (!localSession.userInfo?.userId.isNullOrBlank()) {
                             navController.navigate(Routes.Profile.value)
                         } else {
                             onClickSignIn()
@@ -354,12 +341,12 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    if (signInState.isSignInSuccessful) {
+                    if (!localSession.userInfo?.userId.isNullOrBlank()) {
                         AsyncImage(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape),
-                            model = signedInUser.userInfo?.profilePictureUrl,
+                            model = localSession.userInfo?.profilePictureUrl,
                             contentDescription = null
                         )
                     } else {
@@ -375,7 +362,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = if (signInState.isSignInSuccessful) "Profile" else "Sign Up / Login with Google",
+                        text = if (!localSession.userInfo?.userId.isNullOrBlank()) "Profile" else "Sign Up / Login with Google",
                         fontSize = 24,
                         lineHeight = 22
                     )

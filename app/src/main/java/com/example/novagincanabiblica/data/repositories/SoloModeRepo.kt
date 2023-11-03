@@ -11,10 +11,9 @@ import com.example.novagincanabiblica.data.models.state.ResultOf
 import kotlinx.coroutines.flow.Flow
 
 interface SoloModeRepo {
-    suspend fun getCurrentUser(): Session
     suspend fun signOut()
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
-    suspend fun getSession(result: ActivityResult): Session
+    suspend fun getSession(result: ActivityResult): Flow<ResultOf<Session>>
     suspend fun getSignedInUser(): UserData?
     suspend fun updateHasPlayedBibleQuiz()
     suspend fun getSession(): Flow<Session>
@@ -22,5 +21,5 @@ interface SoloModeRepo {
     suspend fun checkWord(word: String): Flow<ResultOf<String>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
-    suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean): Flow<String>
+    suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session): Flow<String>
 }
