@@ -40,12 +40,12 @@ import com.example.novagincanabiblica.ui.basicviews.animatePosition
 import com.example.novagincanabiblica.ui.navigation.navigateWithoutRemembering
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
-import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
+import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
 
 @Composable
 fun InitializePreSoloScreen(
     navController: NavHostController,
-    soloViewModel: SoloModeViewModel
+    soloViewModel: BibleQuizViewModel
 ) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     PreSoloScreen(

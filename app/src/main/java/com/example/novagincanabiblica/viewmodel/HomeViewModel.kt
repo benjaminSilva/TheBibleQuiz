@@ -6,9 +6,9 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.models.SignInState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -21,22 +21,37 @@ class HomeViewModel @Inject constructor(
     private val repo: SoloModeRepo
 ) : BaseViewModel(repo) {
 
-    /*private val _state = MutableStateFlow(SignInState())
-    val state = _state.asStateFlow()*/
-
-    /*private val _signInResult = MutableStateFlow(Session())
-    val signInResult = _signInResult.asStateFlow()*/
-
     private val _dailyBibleVerse = MutableStateFlow(BibleVerse())
     val dailyBibleVerse = _dailyBibleVerse.asStateFlow()
+
+    private val _hasUserPlayedLocally = MutableStateFlow(false)
+    val hasUserPlayedLocally = _hasUserPlayedLocally.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     init {
         getDay()
     }
 
+    fun checkGamesAvailability() = viewModelScope.launch {
+        repo.isThisGameModeAvailable("hasPlayedQuizGame").collectLatest {
+            _hasUserPlayedLocally.emit(it)
+        }
+    }
+
+    fun refresh() = viewModelScope.launch {
+        _isRefreshing.emit(true)
+        delay(1000)
+        checkGamesAvailability()
+        getDay()
+        _isRefreshing.emit(false)
+    }
+
     private fun getDay() = viewModelScope.launch {
         repo.getDay().collectLatest { day ->
             loadSession()
+
             day.handleSuccessAndFailure {
                 listenToBibleVerseUpdate(it)
             }
@@ -45,7 +60,9 @@ class HomeViewModel @Inject constructor(
 
     private fun loadSession() = viewModelScope.launch {
         repo.getSession().collectLatest {
-            _localSession.emit(it)
+            it.handleSuccessAndFailure { session ->
+                _localSession.emit(session)
+            }
         }
     }
 
@@ -64,12 +81,8 @@ class HomeViewModel @Inject constructor(
     }
 
     fun signInSomething(result: ActivityResult) = viewModelScope.launch {
-        repo.getSession().collectLatest {
-
-        }
         repo.getSession(result).collectLatest {
             it.handleSuccessAndFailure { session ->
-                //onSignInResult(session)
                 _localSession.emit(session)
             }
         }

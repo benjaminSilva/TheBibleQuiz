@@ -71,6 +71,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.compose.material:material:1.6.0-alpha08")
+
 
     //Hilt
     implementation("com.google.dagger:hilt-android:2.44")
@@ -115,6 +117,5 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.4.0")
-
 
 }

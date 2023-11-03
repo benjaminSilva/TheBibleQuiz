@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,10 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.novagincanabiblica.data.models.Answer
@@ -53,13 +57,13 @@ import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.correctAnswer
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.ui.theme.wrongAnswer
-import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
+import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
 
 
 @Composable
 fun InitializeSoloQuestionScreen(
     navController: NavHostController,
-    soloViewModel: SoloModeViewModel
+    soloViewModel: BibleQuizViewModel
 ) {
 
     val currentQuestionState by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
@@ -76,11 +80,34 @@ fun InitializeSoloQuestionScreen(
         startAnimation = false
         soloViewModel.startClock()
     }
+    
+    LaunchedEffect(navigateNextScreen) {
+        if (navigateNextScreen) {
+            navController.navigateWithoutRemembering(
+                route = Routes.Results
+            )
+        }
+    }
 
-    handleAnotherNavigation(
-        navController = navController,
-        navigateNextScreen = navigateNextScreen
-    )
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        // Create an observer that triggers our remembered callbacks
+        // for sending analytics events
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                soloViewModel.updateQuestionResult(isCorrect = false)
+            }
+        }
+
+        // Add the observer to the lifecycle
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        // When the effect leaves the Composition, remove the observer
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     SoloQuestionScreen(
         currentQuestion = currentQuestionState,
@@ -98,11 +125,7 @@ fun handleAnotherNavigation(
     navController: NavHostController,
     navigateNextScreen: Boolean
 ) {
-    if (navigateNextScreen) {
-        navController.navigateWithoutRemembering(
-            route = Routes.Results
-        )
-    }
+    
 }
 
 @Composable

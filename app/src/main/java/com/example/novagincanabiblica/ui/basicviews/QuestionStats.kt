@@ -1,8 +1,5 @@
 package com.example.novagincanabiblica.ui.basicviews
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,7 +32,7 @@ import com.example.novagincanabiblica.ui.theme.correctAnswer
 import com.example.novagincanabiblica.ui.theme.lessWhite
 
 @Composable
-fun QuestionStats(questionStatsData: QuestionStatsData) {
+fun QuestionStats(data: QuestionStatsData) {
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -45,95 +41,42 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
         startAnimation = false
     }
 
-    val totalEasy by remember {
-        mutableIntStateOf(questionStatsData.easyWrong + questionStatsData.easyCorrect)
-    }
-
-    val totalMedium by remember {
-        mutableIntStateOf(questionStatsData.mediumWrong + questionStatsData.mediumCorrect)
-    }
-
-    val totalHard by remember {
-        mutableIntStateOf(questionStatsData.hardWrong + questionStatsData.hardCorrect)
-    }
-
-    val totalImpossible by remember {
-        mutableIntStateOf(questionStatsData.impossibleWrong + questionStatsData.impossibleCorrect)
-    }
-
     val animateEasy by animateAlpha(
         condition = startAnimation,
-        endValue = if (itDoesntBreak(questionStatsData.easyCorrect, questionStatsData.easyWrong)) {
-            (questionStatsData.easyCorrect.toFloat() / totalEasy)
-        } else 0f
+        endValue = getAlphaValueToAnimate(data.easyCorrect, data.easyWrong)
     )
 
     val animateMedium by animateAlpha(
         condition = startAnimation,
-        endValue = if (itDoesntBreak(
-                questionStatsData.mediumCorrect,
-                questionStatsData.mediumWrong
-            )
-        )
-            (questionStatsData.mediumCorrect.toFloat() / totalMedium) else 0f
+        endValue = getAlphaValueToAnimate(data.mediumCorrect, data.mediumWrong)
     )
 
     val animateHard by animateAlpha(
         condition = startAnimation,
-        endValue = if (itDoesntBreak(
-                questionStatsData.hardCorrect,
-                questionStatsData.hardWrong
-            )
-        ) (questionStatsData.hardCorrect.toFloat() / totalHard) else 0f
+        endValue = getAlphaValueToAnimate(data.hardCorrect, data.hardWrong)
     )
 
     val animateImpossible by animateAlpha(
         condition = startAnimation,
-        endValue = if (itDoesntBreak(
-                questionStatsData.impossibleCorrect,
-                questionStatsData.impossibleWrong
-            )
-        ) (questionStatsData.impossibleCorrect.toFloat() / totalImpossible) else 0f
+        endValue = getAlphaValueToAnimate(data.impossibleCorrect, data.impossibleWrong)
+
     )
 
-    val animateEasyCorrect by animateIntAsState(
-        targetValue = if (startAnimation) 0 else questionStatsData.easyCorrect,
-        animationSpec = tween(
-            durationMillis = 1000,
-            delayMillis = 100,
-            easing = LinearOutSlowInEasing
-        ),
-        label = ""
+    val animateEasyCorrect by animateInt(
+        startAnimation = startAnimation,
+        endValue = data.easyCorrect
     )
-
-    val animate2 by animateIntAsState(
-        targetValue = if (startAnimation) 0 else questionStatsData.mediumCorrect,
-        animationSpec = tween(
-            durationMillis = 1000,
-            delayMillis = 100,
-            easing = LinearOutSlowInEasing
-        ),
-        label = ""
+    val animateMediumCorrect by animateInt(
+        startAnimation = startAnimation,
+        endValue = data.mediumCorrect
     )
-
-    val animate3 by animateIntAsState(
-        targetValue = if (startAnimation) 0 else questionStatsData.hardCorrect,
-        animationSpec = tween(
-            durationMillis = 1000,
-            delayMillis = 100,
-            easing = LinearOutSlowInEasing
-        ),
-        label = ""
+    val animateHardCorrect by animateInt(
+        startAnimation = startAnimation,
+        endValue = data.hardCorrect
     )
-
-    val animate4 by animateIntAsState(
-        targetValue = if (startAnimation) 0 else questionStatsData.impossibleCorrect,
-        animationSpec = tween(
-            durationMillis = 1000,
-            delayMillis = 100,
-            easing = LinearOutSlowInEasing
-        ),
-        label = ""
+    val animateImpossibleCorrect by animateInt(
+        startAnimation = startAnimation,
+        endValue = data.impossibleCorrect
     )
 
     Box(
@@ -175,29 +118,29 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
                 PointsProgressRow(
                     correctPoints = animateEasyCorrect.toString(),
                     progress = animateEasy,
-                    totalPoints = totalEasy.toString(),
-                    difficulty = "EASY"
+                    totalPoints = data.getTotalEasy().toString(),
+                    difficulty = "EASY/(${animateEasy.times(100).toInt()}%)"
                 )
 
                 PointsProgressRow(
-                    correctPoints = animate2.toString(),
+                    correctPoints = animateMediumCorrect.toString(),
                     progress = animateMedium,
-                    totalPoints = totalMedium.toString(),
-                    difficulty = "MEDIUM"
+                    totalPoints = data.getTotalMedium().toString(),
+                    difficulty = "MEDIUM/(${animateMedium.times(100).toInt()}%)"
                 )
 
                 PointsProgressRow(
-                    correctPoints = animate3.toString(),
+                    correctPoints = animateHardCorrect.toString(),
                     progress = animateHard,
-                    totalPoints = totalHard.toString(),
-                    difficulty = "HARD"
+                    totalPoints = data.getTotalHard().toString(),
+                    difficulty = "HARD/(${animateHard.times(100).toInt()}%)"
                 )
 
                 PointsProgressRow(
-                    correctPoints = animate4.toString(),
+                    correctPoints = animateImpossibleCorrect.toString(),
                     progress = animateImpossible,
-                    totalPoints = totalImpossible.toString(),
-                    difficulty = "IMPOSSIBLE"
+                    totalPoints = data.getTotalImpossible().toString(),
+                    difficulty = "IMPOSSIBLE/(${animateImpossible.times(100).toInt()}%)"
                 )
             }
         }
@@ -205,9 +148,14 @@ fun QuestionStats(questionStatsData: QuestionStatsData) {
 
 }
 
-fun itDoesntBreak(correct: Int, wrong: Int): Boolean {
-    return !(correct == 0 || correct + wrong == 0)
-}
+fun getAlphaValueToAnimate(correct: Int, wrong: Int): Float = if (itDoesntBreak(
+        correct,
+        wrong
+    )
+) (correct.toFloat() / (correct + wrong)) else 0f
+
+//Checks if we are not dividing zero or by zero.
+fun itDoesntBreak(correct: Int, wrong: Int) = !(correct == 0 || correct + wrong == 0)
 
 @Composable
 fun PointsProgressRow(
@@ -232,11 +180,6 @@ fun PointsProgressRow(
                 text = correctPoints,
                 fontSize = 22
             )
-            /*AnimatedCounter(
-                modifier = Modifier.align(Alignment.Center),
-                count = correctPoints
-            )*/
-
         }
 
         MyProgressBar(

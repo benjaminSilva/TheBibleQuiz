@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -155,4 +156,17 @@ fun generateSubSequentialPositionAnimations(
         )
     }
     return list
+}
+
+@Composable
+fun animateInt(startAnimation: Boolean, endValue: Int): State<Int> {
+    return animateIntAsState(
+        targetValue = if (startAnimation) 0 else endValue,
+        animationSpec = tween(
+            durationMillis = 1000,
+            delayMillis = 100,
+            easing = LinearOutSlowInEasing
+        ),
+        label = "int"
+    )
 }

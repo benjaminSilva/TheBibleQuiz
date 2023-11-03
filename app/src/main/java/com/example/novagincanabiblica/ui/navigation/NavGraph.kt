@@ -18,7 +18,7 @@ import com.example.novagincanabiblica.ui.screens.games.quiz.InitializePreSoloScr
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloQuestionScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
-import com.example.novagincanabiblica.viewmodel.SoloModeViewModel
+import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
@@ -45,7 +45,7 @@ fun SetupNavGraph(navController: NavHostController) {
             route = Routes.SoloMode.value
         ) {
             composable(route = Routes.SoloModePreQuestion.value) {
-                val soloViewModel = it.sharedViewModel<SoloModeViewModel>(navController = navController)
+                val soloViewModel = it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializePreSoloScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
@@ -53,7 +53,7 @@ fun SetupNavGraph(navController: NavHostController) {
             }
             composable(route = Routes.SoloModeQuestion.value) {
                 val soloViewModel =
-                    it.sharedViewModel<SoloModeViewModel>(navController = navController)
+                    it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializeSoloQuestionScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
@@ -61,7 +61,7 @@ fun SetupNavGraph(navController: NavHostController) {
             }
             composable(route = Routes.Results.value) {
                 val soloViewModel =
-                    it.sharedViewModel<SoloModeViewModel>(navController = navController)
+                    it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializeSoloResultScreen(
                     navController = navController,
                     soloViewModel = soloViewModel

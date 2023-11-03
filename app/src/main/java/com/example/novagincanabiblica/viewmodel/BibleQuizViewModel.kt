@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SoloModeViewModel @Inject constructor(
+class BibleQuizViewModel @Inject constructor(
     private val repo: SoloModeRepo
 ) : BaseViewModel(repo) {
 
@@ -76,27 +76,22 @@ class SoloModeViewModel @Inject constructor(
     fun verifyAnswer(selectedAnswer: Answer) = viewModelScope.launch {
         _screenClickable.emit(false)
         selectedAnswer.selected = true
-        if (selectedAnswer.correct) {
-            delay(500)
-            _startSecondAnimation.emit(true)
-            _currentQuestion.value.answerState =
-                QuestionAnswerState.ANSWERED_CORRECTLY
-            delay(2000)
-            repo.updateStats(currentQuestion.value, true, localSession.value).collectLatest {
-                _errorMessage.emit(it)
-            }
-        } else {
-            delay(500)
-            _startSecondAnimation.emit(true)
-            _currentQuestion.value.answerState =
-                QuestionAnswerState.ANSWERED_WRONGLY
-            delay(2000)
-            repo.updateStats(currentQuestion.value, true, localSession.value).collectLatest {
-                _errorMessage.emit(it)
-            }
-        }
-        _nextDestination.emit(true)
+        handleAnswerEffects(selectedAnswer.correct)
+    }
 
+    private fun handleAnswerEffects(isCorrect: Boolean) = viewModelScope.launch {
+        updateQuestionResult(isCorrect = isCorrect)
+        delay(500)
+        _startSecondAnimation.emit(true)
+        _currentQuestion.value.answerState = if (isCorrect) QuestionAnswerState.ANSWERED_CORRECTLY else QuestionAnswerState.ANSWERED_WRONGLY
+        delay(2000)
+        _nextDestination.emit(true)
+    }
+
+    fun updateQuestionResult(isCorrect: Boolean) = viewModelScope.launch {
+        repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatest {
+            _errorMessage.emit(it)
+        }
     }
 
     fun updateSession() = viewModelScope.launch {

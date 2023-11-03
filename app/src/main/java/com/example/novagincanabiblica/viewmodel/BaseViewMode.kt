@@ -24,7 +24,9 @@ open class BaseViewModel(private val repo: SoloModeRepo) : ViewModel() {
 
     private fun collectSession() = viewModelScope.launch {
         repo.getSession().collectLatest {
-            _localSession.emit(it)
+            it.handleSuccessAndFailure { session ->
+                _localSession.emit(session)
+            }
         }
     }
 

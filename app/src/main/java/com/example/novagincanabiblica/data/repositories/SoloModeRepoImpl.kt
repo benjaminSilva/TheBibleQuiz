@@ -1,12 +1,13 @@
 package com.example.novagincanabiblica.data.repositories
 
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.ui.text.intl.Locale
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.client.WordleService
-import com.example.novagincanabiblica.data.models.Answer
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Question
 import com.example.novagincanabiblica.data.models.QuestionDifficulty
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,7 +35,8 @@ import javax.inject.Inject
 class SoloModeRepoImpl @Inject constructor(
     private val googleAuthUiClient: GoogleAuthUiClient,
     private val firebaseDatabase: FirebaseDatabase,
-    private val wordleService: WordleService
+    private val wordleService: WordleService,
+    private val sharedPreferences: SharedPreferences
 ) : SoloModeRepo {
 
     private val usersReference = firebaseDatabase.reference.child("users")
@@ -44,10 +47,6 @@ class SoloModeRepoImpl @Inject constructor(
         val ref = questionReference.child(Locale.current.language).child(day.toString())
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.child("listOfAnswers").getValue<List<Answer>>()?.apply {
-                    this
-                }
-                dataSnapshot.child("listOfAnswers").child("isCorrectAnswer").value
                 dataSnapshot.getValue<Question>()?.apply {
                     trySend(ResultOf.Success(this))
                 }
@@ -67,9 +66,13 @@ class SoloModeRepoImpl @Inject constructor(
         session: Session
     ): Flow<String> =
         channelFlow {
+            Log.i("Stats update", "Channel flow")
             session.let { user ->
+                Log.i("Stats update", "User $user")
                 user.userInfo?.userId?.let { userId ->
+                    Log.i("Stats update", "User Id: $userId")
                     val currentUserStats = user.userStats.apply {
+                        Log.i("Stats update", "Question Stats $this")
                         if (isCorrect) {
                             streak += 1
                             when (currentQuestion.difficulty) {
@@ -92,6 +95,7 @@ class SoloModeRepoImpl @Inject constructor(
                     usersReference.child(userId).child("userStats").setValue(currentUserStats)
                         .addOnFailureListener {
                             it.message?.apply {
+                                Log.i("Stats update", "Error message: $this")
                                 trySend(this)
                             }
                         }
@@ -99,6 +103,16 @@ class SoloModeRepoImpl @Inject constructor(
 
             }
         }
+
+    override fun updateGameModeValue(key: String, value: Boolean) {
+        sharedPreferences.edit().apply {
+            putBoolean(key, value)
+        }.apply()
+    }
+
+    override suspend fun isThisGameModeAvailable(key: String): Flow<Boolean> = flow {
+        emit(sharedPreferences.getBoolean(key, false))
+    }
 
     override suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) {
         val signInIntentSender = googleAuthUiClient.signIn()
@@ -156,16 +170,17 @@ class SoloModeRepoImpl @Inject constructor(
         getSignedInUser()?.userId?.apply {
             usersReference.child(this).child("hasPlayedQuizGame").setValue(true)
         }
+        updateGameModeValue("hasPlayedQuizGame", true)
     }
 
-    override suspend fun getSession(): Flow<Session> = channelFlow {
+    override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
         getSignedInUser()?.userId?.apply {
             val test = usersReference.child(this)
 
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<Session>()?.apply {
-                        trySend(this)
+                        trySend(ResultOf.Success(this))
                     }
                 }
 
@@ -180,9 +195,15 @@ class SoloModeRepoImpl @Inject constructor(
 
     override suspend fun getDay(): Flow<ResultOf<Int>> = callbackFlow {
         val ref = firebaseDatabase.reference.child("day")
+        val currentDay = sharedPreferences.getInt("day", 0)
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Int>()?.apply {
+                    if (this > currentDay) { //Update Sharedpref
+                        sharedPreferences.edit().putInt("day", this).apply()
+                        updateGameModeValue("hasUserPlayedWordle", false)
+                        updateGameModeValue("hasPlayedQuizGame", false)
+                    }
                     trySend(ResultOf.Success(this))
                 }
             }

@@ -40,11 +40,13 @@ object AppModule {
     fun getSoloModeRepo(
         googleAuthUiClient: GoogleAuthUiClient,
         firebaseDatabase: FirebaseDatabase,
-        wordleService: WordleService
+        wordleService: WordleService,
+        sharedPreferences: SharedPreferences
     ): SoloModeRepo = SoloModeRepoImpl(
         googleAuthUiClient = googleAuthUiClient,
         firebaseDatabase = firebaseDatabase,
-        wordleService = wordleService
+        wordleService = wordleService,
+        sharedPreferences = sharedPreferences
     )
 
     @Singleton

@@ -16,10 +16,12 @@ interface SoloModeRepo {
     suspend fun getSession(result: ActivityResult): Flow<ResultOf<Session>>
     suspend fun getSignedInUser(): UserData?
     suspend fun updateHasPlayedBibleQuiz()
-    suspend fun getSession(): Flow<Session>
+    suspend fun getSession(): Flow<ResultOf<Session>>
     suspend fun getDay(): Flow<ResultOf<Int>>
     suspend fun checkWord(word: String): Flow<ResultOf<String>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
     suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session): Flow<String>
+    suspend fun isThisGameModeAvailable(key: String): Flow<Boolean>
+    fun updateGameModeValue(key: String, value: Boolean)
 }
