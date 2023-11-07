@@ -144,11 +144,12 @@ class WordleViewModel @Inject constructor(
         wordleWord: String,
         index: Int
     ): Boolean {
+        val correctWordle = wordle.value.word
         if (word.count { it == this } < 2 || wordleWord.count { it == this } > 1) {
             return true
         }
-        for (i in index + 1 until wordleWord.length) {
-            if (word[i] == this && wordleWord[i] == this) {
+        for (i in index + 1 until correctWordle.length) {
+            if (word[i] == this && correctWordle[i] == this) {
                 return false
             }
         }
