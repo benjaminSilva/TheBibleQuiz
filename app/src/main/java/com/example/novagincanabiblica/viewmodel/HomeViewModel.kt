@@ -30,6 +30,9 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
+    private val _displayDialog = MutableStateFlow(Pair(false, false))
+    val displayDialog = _displayDialog.asStateFlow()
+
     init {
         getDay()
     }
@@ -96,6 +99,10 @@ class HomeViewModel @Inject constructor(
     fun signOut() = viewModelScope.launch {
         repo.signOut()
         resetState()
+    }
+
+    fun displayDialog(isItQuiz: Boolean, displayIt: Boolean) = viewModelScope.launch {
+        _displayDialog.emit(Pair(isItQuiz, displayIt))
     }
 
 }

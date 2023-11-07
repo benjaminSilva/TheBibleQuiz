@@ -266,9 +266,9 @@ fun HomeScreen(
                         .clickable {
                             // Uncomment this before release
                             if (localSession.hasPlayedQuizGame/* || hasUserPlayedLocally*/)
-                                navController.navigate(Routes.Results.value)
+                                navController.navigate(Routes.QuizResults.value)
                             else
-                                navController.navigate(Routes.SoloMode.value)
+                                navController.navigate(Routes.QuizMode.value)
                         }
                         .background(almostWhite)
                 ) {
@@ -309,7 +309,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .clip(shape = RoundedCornerShape(16.dp))
                         .clickable {
-
+                            navController.navigate(Routes.WordleMode.value)
                         }
                         .background(almostWhite)
                 ) {

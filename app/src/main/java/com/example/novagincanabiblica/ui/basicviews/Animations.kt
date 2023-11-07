@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.ui.basicviews
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -9,13 +10,17 @@ import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.example.novagincanabiblica.data.models.wordle.LetterState
 import com.example.novagincanabiblica.ui.theme.animationDuration
+import com.example.novagincanabiblica.ui.theme.correctAnswer
+import com.example.novagincanabiblica.ui.theme.gray
+import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.ui.theme.startDelayAnimation
+import com.example.novagincanabiblica.ui.theme.wrongPlace
 
 @Composable
 fun animateAngle(
@@ -94,6 +99,31 @@ fun animateAlpha(
             easing = easing
         ),
         label = "alpha"
+    )
+}
+
+@Composable
+fun animateColor(
+    condition: Boolean,
+    startValue: Color,
+    endValue: LetterState,
+    duration: Int = animationDuration,
+    delay: Int = startDelayAnimation,
+    easing: Easing = LinearOutSlowInEasing
+): State<Color> {
+    return animateColorAsState(
+        targetValue = if (condition) startValue else when (endValue) {
+            LetterState.LETTER_CORRECT_PLACE -> correctAnswer
+            LetterState.LETTER_NOT_IN_WORD -> gray
+            LetterState.LETTER_WRONG_PLACE -> wrongPlace
+            LetterState.LETTER_NOT_CHECKED -> lessWhite
+        },
+        animationSpec = tween(
+            durationMillis = duration,
+            delayMillis = delay,
+            easing = easing
+        ),
+        label = "color"
     )
 }
 

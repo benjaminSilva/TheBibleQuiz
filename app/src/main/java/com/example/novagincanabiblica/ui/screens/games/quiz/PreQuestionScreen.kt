@@ -53,7 +53,7 @@ fun InitializePreSoloScreen(
         currentQuestionDifficulty = currentQuestion.difficulty
     ) {
         soloViewModel.updateSession()
-        navController.navigateWithoutRemembering(route = Routes.SoloModeQuestion)
+        navController.navigateWithoutRemembering(route = Routes.Quiz)
     }
 }
 

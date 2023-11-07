@@ -13,12 +13,14 @@ import androidx.navigation.get
 import androidx.navigation.navigation
 import com.example.novagincanabiblica.ui.screens.InitializeProfileScreen
 import com.example.novagincanabiblica.ui.screens.Routes
-import com.example.novagincanabiblica.ui.screens.games.InitializeSoloResultScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloResultScreen
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializePreSoloScreen
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
+import com.example.novagincanabiblica.viewmodel.WordleViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
@@ -40,18 +42,34 @@ fun SetupNavGraph(navController: NavHostController) {
             }
         }
 
+        navigation(startDestination = Routes.Wordle.value, route = Routes.WordleMode.value) {
+            composable(
+                route = Routes.Wordle.value
+            ) {
+                val wordleViewModel = it.sharedViewModel<WordleViewModel>(navController = navController)
+                InitializeWordleScreen(navController = navController, viewModel = wordleViewModel)
+            }
+
+            composable(
+                route = Routes.WordleResults.value
+            ) {
+                val wordleViewModel = it.sharedViewModel<WordleViewModel>(navController = navController)
+                InitializeWordleScreen(navController = navController, viewModel = wordleViewModel)
+            }
+        }
+
         navigation(
-            startDestination = Routes.SoloModePreQuestion.value,
-            route = Routes.SoloMode.value
+            startDestination = Routes.PreQuiz.value,
+            route = Routes.QuizMode.value
         ) {
-            composable(route = Routes.SoloModePreQuestion.value) {
+            composable(route = Routes.PreQuiz.value) {
                 val soloViewModel = it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializePreSoloScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
                 )
             }
-            composable(route = Routes.SoloModeQuestion.value) {
+            composable(route = Routes.Quiz.value) {
                 val soloViewModel =
                     it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializeSoloQuestionScreen(
@@ -59,7 +77,7 @@ fun SetupNavGraph(navController: NavHostController) {
                     soloViewModel = soloViewModel
                 )
             }
-            composable(route = Routes.Results.value) {
+            composable(route = Routes.QuizResults.value) {
                 val soloViewModel =
                     it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitializeSoloResultScreen(
@@ -82,6 +100,6 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navControll
 
 fun NavHostController.navigateWithoutRemembering(route: Routes) {
     navigate(route = route.value) {
-        popUpTo(graph[Routes.SoloMode.value].id)
+        popUpTo(graph[Routes.QuizMode.value].id)
     }
 }

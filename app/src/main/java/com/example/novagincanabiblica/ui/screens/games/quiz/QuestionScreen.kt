@@ -84,7 +84,7 @@ fun InitializeSoloQuestionScreen(
     LaunchedEffect(navigateNextScreen) {
         if (navigateNextScreen) {
             navController.navigateWithoutRemembering(
-                route = Routes.Results
+                route = Routes.QuizResults
             )
         }
     }

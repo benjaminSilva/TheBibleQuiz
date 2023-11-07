@@ -8,6 +8,7 @@ import com.example.novagincanabiblica.data.models.Question
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
 import com.example.novagincanabiblica.data.models.state.ResultOf
+import com.example.novagincanabiblica.data.models.wordle.Wordle
 import kotlinx.coroutines.flow.Flow
 
 interface SoloModeRepo {
@@ -24,4 +25,5 @@ interface SoloModeRepo {
     suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session): Flow<String>
     suspend fun isThisGameModeAvailable(key: String): Flow<Boolean>
     fun updateGameModeValue(key: String, value: Boolean)
+    suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>>
 }

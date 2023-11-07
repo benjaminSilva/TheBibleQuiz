@@ -1,6 +1,6 @@
 package com.example.novagincanabiblica.client
 
-import com.example.novagincanabiblica.data.models.WordleCheck
+import com.example.novagincanabiblica.data.models.wordle.WordleCheck
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path

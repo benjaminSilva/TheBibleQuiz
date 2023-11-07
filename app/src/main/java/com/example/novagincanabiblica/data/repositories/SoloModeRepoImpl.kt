@@ -13,8 +13,9 @@ import com.example.novagincanabiblica.data.models.Question
 import com.example.novagincanabiblica.data.models.QuestionDifficulty
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
-import com.example.novagincanabiblica.data.models.WordleCheck
+import com.example.novagincanabiblica.data.models.wordle.WordleCheck
 import com.example.novagincanabiblica.data.models.state.ResultOf
+import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -42,6 +43,7 @@ class SoloModeRepoImpl @Inject constructor(
     private val usersReference = firebaseDatabase.reference.child("users")
     private val bibleVerseReference = firebaseDatabase.reference.child("dailyBibleVerse")
     private val questionReference = firebaseDatabase.reference.child("dailyQuiz")
+    private val wordleReference = firebaseDatabase.reference.child("wordle")
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
         val ref = questionReference.child(Locale.current.language).child(day.toString())
@@ -242,7 +244,7 @@ class SoloModeRepoImpl @Inject constructor(
                 ) {
                     if (response.isSuccessful) {
                         response.body()?.apply {
-                            trySend(ResultOf.Success(this[0].word))
+                            trySend(ResultOf.Success(word))
                         }
                     }
                 }
@@ -257,6 +259,23 @@ class SoloModeRepoImpl @Inject constructor(
             awaitClose { cancel() }
         }
 
+    }
+
+    override suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>> = callbackFlow {
+        val ref = wordleReference.child(Locale.current.language).child(day.toString())
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                dataSnapshot.getValue<Wordle>()?.apply {
+                    trySend(ResultOf.Success(this))
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(databaseError.message))
+            }
+        }
+        ref.addValueEventListener(postListener)
+        awaitClose { ref.removeEventListener(postListener) }
     }
 
 }

@@ -25,12 +25,14 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
-import com.example.novagincanabiblica.data.models.UserData
+import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.ui.basicviews.BasicText
+import com.example.novagincanabiblica.ui.basicviews.QuestionStats
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
@@ -39,8 +41,17 @@ import com.example.novagincanabiblica.viewmodel.HomeViewModel
 @Composable
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val userData by homeViewModel.localSession.collectAsStateWithLifecycle()
-    userData.userInfo?.apply {
-        ProfileScreen(userData = this) {
+    val displayData by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+    val (isItQuiz, displayDialog) = displayData
+
+    userData.apply {
+        ProfileScreen(
+            session = this,
+            isItQuiz = isItQuiz,
+            displayDialog = displayDialog,
+            displayDialogFunction = { itIsQuiz, displayIt ->
+                homeViewModel.displayDialog(itIsQuiz, displayIt)
+            }) {
             homeViewModel.signOut()
             navController.popBackStack()
         }
@@ -48,7 +59,22 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 }
 
 @Composable
-fun ProfileScreen(userData: UserData, signOut: () -> Unit) {
+fun ProfileScreen(
+    session: Session,
+    isItQuiz: Boolean,
+    displayDialog: Boolean,
+    displayDialogFunction: (Boolean, Boolean) -> Unit,
+    signOut: () -> Unit
+) {
+
+    if (displayDialog) {
+        if (isItQuiz) {
+            Dialog(onDismissRequest = { displayDialogFunction(false, false) }) {
+                QuestionStats(data = session.userStats)
+            }
+        }
+    }
+
 
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
@@ -95,7 +121,7 @@ fun ProfileScreen(userData: UserData, signOut: () -> Unit) {
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
-                            clipboardManager.setText(AnnotatedString(userData.userId!!))
+                            clipboardManager.setText(AnnotatedString(session.userInfo?.userId!!))
                         }
                         .background(almostWhite)
                         .padding(8.dp),
@@ -107,15 +133,15 @@ fun ProfileScreen(userData: UserData, signOut: () -> Unit) {
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(CircleShape),
-                                model = userData.profilePictureUrl,
+                                model = session.userInfo?.profilePictureUrl,
                                 contentDescription = null
                             )
                             Column(
                                 modifier = Modifier.padding(4.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                BasicText(text = userData.userName, fontSize = 22)
-                                BasicText(text = "id: ${userData.userId}", fontSize = 8)
+                                BasicText(text = session.userInfo?.userName, fontSize = 22)
+                                BasicText(text = "id: ${session.userInfo?.userId}", fontSize = 8)
                             }
                         }
                     }
@@ -142,6 +168,7 @@ fun ProfileScreen(userData: UserData, signOut: () -> Unit) {
                         .shadow(20.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
+                            displayDialogFunction(true, true)
                         }
                         .background(almostWhite)
                 ) {
@@ -236,14 +263,14 @@ fun ProfileScreen(userData: UserData, signOut: () -> Unit) {
                                                 .size(32.dp)
                                                 .clip(CircleShape)
                                                 .align(Alignment.CenterVertically),
-                                            model = userData.profilePictureUrl,
+                                            model = session.userInfo?.profilePictureUrl,
                                             contentDescription = null
                                         )
                                         BasicText(
                                             modifier = Modifier
                                                 .padding(8.dp)
                                                 .align(Alignment.CenterVertically),
-                                            text = userData.userName,
+                                            text = session.userInfo?.userName,
                                             fontSize = 18
                                         )
                                     }

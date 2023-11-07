@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.QuestionStatsData
@@ -79,72 +83,123 @@ fun QuestionStats(data: QuestionStatsData) {
         endValue = data.impossibleCorrect
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(20.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(almostWhite)
-    ) {
-        Column(
+    val animateDaysPosition by animatePosition(
+        condition = startAnimation,
+        startValue = IntOffset(-30, 0),
+        endValue = IntOffset.Zero,
+        duration = 500
+    )
+
+    val animateDaysAlpha by animateAlpha(condition = startAnimation, duration = 500)
+
+    val animateStreak by animateInt(
+        startAnimation = startAnimation,
+        endValue = data.streak
+    )
+
+    Column (verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .shadow(20.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(almostWhite)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_check_24),
-                    contentDescription = null
-                )
-                //BasicText(modifier = Modifier.align(Alignment.BottomStart), text = "Correct")
-                BasicText(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "The Bible Quiz",
-                    fontSize = 18
-                )
-                BasicText(modifier = Modifier.align(Alignment.CenterEnd), text = "Total")
-            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(lessWhite)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PointsProgressRow(
-                    correctPoints = animateEasyCorrect.toString(),
-                    progress = animateEasy,
-                    totalPoints = data.getTotalEasy().toString(),
-                    difficulty = "EASY/(${animateEasy.times(100).toInt()}%)"
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_check_24),
+                        contentDescription = null
+                    )
+                    //BasicText(modifier = Modifier.align(Alignment.BottomStart), text = "Correct")
+                    BasicText(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = "The Bible Quiz",
+                        fontSize = 18
+                    )
+                    BasicText(modifier = Modifier.align(Alignment.CenterEnd), text = "Total")
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(lessWhite)
+                ) {
+                    PointsProgressRow(
+                        correctPoints = animateEasyCorrect.toString(),
+                        progress = animateEasy,
+                        totalPoints = data.getTotalEasy().toString(),
+                        difficulty = "EASY/(${animateEasy.times(100).toInt()}%)"
+                    )
 
-                PointsProgressRow(
-                    correctPoints = animateMediumCorrect.toString(),
-                    progress = animateMedium,
-                    totalPoints = data.getTotalMedium().toString(),
-                    difficulty = "MEDIUM/(${animateMedium.times(100).toInt()}%)"
-                )
+                    PointsProgressRow(
+                        correctPoints = animateMediumCorrect.toString(),
+                        progress = animateMedium,
+                        totalPoints = data.getTotalMedium().toString(),
+                        difficulty = "MEDIUM/(${animateMedium.times(100).toInt()}%)"
+                    )
 
-                PointsProgressRow(
-                    correctPoints = animateHardCorrect.toString(),
-                    progress = animateHard,
-                    totalPoints = data.getTotalHard().toString(),
-                    difficulty = "HARD/(${animateHard.times(100).toInt()}%)"
-                )
+                    PointsProgressRow(
+                        correctPoints = animateHardCorrect.toString(),
+                        progress = animateHard,
+                        totalPoints = data.getTotalHard().toString(),
+                        difficulty = "HARD/(${animateHard.times(100).toInt()}%)"
+                    )
 
-                PointsProgressRow(
-                    correctPoints = animateImpossibleCorrect.toString(),
-                    progress = animateImpossible,
-                    totalPoints = data.getTotalImpossible().toString(),
-                    difficulty = "IMPOSSIBLE/(${animateImpossible.times(100).toInt()}%)"
+                    PointsProgressRow(
+                        correctPoints = animateImpossibleCorrect.toString(),
+                        progress = animateImpossible,
+                        totalPoints = data.getTotalImpossible().toString(),
+                        difficulty = "IMPOSSIBLE/(${animateImpossible.times(100).toInt()}%)"
+                    )
+                }
+            }
+        }
+
+        if (data.streak > 1) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(20.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(almostWhite)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(lessWhite)
+                ) {
+                    BasicText(
+                        modifier = Modifier.padding(16.dp).align(Alignment.Center),
+                        text = animateStreak.toString(),
+                        fontSize = 28
+                    )
+                }
+
+                BasicText(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .offset {
+                            animateDaysPosition
+                        }
+                        .alpha(animateDaysAlpha),
+                    text = "Days in streak", fontSize = 22
                 )
             }
         }
     }
+
 
 }
 
