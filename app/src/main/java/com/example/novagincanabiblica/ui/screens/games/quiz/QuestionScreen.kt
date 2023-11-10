@@ -42,8 +42,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.example.novagincanabiblica.data.models.Answer
-import com.example.novagincanabiblica.data.models.Question
+import com.example.novagincanabiblica.data.models.quiz.Answer
+import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.ui.basicviews.AutoResizeText
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.ClockTimer
@@ -84,7 +84,8 @@ fun InitializeSoloQuestionScreen(
     LaunchedEffect(navigateNextScreen) {
         if (navigateNextScreen) {
             navController.navigateWithoutRemembering(
-                route = Routes.QuizResults
+                route = Routes.QuizResults,
+                baseRoute = Routes.QuizMode
             )
         }
     }

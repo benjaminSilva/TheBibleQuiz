@@ -68,7 +68,7 @@ import java.util.Calendar
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
-    val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
+    val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle("")
     val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
 
@@ -309,7 +309,11 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .clip(shape = RoundedCornerShape(16.dp))
                         .clickable {
-                            navController.navigate(Routes.WordleMode.value)
+                            //navController.navigate(Routes.WordleMode.value)
+                            if (localSession.hasPlayerWordleGame/* || hasUserPlayedLocally*/)
+                                navController.navigate(Routes.WordleResults.value)
+                            else
+                                navController.navigate(Routes.WordleMode.value)
                         }
                         .background(almostWhite)
                 ) {

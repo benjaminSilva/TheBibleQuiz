@@ -1,31 +1,29 @@
 package com.example.novagincanabiblica.data.models.wordle
 
-data class WordleAttempts(
-    val listOfAttempts: List<WordleAttempt> = listOf(
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_IS_CURRENTLY_HERE
-        ),
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_WILL_STILL_TRY
-        ),
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_WILL_STILL_TRY
-        ),
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_WILL_STILL_TRY
-        ),
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_WILL_STILL_TRY
-        ),
-        WordleAttempt(
-            word = "",
-            attemptState = WordleAttempState.USER_WILL_STILL_TRY
-        )
+fun generateStartWordleAttemptList(): List<WordleAttempt> = listOf(
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_IS_CURRENTLY_HERE
+    ),
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_WILL_STILL_TRY
+    ),
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_WILL_STILL_TRY
+    ),
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_WILL_STILL_TRY
+    ),
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_WILL_STILL_TRY
+    ),
+    WordleAttempt(
+        word = "",
+        attemptState = WordleAttempState.USER_WILL_STILL_TRY
     )
 )
 

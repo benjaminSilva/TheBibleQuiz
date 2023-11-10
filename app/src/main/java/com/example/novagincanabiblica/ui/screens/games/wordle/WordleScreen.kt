@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -37,10 +40,17 @@ import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.wordle.KeyboardLetter
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
+import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
+import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
 import com.example.novagincanabiblica.ui.basicviews.AutoResizeText
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.FontSizeRange
+import com.example.novagincanabiblica.ui.basicviews.ShakeConfig
+import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.basicviews.animateColor
+import com.example.novagincanabiblica.ui.basicviews.rememberShakeController
+import com.example.novagincanabiblica.ui.basicviews.shake
+import com.example.novagincanabiblica.ui.navigation.navigateWithoutRemembering
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.achivoFontFamily
@@ -57,20 +67,26 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
     val attempts by viewModel.attemps.collectAsStateWithLifecycle()
     val attempt by viewModel.attempsString.collectAsStateWithLifecycle()
     val listKeyBoardState = viewModel.keyboardState
-    val startWordAnimation by viewModel.startWordAnimation.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigate) {
         if (navigate) {
-            navController.navigate(Routes.Home.value)
+            navController.navigateWithoutRemembering(
+                route = Routes.WordleResults,
+                baseRoute = Routes.WordleMode
+            )
         }
     }
 
     WordleScreen(
         wordleWord = wordle.word,
         attempt = attempt,
-        listWordleAttemps = attempts.listOfAttempts,
+        listWordleAttemps = attempts,
         listOfKeyboardStates = listKeyBoardState,
-        startWordAnimation = startWordAnimation,
+        errorMessage = errorMessage,
+        resetErrorMessage = {
+            viewModel.resetErrorMessage()
+        },
         updateAttemptString = {
             viewModel.updateAttemptString(it)
         }) {
@@ -84,16 +100,32 @@ fun WordleScreen(
     attempt: String,
     listWordleAttemps: List<WordleAttempt>,
     listOfKeyboardStates: List<KeyboardLetter>,
-    startWordAnimation: Boolean,
+    errorMessage: String,
+    resetErrorMessage: () -> Unit,
     updateAttemptString: (String) -> Unit,
     checkWord: () -> Unit
 ) {
 
-    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+    var startPage by remember {
+        mutableStateOf(true)
+    }
+
+    val alphaAnimation by animateAlpha(condition = startPage)
+
+    LaunchedEffect(Unit) {
+        startPage = false
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .alpha(alphaAnimation),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(0.7f)
+                .weight(0.75f)
         ) {
             Column(
                 modifier = Modifier
@@ -101,60 +133,25 @@ fun WordleScreen(
                     .align(Alignment.Center),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                RowLetterWordle(wordleWord, listWordleAttemps[0].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[0], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
-
-                RowLetterWordle(wordleWord, listWordleAttemps[1].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[1], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
-
-                RowLetterWordle(wordleWord, listWordleAttemps[2].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[2], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
-
-                RowLetterWordle(wordleWord, listWordleAttemps[3].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[3], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
-
-                RowLetterWordle(wordleWord, listWordleAttemps[4].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[4], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
-
-                RowLetterWordle(wordleWord, listWordleAttemps[5].run {
-                    when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
-                    }
-                }, listWordleAttemps[5], startWordAnimation = startWordAnimation, startWrongWordAnimation = false)
+                BasicText(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Biblical Wordle",
+                    fontSize = 32
+                )
+                WordleRows(
+                    wordleWord = wordleWord,
+                    attempt = attempt,
+                    listWordleAttemps = listWordleAttemps,
+                    errorMessage = errorMessage,
+                    resetErrorMessage = resetErrorMessage
+                )
             }
         }
 
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(0.3f)
+                .weight(0.25f)
                 .padding(bottom = 8.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -456,28 +453,241 @@ fun WordleScreen(
 }
 
 @Composable
+fun WordleRows(
+    wordleWord: String,
+    attempt: String,
+    listWordleAttemps: List<WordleAttempt>,
+    errorMessage: String,
+    resetErrorMessage: () -> Unit,
+    isFromResults: Boolean = false
+) {
+    RowLetterWordle(
+        wordleWord = wordleWord,
+        attempt = listWordleAttemps[0].run {
+            when (attemptState) {
+                WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                WordleAttempState.USER_HAS_TRIED -> word
+                WordleAttempState.USER_WILL_STILL_TRY -> ""
+            }
+        },
+        letterStates = listWordleAttemps[0],
+        errorMessage = errorMessage,
+        isFromResults = isFromResults,
+        resetErrorMessage = resetErrorMessage
+    )
+
+    if (isFromResults) {
+        if (listWordleAttemps[1].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            RowLetterWordle(
+                wordleWord = wordleWord,
+                attempt = listWordleAttemps[1].run {
+                    when (attemptState) {
+                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttempState.USER_HAS_TRIED -> word
+                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                    }
+                },
+                letterStates = listWordleAttemps[1],
+                errorMessage = errorMessage,
+                isFromResults = isFromResults,
+                resetErrorMessage = resetErrorMessage
+            )
+        }
+
+        if (listWordleAttemps[2].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            RowLetterWordle(
+                wordleWord = wordleWord,
+                attempt = listWordleAttemps[2].run {
+                    when (attemptState) {
+                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttempState.USER_HAS_TRIED -> word
+                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                    }
+                },
+                letterStates = listWordleAttemps[2],
+                errorMessage = errorMessage,
+                isFromResults = isFromResults,
+                resetErrorMessage = resetErrorMessage
+            )
+        }
+
+        if (listWordleAttemps[3].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            RowLetterWordle(
+                wordleWord = wordleWord,
+                attempt = listWordleAttemps[3].run {
+                    when (attemptState) {
+                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttempState.USER_HAS_TRIED -> word
+                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                    }
+                },
+                letterStates = listWordleAttemps[3],
+                errorMessage = errorMessage,
+                isFromResults = isFromResults,
+                resetErrorMessage = resetErrorMessage
+            )
+        }
+
+        if (listWordleAttemps[4].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            RowLetterWordle(
+                wordleWord = wordleWord,
+                attempt = listWordleAttemps[4].run {
+                    when (attemptState) {
+                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttempState.USER_HAS_TRIED -> word
+                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                    }
+                },
+                letterStates = listWordleAttemps[4],
+                errorMessage = errorMessage,
+                isFromResults = isFromResults,
+                resetErrorMessage = resetErrorMessage
+            )
+        }
+
+        if (listWordleAttemps[5].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            RowLetterWordle(
+                wordleWord = wordleWord,
+                attempt = listWordleAttemps[5].run {
+                    when (attemptState) {
+                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttempState.USER_HAS_TRIED -> word
+                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                    }
+                },
+                letterStates = listWordleAttemps[5],
+                errorMessage = errorMessage,
+                isFromResults = isFromResults,
+                resetErrorMessage = resetErrorMessage
+            )
+        }
+    } else {
+        RowLetterWordle(
+            wordleWord = wordleWord,
+            attempt = listWordleAttemps[1].run {
+                when (attemptState) {
+                    WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                    WordleAttempState.USER_HAS_TRIED -> word
+                    WordleAttempState.USER_WILL_STILL_TRY -> ""
+                }
+            },
+            letterStates = listWordleAttemps[1],
+            errorMessage = errorMessage,
+            isFromResults = isFromResults,
+            resetErrorMessage = resetErrorMessage
+        )
+
+        RowLetterWordle(
+            wordleWord = wordleWord,
+            attempt = listWordleAttemps[2].run {
+                when (attemptState) {
+                    WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                    WordleAttempState.USER_HAS_TRIED -> word
+                    WordleAttempState.USER_WILL_STILL_TRY -> ""
+                }
+            },
+            letterStates = listWordleAttemps[2],
+            errorMessage = errorMessage,
+            isFromResults = isFromResults,
+            resetErrorMessage = resetErrorMessage
+        )
+
+        RowLetterWordle(
+            wordleWord = wordleWord,
+            attempt = listWordleAttemps[3].run {
+                when (attemptState) {
+                    WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                    WordleAttempState.USER_HAS_TRIED -> word
+                    WordleAttempState.USER_WILL_STILL_TRY -> ""
+                }
+            },
+            letterStates = listWordleAttemps[3],
+            errorMessage = errorMessage,
+            isFromResults = isFromResults,
+            resetErrorMessage = resetErrorMessage
+        )
+
+        RowLetterWordle(
+            wordleWord = wordleWord,
+            attempt = listWordleAttemps[4].run {
+                when (attemptState) {
+                    WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                    WordleAttempState.USER_HAS_TRIED -> word
+                    WordleAttempState.USER_WILL_STILL_TRY -> ""
+                }
+            },
+            letterStates = listWordleAttemps[4],
+            errorMessage = errorMessage,
+            isFromResults = isFromResults,
+            resetErrorMessage = resetErrorMessage
+        )
+
+        RowLetterWordle(
+            wordleWord = wordleWord,
+            attempt = listWordleAttemps[5].run {
+                when (attemptState) {
+                    WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
+                    WordleAttempState.USER_HAS_TRIED -> word
+                    WordleAttempState.USER_WILL_STILL_TRY -> ""
+                }
+            },
+            letterStates = listWordleAttemps[5],
+            errorMessage = errorMessage,
+            isFromResults = isFromResults,
+            resetErrorMessage = resetErrorMessage
+        )
+    }
+}
+
+@Composable
 fun RowLetterWordle(
     wordleWord: String,
     attempt: String,
     letterStates: WordleAttempt,
-    startWordAnimation: Boolean,
-    startWrongWordAnimation: Boolean
+    errorMessage: String,
+    isFromResults: Boolean = false,
+    resetErrorMessage: () -> Unit = {}
 ) {
 
     var startLocalWordAnimation by remember {
         mutableStateOf(true)
     }
 
-    var startLocalWrongWordAnimation by remember {
-        mutableStateOf(true)
+    val shakeController = rememberShakeController()
+
+    LaunchedEffect(attempt) {
+        if (attempt.isNotEmpty())
+            startLocalWordAnimation = false
     }
 
-    LaunchedEffect(startWordAnimation) {
-        startLocalWordAnimation = false
+    DisposableEffect(errorMessage) {
+        if (errorMessage == "Word doens't exist" && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE) {
+            shakeController.shake(
+                ShakeConfig(
+                    iterations = 4,
+                    intensity = 4_000f,
+                    rotateY = 5f,
+                    translateX = 20f,
+                )
+            )
+        }
+        onDispose {
+            resetErrorMessage()
+        }
     }
 
-    LaunchedEffect(startWrongWordAnimation) {
-        startLocalWrongWordAnimation = false
+    LaunchedEffect(letterStates.listOfLetterStates) {
+        if (wordleWord == attempt && !isFromResults && letterStates.attemptState == WordleAttempState.USER_HAS_TRIED) {
+            shakeController.shake(
+                ShakeConfig(
+                    iterations = 4,
+                    intensity = 1_000f,
+                    rotateX = -20f,
+                    translateY = 20f,
+                    trigger = 300
+                )
+            )
+        }
     }
 
     val animateColorLetter1 by animateColor(
@@ -507,6 +717,7 @@ fun RowLetterWordle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .shake(shakeController)
             .border(2.dp, closeToBlack, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(closeToBlack),
@@ -650,6 +861,7 @@ fun WordleLetter(
 ) {
     Box(
         modifier = modifier
+            .heightIn(max = 68.dp)
             .aspectRatio(1f)
             .background(
                 color
@@ -675,7 +887,12 @@ fun LetterButton(
         startAnimation = false
     }
 
-    val animateColor by animateColor(condition = startAnimation, startValue = lessWhite, endValue = state.letterState, delay = 1000)
+    val animateColor by animateColor(
+        condition = startAnimation,
+        startValue = lessWhite,
+        endValue = state.letterState,
+        delay = 1000
+    )
 
     Box(modifier = modifier
         .fillMaxHeight()
@@ -696,12 +913,15 @@ fun LetterButton(
 @Composable
 fun PreviewWordle() {
     NovaGincanaBiblicaTheme {
-        /*WordleScreen(
+        WordleScreen(
             wordleWord = "Teste",
             "MONKE",
-            listWordleAttemps = WordleAttempts().listOfAttempts,
+            listWordleAttemps = generateStartWordleAttemptList(),
+            listOfKeyboardStates = initiateKeyboardState(),
+            "",
+            {},
             {}) {
 
-        }*/
+        }
     }
 }

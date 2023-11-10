@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.data.models
+package com.example.novagincanabiblica.data.models.quiz
 
 enum class QuestionDifficulty {
     EASY,

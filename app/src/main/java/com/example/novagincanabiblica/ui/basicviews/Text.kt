@@ -14,17 +14,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.novagincanabiblica.ui.theme.closeToBlack
+import com.example.novagincanabiblica.ui.theme.wrongPlace
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 
 @Composable
@@ -36,8 +41,84 @@ fun BasicText(
     lineHeight: Int = 18,
     fontColor: Color = closeToBlack
 ) {
-    val notNullText = text ?: ""
-    Text(text = notNullText, modifier = modifier, fontSize = fontSize.sp, fontFamily = fontFamily, lineHeight = lineHeight.sp, color = fontColor)
+    if (text != null) {
+        Text(
+            text = text,
+            modifier = modifier,
+            fontSize = fontSize.sp,
+            fontFamily = fontFamily,
+            lineHeight = lineHeight.sp,
+            color = fontColor
+        )
+    }
+}
+
+@Composable
+fun BasicText(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString?,
+    fontSize: Int = 14,
+    fontFamily: FontFamily = zillasFontFamily,
+    lineHeight: Int = 18,
+    fontColor: Color = closeToBlack
+) {
+    if (text != null) {
+        Text(
+            text = text,
+            modifier = modifier,
+            fontSize = fontSize.sp,
+            fontFamily = fontFamily,
+            lineHeight = lineHeight.sp,
+            color = fontColor
+        )
+    }
+}
+
+fun highlightText(text: String, highlightText: String) = buildAnnotatedString {
+    var wordToHighlightLowerCase = highlightText.lowercase()
+    var countOfOccurrences = countOccurrences(text, searchStr = wordToHighlightLowerCase)
+    val wordToHighlightCapitalized = wordToHighlightLowerCase.replaceFirstChar { it.uppercaseChar() }
+    var countOfOccurrencesCapitalized = countOccurrences(text, searchStr = wordToHighlightCapitalized)
+    var countOfOccurrencesTotal = countOfOccurrences + countOfOccurrencesCapitalized
+    var modifiedString = text
+    for (i in 0 until countOfOccurrencesTotal) {
+        val substringBeforeLower = modifiedString.substringBefore(wordToHighlightLowerCase)
+        val subStringBeforeLowerLengh = substringBeforeLower.length
+        val substringBeforeCapitalized = modifiedString.substringBefore(wordToHighlightCapitalized)
+        val subStringBeforeCapitalizedLengh = substringBeforeCapitalized.length
+        val highlightNextCase = if ( subStringBeforeLowerLengh > subStringBeforeCapitalizedLengh) {
+            countOfOccurrencesCapitalized -= 1
+            wordToHighlightCapitalized
+        } else {
+            countOfOccurrences -= 1
+            wordToHighlightLowerCase
+        }
+        append(modifiedString.substringBefore(highlightNextCase))
+        modifiedString = modifiedString.substringAfter(highlightNextCase)
+        withStyle(SpanStyle(background = wrongPlace)) {
+            append(highlightNextCase)
+        }
+    }
+
+    append(modifiedString)
+}
+
+
+fun countOccurrences(str: String, searchStr: String): Int {
+    var count = 0
+    var startIndex = 0
+
+    while (startIndex < str.length) {
+        val index = str.indexOf(searchStr, startIndex)
+        if (index >= 0) {
+            count++
+            startIndex = index + searchStr.length
+        } else {
+            break
+        }
+    }
+
+    return count
 }
 
 @Composable
@@ -45,7 +126,7 @@ fun AutoResizeText(
     text: String,
     fontSizeRange: FontSizeRange,
     modifier: Modifier = Modifier,
-    color: Color = Color.Black,
+    color: Color = closeToBlack,
     fontStyle: FontStyle? = null,
     fontWeight: FontWeight? = null,
     fontFamily: FontFamily? = null,

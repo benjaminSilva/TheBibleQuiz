@@ -4,11 +4,12 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import com.example.novagincanabiblica.data.models.BibleVerse
-import com.example.novagincanabiblica.data.models.Question
+import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.models.wordle.Wordle
+import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import kotlinx.coroutines.flow.Flow
 
 interface SoloModeRepo {
@@ -26,4 +27,11 @@ interface SoloModeRepo {
     suspend fun isThisGameModeAvailable(key: String): Flow<Boolean>
     fun updateGameModeValue(key: String, value: Boolean)
     suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>>
+    suspend fun updateWordleStats(userFoundTheWord: Boolean, session: Session, numberOfAttempt: List<WordleAttempt>): Flow<String>
+    suspend fun updateWordleList(
+        session: Session,
+        attemptList: List<WordleAttempt>
+    ): Flow<String>
+
+    suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>>
 }

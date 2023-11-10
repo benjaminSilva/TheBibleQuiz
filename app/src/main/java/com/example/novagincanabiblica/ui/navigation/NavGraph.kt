@@ -16,7 +16,9 @@ import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloResultScreen
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializePreSoloScreen
 import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleResult
 import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleScreen
+import com.example.novagincanabiblica.ui.screens.games.wordle.WordleResultsScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
@@ -54,7 +56,7 @@ fun SetupNavGraph(navController: NavHostController) {
                 route = Routes.WordleResults.value
             ) {
                 val wordleViewModel = it.sharedViewModel<WordleViewModel>(navController = navController)
-                InitializeWordleScreen(navController = navController, viewModel = wordleViewModel)
+                InitializeWordleResult(navController = navController, viewModel = wordleViewModel)
             }
         }
 
@@ -98,8 +100,8 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navControll
     return hiltViewModel(parentEntry)
 }
 
-fun NavHostController.navigateWithoutRemembering(route: Routes) {
+fun NavHostController.navigateWithoutRemembering(route: Routes, baseRoute: Routes) {
     navigate(route = route.value) {
-        popUpTo(graph[Routes.QuizMode.value].id)
+        popUpTo(graph[baseRoute.value].id)
     }
 }

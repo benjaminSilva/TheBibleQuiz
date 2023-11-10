@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -26,12 +28,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
-import com.example.novagincanabiblica.data.models.Question
+import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
+import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.WordleDataCalculated
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.ui.basicviews.BasicText
-import com.example.novagincanabiblica.ui.basicviews.QuestionStats
+import com.example.novagincanabiblica.ui.basicviews.QuizStats
+import com.example.novagincanabiblica.ui.basicviews.generateStatsData
 import com.example.novagincanabiblica.ui.screens.Routes
+import com.example.novagincanabiblica.ui.screens.games.wordle.generatedCalculatedData
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
@@ -43,11 +49,17 @@ fun InitializeSoloResultScreen(
 ) {
     val question by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     val session by soloViewModel.localSession.collectAsStateWithLifecycle()
+    val calculatedData by soloViewModel.calculatedQuizData.collectAsStateWithLifecycle()
+
+    LaunchedEffect(session) {
+        soloViewModel.calculateQuizData()
+    }
 
     ResultsScreen(
         navController = navController,
         question = question,
-        session = session
+        session = session,
+        calculatedData = calculatedData
     )
 }
 
@@ -55,7 +67,8 @@ fun InitializeSoloResultScreen(
 fun ResultsScreen(
     navController: NavHostController,
     question: Question,
-    session: Session
+    session: Session,
+    calculatedData: QuestionStatsDataCalculated
 ) {
     Box(
         modifier = Modifier
@@ -97,76 +110,78 @@ fun ResultsScreen(
             }
 
             if (!session.userInfo?.userId.isNullOrBlank()) {
-                QuestionStats(data = session.userStats)
+                QuizStats(data = session.quizStats, calculatedData = calculatedData)
             } else {
                 BasicText(text = "Login to Keep up with you stats, gain badges add friends.")
             }
 
         }
 
+        BackAndShare(modifier = Modifier.fillMaxHeight(0.07f).align(Alignment.BottomCenter), goBackClick = {
+            navController.popBackStack(Routes.Home.value, false)
+        }) {
+
+        }
+    }
+}
+
+@Composable
+fun BackAndShare(modifier: Modifier, goBackClick: () -> Unit, shareClick: () -> Unit) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.07f)
-                .align(Alignment.BottomCenter),
+                .weight(1f)
+                .shadow(20.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    shareClick()
+                }
+                .align(CenterVertically)
+                .background(almostWhite),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            Box(
+            Image(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .shadow(20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable {
-                        navController.popBackStack(Routes.Home.value, false)
-                    }
-                    .background(almostWhite))
-            {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(almostWhite),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .size(24.dp),
-                        painter = painterResource(id = R.drawable.baseline_share_24),
-                        contentDescription = null
-                    )
-                    BasicText(
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        text = "Share", fontSize = 16
-                    )
+                    .padding(16.dp)
+                    .size(24.dp),
+                painter = painterResource(id = R.drawable.baseline_share_24),
+                contentDescription = null
+            )
+            BasicText(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = "Share", fontSize = 16
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .shadow(20.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    goBackClick()
                 }
-            }
-
-            Row(
+                .align(CenterVertically)
+                .background(almostWhite)
+        ) {
+            Image(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .shadow(20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable {
-                        navController.popBackStack(Routes.Home.value, false)
-                    }
-                    .background(almostWhite)
-            ) {
-                Image(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .size(24.dp),
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                    contentDescription = null
-                )
-                BasicText(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    text = "Go Back",
-                    fontSize = 16
-                )
-            }
+                    .padding(16.dp)
+                    .size(24.dp),
+                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                contentDescription = null
+            )
+            BasicText(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = "Go Back",
+                fontSize = 16
+            )
         }
     }
 }
@@ -195,7 +210,8 @@ fun PreviewResultScreen() {
         ResultsScreen(
             navController = rememberNavController(),
             question = Question(),
-            session = Session()
+            session = Session(),
+            calculatedData = QuestionStatsDataCalculated()
         )
     }
 }

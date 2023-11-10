@@ -1,4 +1,4 @@
-package com.example.novagincanabiblica.data.models
+package com.example.novagincanabiblica.data.models.quiz
 
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 

@@ -30,9 +30,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.WordleDataCalculated
 import com.example.novagincanabiblica.ui.basicviews.BasicText
-import com.example.novagincanabiblica.ui.basicviews.QuestionStats
+import com.example.novagincanabiblica.ui.basicviews.QuizStats
+import com.example.novagincanabiblica.ui.screens.games.wordle.WordleStats
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
@@ -42,39 +45,48 @@ import com.example.novagincanabiblica.viewmodel.HomeViewModel
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val userData by homeViewModel.localSession.collectAsStateWithLifecycle()
     val displayData by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+    val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
+    val calculatedWordleData by homeViewModel.calculatedWordleData.collectAsStateWithLifecycle()
+
     val (isItQuiz, displayDialog) = displayData
 
-    userData.apply {
-        ProfileScreen(
-            session = this,
-            isItQuiz = isItQuiz,
-            displayDialog = displayDialog,
-            displayDialogFunction = { itIsQuiz, displayIt ->
-                homeViewModel.displayDialog(itIsQuiz, displayIt)
-            }) {
-            homeViewModel.signOut()
-            navController.popBackStack()
+    if (displayDialog) {
+        if (isItQuiz) {
+            Dialog(onDismissRequest = { homeViewModel.displayDialog(isItQuiz = false, displayIt = false) }) {
+                QuizStats(data = userData.quizStats, calculatedData = calculatedQuizData, isFromProfileScreen = true) {
+                    homeViewModel.displayDialog(isItQuiz = false, displayIt = false)
+                }
+            }
+        } else {
+            Dialog(onDismissRequest = { homeViewModel.displayDialog(isItQuiz = false, displayIt = false) }) {
+                WordleStats(wordleStats = userData.wordle.wordleStats, progresses = calculatedWordleData, isFromProfileScreen = true) {
+                    homeViewModel.displayDialog(isItQuiz = false, displayIt = false)
+                }
+            }
         }
     }
+
+    ProfileScreen(
+        session = userData,
+        calculateQuizData = { homeViewModel.calculateQuizData() },
+        calculateWordleData = { homeViewModel.calculateWordleData() },
+        displayDialogFunction = { isThisQuiz, displayIt ->
+            homeViewModel.displayDialog(isItQuiz = isThisQuiz, displayIt = displayIt)
+        }) {
+        homeViewModel.signOut()
+        navController.popBackStack()
+    }
+
 }
 
 @Composable
 fun ProfileScreen(
     session: Session,
-    isItQuiz: Boolean,
-    displayDialog: Boolean,
+    calculateQuizData: () -> Unit,
+    calculateWordleData: () -> Unit,
     displayDialogFunction: (Boolean, Boolean) -> Unit,
     signOut: () -> Unit
 ) {
-
-    if (displayDialog) {
-        if (isItQuiz) {
-            Dialog(onDismissRequest = { displayDialogFunction(false, false) }) {
-                QuestionStats(data = session.userStats)
-            }
-        }
-    }
-
 
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
@@ -168,6 +180,7 @@ fun ProfileScreen(
                         .shadow(20.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
+                            calculateQuizData()
                             displayDialogFunction(true, true)
                         }
                         .background(almostWhite)
@@ -191,6 +204,8 @@ fun ProfileScreen(
                         .shadow(20.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
+                            calculateWordleData()
+                            displayDialogFunction(false, true)
                         }
                         .background(almostWhite)
                 ) {

@@ -27,8 +27,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.QuestionStatsData
+import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
+import com.example.novagincanabiblica.ui.screens.games.quiz.BackAndShare
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.closeToBlack
@@ -36,68 +39,14 @@ import com.example.novagincanabiblica.ui.theme.correctAnswer
 import com.example.novagincanabiblica.ui.theme.lessWhite
 
 @Composable
-fun QuestionStats(data: QuestionStatsData) {
+fun QuizStats(
+    data: QuestionStatsData,
+    calculatedData: QuestionStatsDataCalculated,
+    isFromProfileScreen: Boolean = false,
+    closeDialog: () -> Unit = {}
+) {
 
-    var startAnimation by remember {
-        mutableStateOf(true)
-    }
-    LaunchedEffect(Unit) {
-        startAnimation = false
-    }
-
-    val animateEasy by animateAlpha(
-        condition = startAnimation,
-        endValue = getAlphaValueToAnimate(data.easyCorrect, data.easyWrong)
-    )
-
-    val animateMedium by animateAlpha(
-        condition = startAnimation,
-        endValue = getAlphaValueToAnimate(data.mediumCorrect, data.mediumWrong)
-    )
-
-    val animateHard by animateAlpha(
-        condition = startAnimation,
-        endValue = getAlphaValueToAnimate(data.hardCorrect, data.hardWrong)
-    )
-
-    val animateImpossible by animateAlpha(
-        condition = startAnimation,
-        endValue = getAlphaValueToAnimate(data.impossibleCorrect, data.impossibleWrong)
-
-    )
-
-    val animateEasyCorrect by animateInt(
-        startAnimation = startAnimation,
-        endValue = data.easyCorrect
-    )
-    val animateMediumCorrect by animateInt(
-        startAnimation = startAnimation,
-        endValue = data.mediumCorrect
-    )
-    val animateHardCorrect by animateInt(
-        startAnimation = startAnimation,
-        endValue = data.hardCorrect
-    )
-    val animateImpossibleCorrect by animateInt(
-        startAnimation = startAnimation,
-        endValue = data.impossibleCorrect
-    )
-
-    val animateDaysPosition by animatePosition(
-        condition = startAnimation,
-        startValue = IntOffset(-30, 0),
-        endValue = IntOffset.Zero,
-        duration = 500
-    )
-
-    val animateDaysAlpha by animateAlpha(condition = startAnimation, duration = 500)
-
-    val animateStreak by animateInt(
-        startAnimation = startAnimation,
-        endValue = data.streak
-    )
-
-    Column (verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -135,91 +84,144 @@ fun QuestionStats(data: QuestionStatsData) {
                         .background(lessWhite)
                 ) {
                     PointsProgressRow(
-                        correctPoints = animateEasyCorrect.toString(),
-                        progress = animateEasy,
+                        correctPoints = data.easyCorrect,
+                        progress = calculatedData.easyFloat,
                         totalPoints = data.getTotalEasy().toString(),
-                        difficulty = "EASY/(${animateEasy.times(100).toInt()}%)"
+                        difficulty = "EASY/",
+                        progressInt = calculatedData.easyInt
                     )
 
                     PointsProgressRow(
-                        correctPoints = animateMediumCorrect.toString(),
-                        progress = animateMedium,
+                        correctPoints = data.mediumCorrect,
+                        progress = calculatedData.mediumFloat,
                         totalPoints = data.getTotalMedium().toString(),
-                        difficulty = "MEDIUM/(${animateMedium.times(100).toInt()}%)"
+                        difficulty = "MEDIUM/",
+                        progressInt = calculatedData.mediumInt
                     )
 
                     PointsProgressRow(
-                        correctPoints = animateHardCorrect.toString(),
-                        progress = animateHard,
+                        correctPoints = data.hardCorrect,
+                        progress = calculatedData.hardFLoat,
                         totalPoints = data.getTotalHard().toString(),
-                        difficulty = "HARD/(${animateHard.times(100).toInt()}%)"
+                        difficulty = "HARD/",
+                        progressInt = calculatedData.hardInt
                     )
 
                     PointsProgressRow(
-                        correctPoints = animateImpossibleCorrect.toString(),
-                        progress = animateImpossible,
+                        correctPoints = data.impossibleCorrect,
+                        progress = calculatedData.impossibleFloat,
                         totalPoints = data.getTotalImpossible().toString(),
-                        difficulty = "IMPOSSIBLE/(${animateImpossible.times(100).toInt()}%)"
+                        difficulty = "IMPOSSIBLE/",
+                        progressInt = calculatedData.impossibleInt
                     )
                 }
             }
         }
 
         if (data.streak > 1) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(almostWhite)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(lessWhite)
-                ) {
-                    BasicText(
-                        modifier = Modifier.padding(16.dp).align(Alignment.Center),
-                        text = animateStreak.toString(),
-                        fontSize = 28
-                    )
-                }
+            DaysStreak(streakDays = data.streak)
+        }
 
-                BasicText(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .offset {
-                            animateDaysPosition
-                        }
-                        .alpha(animateDaysAlpha),
-                    text = "Days in streak", fontSize = 22
-                )
+        if (isFromProfileScreen) {
+            BackAndShare(modifier = Modifier, goBackClick = {
+                closeDialog()
+            }) {
+
             }
         }
     }
-
-
 }
 
-fun getAlphaValueToAnimate(correct: Int, wrong: Int): Float = if (itDoesntBreak(
-        correct,
-        wrong
-    )
-) (correct.toFloat() / (correct + wrong)) else 0f
+@Composable
+fun DaysStreak(streakDays: Int) {
+    var startAnimation by remember {
+        mutableStateOf(true)
+    }
+    LaunchedEffect(Unit) {
+        startAnimation = false
+    }
 
-//Checks if we are not dividing zero or by zero.
-fun itDoesntBreak(correct: Int, wrong: Int) = !(correct == 0 || correct + wrong == 0)
+    val animateDaysPosition by animatePosition(
+        condition = startAnimation,
+        startValue = IntOffset(-30, 0),
+        endValue = IntOffset.Zero,
+        duration = 500
+    )
+
+    val animateDaysAlpha by animateAlpha(condition = startAnimation, duration = 500)
+
+    val animateStreak by animateInt(
+        startAnimation = startAnimation,
+        endValue = streakDays
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(20.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(almostWhite)
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .size(64.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(lessWhite)
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Center),
+                text = animateStreak.toString(),
+                fontSize = 28
+            )
+        }
+
+        BasicText(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .offset {
+                    animateDaysPosition
+                }
+                .alpha(animateDaysAlpha),
+            text = "Days in streak", fontSize = 22
+        )
+    }
+}
 
 @Composable
 fun PointsProgressRow(
     modifier: Modifier = Modifier,
-    correctPoints: String,
+    correctPoints: Int,
     progress: Float,
     totalPoints: String,
-    difficulty: String
+    difficulty: String,
+    progressInt: Int
 ) {
+
+    var startAnimation by remember {
+        mutableStateOf(true)
+    }
+    LaunchedEffect(Unit) {
+        startAnimation = false
+    }
+
+    val animateProgress by animateAlpha(
+        condition = startAnimation,
+        endValue = progress
+    )
+
+    val animateDays by animateInt(
+        startAnimation = startAnimation,
+        endValue = correctPoints
+    )
+
+    val progressInt by animateInt(
+        startAnimation = startAnimation,
+        endValue = progressInt
+    )
+
     Row(
         modifier = modifier.padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -232,7 +234,7 @@ fun PointsProgressRow(
         ) {
             BasicText(
                 modifier = Modifier.align(Alignment.Center),
-                text = correctPoints,
+                text = animateDays.toString(),
                 fontSize = 22
             )
         }
@@ -242,8 +244,8 @@ fun PointsProgressRow(
                 .fillMaxWidth()
                 .weight(.8f)
                 .align(Alignment.CenterVertically),
-            progress = progress,
-            text = difficulty
+            progress = animateProgress,
+            text = "$difficulty($progressInt%)"
         )
 
         Box(
@@ -262,10 +264,10 @@ fun PointsProgressRow(
 
 @Composable
 fun MyProgressBar(modifier: Modifier = Modifier, progress: Float, text: String) {
+
     Box(
         modifier = modifier.clip(RoundedCornerShape(16.dp))
     ) {
-
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -291,7 +293,7 @@ fun MyProgressBar(modifier: Modifier = Modifier, progress: Float, text: String) 
 @Composable
 fun PreviewQuestionStats() {
     NovaGincanaBiblicaTheme {
-        QuestionStats(generateStatsData())
+        //QuestionStats(generateStatsData())
     }
 }
 

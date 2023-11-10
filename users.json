@@ -1,0 +1,230 @@
+{
+  "jcY4iLvvKPVNFz98f6nK072IC7w2": {
+    "hasPlayedQuizGame": true,
+    "hasPlayerWordleGame": true,
+    "quizStats": {
+      "easyCorrect": 2,
+      "easyWrong": 0,
+      "hardCorrect": 0,
+      "hardWrong": 0,
+      "impossibleCorrect": 0,
+      "impossibleWrong": 0,
+      "mediumCorrect": 0,
+      "mediumWrong": 0,
+      "streak": 2,
+      "totalEasy": 2,
+      "totalHard": 0,
+      "totalImpossible": 0,
+      "totalMedium": 0
+    },
+    "userInfo": {
+      "profilePictureUrl": "https://lh3.googleusercontent.com/a/ACg8ocLjApXTBZwlqrcOx_pgCENgWW593Zd_Q_0wRpuRL1EIZJ-j=s96-c",
+      "userId": "jcY4iLvvKPVNFz98f6nK072IC7w2",
+      "userName": "Benjamin Silva"
+    },
+    "wordle": {
+      "listOfAttemps": [
+        {
+          "attemptState": "USER_HAS_TRIED",
+          "listOfLetterStates": [
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE"
+          ],
+          "word": "LORD"
+        },
+        {
+          "attemptState": "USER_IS_CURRENTLY_HERE",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        }
+      ],
+      "wordleStats": {
+        "lost": 0,
+        "max": 1,
+        "streak": 1,
+        "winOnFirst": 1,
+        "winOnFirth": 0,
+        "winOnForth": 0,
+        "winOnSecond": 0,
+        "winOnSixth": 0,
+        "winOnThird": 0
+      }
+    }
+  },
+  "pqTepmmrjte2WDq6Wk5Kk4n4lYG2": {
+    "hasPlayedQuizGame": false,
+    "hasPlayerWordleGame": true,
+    "quizStats": {
+      "easyCorrect": 0,
+      "easyWrong": 0,
+      "hardCorrect": 0,
+      "hardWrong": 0,
+      "impossibleCorrect": 0,
+      "impossibleWrong": 0,
+      "mediumCorrect": 0,
+      "mediumWrong": 0,
+      "streak": 0,
+      "totalEasy": 0,
+      "totalHard": 0,
+      "totalImpossible": 0,
+      "totalMedium": 0
+    },
+    "userInfo": {
+      "profilePictureUrl": "https://lh3.googleusercontent.com/a/ACg8ocIS-bnsqI8E-VHvK4HvoXG0PMzt0p2VAMwp1pFocq-hJQ=s96-c",
+      "userId": "pqTepmmrjte2WDq6Wk5Kk4n4lYG2",
+      "userName": "Uece Mobile"
+    },
+    "wordle": {
+      "listOfAttemps": [
+        {
+          "attemptState": "USER_HAS_TRIED",
+          "listOfLetterStates": [
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE",
+            "LETTER_CORRECT_PLACE"
+          ],
+          "word": "LORD"
+        },
+        {
+          "attemptState": "USER_IS_CURRENTLY_HERE",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        },
+        {
+          "attemptState": "USER_WILL_STILL_TRY",
+          "listOfLetterStates": [
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED",
+            "LETTER_NOT_CHECKED"
+          ],
+          "word": ""
+        }
+      ],
+      "wordleStats": {
+        "lost": 0,
+        "max": 1,
+        "streak": 1,
+        "winOnFirst": 1,
+        "winOnFirth": 0,
+        "winOnForth": 0,
+        "winOnSecond": 0,
+        "winOnSixth": 0,
+        "winOnThird": 0
+      }
+    }
+  }
+}

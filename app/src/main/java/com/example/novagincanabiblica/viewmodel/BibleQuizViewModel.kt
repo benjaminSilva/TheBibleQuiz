@@ -1,8 +1,9 @@
 package com.example.novagincanabiblica.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.example.novagincanabiblica.data.models.Answer
-import com.example.novagincanabiblica.data.models.Question
+import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
+import com.example.novagincanabiblica.data.models.quiz.Answer
+import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel

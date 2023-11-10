@@ -6,7 +6,8 @@ import com.example.novagincanabiblica.data.models.wordle.KeyboardLetter
 import com.example.novagincanabiblica.data.models.wordle.LetterState
 import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
-import com.example.novagincanabiblica.data.models.wordle.WordleAttempts
+import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
+import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
 import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
 import com.example.novagincanabiblica.data.repositories.SoloModeRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +27,7 @@ class WordleViewModel @Inject constructor(
     private val _wordle = MutableStateFlow(Wordle())
     val wordle = _wordle.asStateFlow()
 
-    private val _attemps = MutableStateFlow(WordleAttempts())
+    private val _attemps = MutableStateFlow(generateStartWordleAttemptList())
     val attemps = _attemps.asStateFlow()
 
     private val _attempsString = MutableStateFlow("")
@@ -38,9 +38,6 @@ class WordleViewModel @Inject constructor(
 
     private val _listOfKeyboardStates = mutableStateListOf<KeyboardLetter>()
     val keyboardState = _listOfKeyboardStates
-
-    private val _startWordAnimation = MutableStateFlow(true)
-    val startWordAnimation = _startWordAnimation.asStateFlow()
 
     init {
         initiateKeyboardStateList()
@@ -55,6 +52,25 @@ class WordleViewModel @Inject constructor(
         repo.getDay().collectLatest { day ->
             day.handleSuccessAndFailure {
                 listenToWordle(it)
+                getAttemps()
+            }
+        }
+    }
+
+    private fun getAttemps() = viewModelScope.launch {
+        repo.getAttemps(localSession.value).collectLatest {
+            it.handleSuccessAndFailure { attemps ->
+                _attemps.emit(attemps)
+                attemps.updateKeyboard()
+            }
+        }
+
+    }
+
+    private fun List<WordleAttempt>.updateKeyboard() {
+        forEach { wordleAttempt ->
+            wordleAttempt.word.forEachIndexed { index, char ->
+                char.updateLetterStatus(wordleAttempt.listOfLetterStates[index])
             }
         }
     }
@@ -86,16 +102,17 @@ class WordleViewModel @Inject constructor(
         _wordle.update {
             it.copy(isFinished = true, hasUserFoundTheWord = userFoundTheWord)
         }
+        repo.updateWordleStats(userFoundTheWord, localSession.value, attemps.value).collectLatest {
+            _errorMessage.emit(it)
+        }
         delay(2000)
         _navigateToResults.emit(true)
-        //TODO update online and on sharedPref
     }
 
     private fun updateAttemps(validWord: String) = viewModelScope.launch {
-        _startWordAnimation.emit(true)
         _attempsString.emit("")
         _attemps.update {
-            it.copy(listOfAttempts = it.listOfAttempts.apply {
+            it.apply {
                 first { attempt ->
                     attempt.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
                 }.let { currentWordleAttempt ->
@@ -112,8 +129,12 @@ class WordleViewModel @Inject constructor(
                         nextWordleAttemp.attemptState = WordleAttempState.USER_IS_CURRENTLY_HERE
                     }
                 }
-            })
+            }
         }
+        repo.updateWordleList(session = localSession.value, attemptList = attemps.value)
+            .collectLatest {
+                _errorMessage.emit(it)
+            }
     }
 
     private fun generateLetterStates(word: String): List<LetterState> {
@@ -123,14 +144,20 @@ class WordleViewModel @Inject constructor(
             when {
                 letter == wordleletter -> {
                     letter.updateLetterStatus(LetterState.LETTER_CORRECT_PLACE)
-                    localWordleCopy = localWordleCopy.replaceFirst(letter.toString(),"")
+                    localWordleCopy = localWordleCopy.replaceFirst(letter.toString(), "")
                     LetterState.LETTER_CORRECT_PLACE
                 }
-                localWordleCopy.contains(letter) && letter.verifyIfThisLetterIsAlreadyCorrect(word, localWordleCopy, index) -> {
+
+                localWordleCopy.contains(letter) && letter.verifyIfThisLetterIsAlreadyCorrect(
+                    word,
+                    localWordleCopy,
+                    index
+                ) -> {
                     letter.updateLetterStatus(LetterState.LETTER_WRONG_PLACE)
-                    localWordleCopy = localWordleCopy.replaceFirst(letter.toString(),"")
+                    localWordleCopy = localWordleCopy.replaceFirst(letter.toString(), "")
                     LetterState.LETTER_WRONG_PLACE
                 }
+
                 else -> {
                     letter.updateLetterStatus(LetterState.LETTER_NOT_IN_WORD)
                     LetterState.LETTER_NOT_IN_WORD
@@ -144,10 +171,10 @@ class WordleViewModel @Inject constructor(
         wordleWord: String,
         index: Int
     ): Boolean {
-        val correctWordle = wordle.value.word
         if (word.count { it == this } < 2 || wordleWord.count { it == this } > 1) {
             return true
         }
+        val correctWordle = wordle.value.word
         for (i in index + 1 until correctWordle.length) {
             if (word[i] == this && correctWordle[i] == this) {
                 return false
@@ -157,7 +184,8 @@ class WordleViewModel @Inject constructor(
     }
 
     private fun Char.updateLetterStatus(status: LetterState) {
-        _listOfKeyboardStates.find { it.letter == this.toString() && it.letterState == LetterState.LETTER_NOT_CHECKED}?.letterState = status
+        _listOfKeyboardStates.find { it.letter == this.toString() && (it.letterState == LetterState.LETTER_NOT_CHECKED || status == LetterState.LETTER_CORRECT_PLACE) }?.letterState =
+            status
     }
 
 

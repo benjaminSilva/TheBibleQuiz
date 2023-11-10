@@ -32,7 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
-import com.example.novagincanabiblica.data.models.QuestionDifficulty
+import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
 import com.example.novagincanabiblica.ui.basicviews.BasicButton
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.basicviews.animateAngle
@@ -53,7 +53,7 @@ fun InitializePreSoloScreen(
         currentQuestionDifficulty = currentQuestion.difficulty
     ) {
         soloViewModel.updateSession()
-        navController.navigateWithoutRemembering(route = Routes.Quiz)
+        navController.navigateWithoutRemembering(route = Routes.Quiz, baseRoute = Routes.QuizMode)
     }
 }
 
