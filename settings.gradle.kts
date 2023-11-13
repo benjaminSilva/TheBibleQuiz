@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Nova Gincana Biblica"
+rootProject.name = "The Bible Quiz"
 include(":app")
  

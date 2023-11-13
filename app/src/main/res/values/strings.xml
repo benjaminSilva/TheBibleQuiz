@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">The Bible Quiz</string>
-    <string name="spm_title">Play alone</string>
-    <string name="mpm_title">Play with friends</string>
-    <string name="the_quiz">The Quiz</string>
+    <string name="google_web_client_id">156955365205-3c54hi3ib8ee9qpap57ishogg9p4bl5v.apps.googleusercontent.com</string>
+    <string name="the_quiz_mode">The Quiz</string>
+    <string name="biblical_wordle">Biblical Wordle</string>
     <string name="go_back">Go Back</string>
     <string name="start_question">Start Question</string>
+    <string name="title_activity_splash_screen">The Bible Quiz</string>
 </resources>

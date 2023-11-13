@@ -1,47 +1,76 @@
 {
-  "points" : 0,
-  "questions" : [
-    {
-      "question": "Who did this?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
-      "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
-      "difficulty": "EASY"
-    },{
-      "question": "Who did that?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
-      "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
-      "difficulty": "MEDIUM"
-    },{
-      "question": "Who messed up everything?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
-      "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
-      "difficulty": "HARD"
-    },{
-      "question": "Who needs guidance?",
-      "correctAnswer": "David",
-      "wrongAnswerOne": "Eric",
-      "wrongAnswerTwo": "Eric",
-      "wrongAnswerThree": "Eric",
-      "bibleVerse": "Tha number",
-      "answeredCorrectly": false,
-      "difficulty": "GOD"
+  "dailyBibleVerse": {
+    "en": [
+      {
+        "reference": "1 Thessalonians 2:11-12",
+        "verse": "For you know that we dealt with each of you as a father deals with his own children, encouraging, comforting and urging you to live lives worthy of God, who calls you into his kingdom and glory."
+      }
+    ],
+    "es": [
+      {
+        "reference": "Una referencia",
+        "verse": "Un versiculo"
+      }
+    ],
+    "pt": [
+      {
+        "reference": "João 3:1",
+        "verse": "Deus é bom"
+      }
+    ]
+  },
+  "dailyQuiz": {
+    "en": [
+      {
+        "bibleVerse": "John 18:2",
+        "difficulty": "EASY",
+        "listOfAnswers": [
+          {
+            "answerText": "Jesus",
+            "correct": true
+          },
+          {
+            "answerText": "George Washington",
+            "correct": false
+          },
+          {
+            "answerText": "Mario",
+            "correct": false
+          },
+          {
+            "answerText": "Mark Zuckerberg",
+            "correct": false
+          }
+        ],
+        "question": "Who died at the cross?"
+      }
+    ],
+    "es": [
+      {
+        "question": "Test"
+      }
+    ],
+    "pt": [
+      {
+        "question": "Test"
+      }
+    ]
+  },
+  "day": 0,
+  "users": {
+    "jcY4iLvvKPVNFz98f6nK072IC7w2": {
+      "dayReset": false,
+      "hasPlayedQuizGame": false,
+      "hasPlayerWordleGame": false,
+      "userInfo": {
+        "profilePictureUrl": "https://lh3.googleusercontent.com/a/ACg8ocLjApXTBZwlqrcOx_pgCENgWW593Zd_Q_0wRpuRL1EIZJ-j=s96-c",
+        "userId": "jcY4iLvvKPVNFz98f6nK072IC7w2",
+        "userName": "Benjamin Silva"
+      },
+      "wordleTest": [
+        "Monkey",
+        "Baggoties"
+      ]
     }
-  ],
-  "player": {
-    "id": 123,
-    "userName": "Benjamin",
-    "subscribed": false
   }
 }
