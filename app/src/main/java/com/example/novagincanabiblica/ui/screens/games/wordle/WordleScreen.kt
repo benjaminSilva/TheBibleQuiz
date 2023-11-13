@@ -44,6 +44,7 @@ import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAtte
 import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
 import com.example.novagincanabiblica.ui.basicviews.AutoResizeText
 import com.example.novagincanabiblica.ui.basicviews.BasicText
+import com.example.novagincanabiblica.ui.basicviews.ErrorMessage
 import com.example.novagincanabiblica.ui.basicviews.FontSizeRange
 import com.example.novagincanabiblica.ui.basicviews.ShakeConfig
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
@@ -59,6 +60,7 @@ import com.example.novagincanabiblica.ui.theme.closeToBlack
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 import com.example.novagincanabiblica.viewmodel.WordleViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleViewModel) {
@@ -127,6 +129,15 @@ fun WordleScreen(
                 .fillMaxHeight()
                 .weight(0.75f)
         ) {
+
+            if (errorMessage.isNotEmpty()) {
+                ErrorMessage(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp),
+                    errorMessage = errorMessage
+                )
+            }
             Column(
                 modifier = Modifier
                     .padding(vertical = 16.dp, horizontal = 32.dp)
@@ -660,8 +671,8 @@ fun RowLetterWordle(
             startLocalWordAnimation = false
     }
 
-    DisposableEffect(errorMessage) {
-        if (errorMessage == "Word doens't exist" && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE) {
+    LaunchedEffect(errorMessage) {
+        if ((errorMessage == "Word is not in our list." || errorMessage == "You have tried this word before" || errorMessage == "It has to be at least ${wordleWord.length} letters") && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE) {
             shakeController.shake(
                 ShakeConfig(
                     iterations = 4,
@@ -671,9 +682,8 @@ fun RowLetterWordle(
                 )
             )
         }
-        onDispose {
-            resetErrorMessage()
-        }
+        delay(5000)
+        resetErrorMessage()
     }
 
     LaunchedEffect(letterStates.listOfLetterStates) {
@@ -849,6 +859,28 @@ fun RowLetterWordle(
                 }
             }
         }
+        if (wordleWord.length > 7) {
+            val animateColorLetter7 by animateColor(
+                condition = startLocalWordAnimation,
+                startValue = almostWhite,
+                endValue = letterStates.listOfLetterStates[7],
+                delay = 1300
+            )
+            WordleLetter(modifier = Modifier.weight(1f), animateColorLetter7) {
+                if (attempt.length > 7) {
+                    AutoResizeText(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(8.dp),
+                        text = attempt[7].toString(),
+                        fontSizeRange = FontSizeRange(1.sp, 24.sp),
+                        fontFamily = achivoFontFamily
+                    )
+                } else {
+                    Spacer(modifier = Modifier.size(0.dp))
+                }
+            }
+        }
     }
 
 }
@@ -918,7 +950,7 @@ fun PreviewWordle() {
             "MONKE",
             listWordleAttemps = generateStartWordleAttemptList(),
             listOfKeyboardStates = initiateKeyboardState(),
-            "",
+            "Test error",
             {},
             {}) {
 

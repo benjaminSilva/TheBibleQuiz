@@ -6,13 +6,13 @@ import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
 import com.example.novagincanabiblica.data.models.state.ResultOf
-import com.example.novagincanabiblica.data.repositories.SoloModeRepo
+import com.example.novagincanabiblica.data.repositories.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-open class BaseViewModel(private val repo: SoloModeRepo) : ViewModel() {
+open class BaseViewModel(private val repo: Repository) : ViewModel() {
 
     protected val _errorMessage = MutableStateFlow("")
     val errorMessage = _errorMessage.asStateFlow()

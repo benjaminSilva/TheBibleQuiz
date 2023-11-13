@@ -9,7 +9,7 @@ import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
 import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
-import com.example.novagincanabiblica.data.repositories.SoloModeRepo
+import com.example.novagincanabiblica.data.repositories.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WordleViewModel @Inject constructor(
-    private val repo: SoloModeRepo
+    private val repo: Repository
 ) : BaseViewModel(repo = repo) {
 
     private val _wordle = MutableStateFlow(Wordle())
@@ -52,19 +52,20 @@ class WordleViewModel @Inject constructor(
         repo.getDay().collectLatest { day ->
             day.handleSuccessAndFailure {
                 listenToWordle(it)
-                getAttemps()
+                getAttempts()
             }
         }
     }
 
-    private fun getAttemps() = viewModelScope.launch {
-        repo.getAttemps(localSession.value).collectLatest {
-            it.handleSuccessAndFailure { attemps ->
-                _attemps.emit(attemps)
-                attemps.updateKeyboard()
+    private fun getAttempts() = viewModelScope.launch {
+        localSession.collectLatest { session ->
+            repo.getAttemps(session).collectLatest {
+                it.handleSuccessAndFailure { attemps ->
+                    _attemps.emit(attemps)
+                    attemps.updateKeyboard()
+                }
             }
         }
-
     }
 
     private fun List<WordleAttempt>.updateKeyboard() {
@@ -84,19 +85,32 @@ class WordleViewModel @Inject constructor(
     }
 
     fun checkWord() = viewModelScope.launch {
-        if (attempsString.value.length == wordle.value.word.length) {
-            repo.checkWord(attempsString.value).collectLatest {
-                it.handleSuccessAndFailure { validWord ->
-                    if (wordle.value.word == validWord) {
-                        updateAttemps(validWord)
-                        handleEndOfGame(userFoundTheWord = true)
-                    } else {
-                        updateAttemps(validWord)
-                    }
-                }
+        if (attempsString.value.length != wordle.value.word.length) {
+            _errorMessage.emit("It has to be at least ${wordle.value.word.length} letters")
+            return@launch
+        }
+        if (attempsString.value.isRepeatedWord(attemps.value)) {
+            _errorMessage.emit("You have tried this word before")
+            return@launch
+        }
+
+        if (attempsString.value == wordle.value.word) {
+            handleEndOfGame(userFoundTheWord = true)
+            updateAttemps(attempsString.value)
+            return@launch
+        }
+
+        repo.checkWordV2(attempsString.value).collectLatest {
+            it.handleSuccessAndFailure { validWord ->
+                updateAttemps(validWord)
             }
         }
+
     }
+
+    private fun String.isRepeatedWord(list: List<WordleAttempt>): Boolean =
+        list.find { it.word == this } != null
+
 
     private fun handleEndOfGame(userFoundTheWord: Boolean = false) = viewModelScope.launch {
         _wordle.update {

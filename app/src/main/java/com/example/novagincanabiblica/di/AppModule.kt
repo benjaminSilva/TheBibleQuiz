@@ -5,8 +5,8 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.client.WordleService
-import com.example.novagincanabiblica.data.repositories.SoloModeRepo
-import com.example.novagincanabiblica.data.repositories.SoloModeRepoImpl
+import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.data.repositories.RepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.database.FirebaseDatabase
 import dagger.Module
@@ -47,7 +47,8 @@ object AppModule {
         @Named("dailyVerseDatabase") dailyVerseDatabase: FirebaseDatabase,
         @Named("wordleDatabase") wordleDatabase: FirebaseDatabase,
         @Named("quizDatabase") quizDatabase: FirebaseDatabase,
-    ): SoloModeRepo = SoloModeRepoImpl(
+        @Named("englishWordsDatabase") englishWords: FirebaseDatabase,
+    ): Repository = RepositoryImpl(
         googleAuthUiClient = googleAuthUiClient,
         wordleService = wordleService,
         sharedPreferences = sharedPreferences,
@@ -55,7 +56,8 @@ object AppModule {
         usersDatabase = usersDatabase,
         dailyVerseDatabase = dailyVerseDatabase,
         wordleDatabase = wordleDatabase,
-        quizDatabase = quizDatabase
+        quizDatabase = quizDatabase,
+        englishWords = englishWords
     )
 
     @Singleton
@@ -82,6 +84,11 @@ object AppModule {
     @Provides
     @Named("quizDatabase")
     fun getQuizDatabase() = FirebaseDatabase.getInstance("https://the-bible-quiz-questions.firebaseio.com/")
+
+    @Singleton
+    @Provides
+    @Named("englishWordsDatabase")
+    fun getAllEnglishWords() = FirebaseDatabase.getInstance("https://the-bible-quiz-list-of-words-english.firebaseio.com/")
 
     @Singleton
     @Provides

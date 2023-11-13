@@ -129,6 +129,22 @@ fun animateAlpha(
 }
 
 @Composable
+fun animateScaleBouncy(
+    condition: Boolean,
+    startValue: Float = 0f,
+    endValue: Float = 1f
+): State<Float> {
+    return animateFloatAsState(
+        targetValue = if (condition) startValue else endValue,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
+        label = "scaleWithBoucyness"
+    )
+}
+
+@Composable
 fun animateColor(
     condition: Boolean,
     startValue: Color,

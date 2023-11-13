@@ -19,7 +19,9 @@ fun Modifier.shadowWithAnimation(
     ambientColor: Color = DefaultShadowColor,
     spotColor: Color = DefaultShadowColor,
     offset: IntOffset = IntOffset.Zero,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    scaleY: Float = 1f,
+    scaleX: Float = 1f
 ) = if (elevation > 0.dp || clip) {
     inspectable(
         inspectorInfo = debugInspectorInfo {
@@ -39,6 +41,8 @@ fun Modifier.shadowWithAnimation(
             this.spotShadowColor = spotColor
             this.translationX = offset.x.toFloat()
             this.alpha = alpha
+            this.scaleY = scaleY
+            this.scaleX = scaleX
         }
     }
 } else {

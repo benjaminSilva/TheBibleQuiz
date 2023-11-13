@@ -9,15 +9,15 @@ import androidx.compose.ui.text.intl.Locale
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.client.WordleService
 import com.example.novagincanabiblica.data.models.BibleVerse
-import com.example.novagincanabiblica.data.models.quiz.Question
-import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
-import com.example.novagincanabiblica.data.models.wordle.WordleCheck
+import com.example.novagincanabiblica.data.models.quiz.Question
+import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
+import com.example.novagincanabiblica.data.models.wordle.WordleCheck
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -35,22 +35,24 @@ import retrofit2.Response
 import javax.inject.Inject
 
 
-class SoloModeRepoImpl @Inject constructor(
+class RepositoryImpl @Inject constructor(
     private val googleAuthUiClient: GoogleAuthUiClient,
     private val wordleService: WordleService,
     private val sharedPreferences: SharedPreferences,
-    private val baseDatabase: FirebaseDatabase,
-    private val usersDatabase: FirebaseDatabase,
-    private val dailyVerseDatabase: FirebaseDatabase,
-    private val wordleDatabase: FirebaseDatabase,
-    private val quizDatabase: FirebaseDatabase
-    ) : SoloModeRepo {
+    baseDatabase: FirebaseDatabase,
+    usersDatabase: FirebaseDatabase,
+    dailyVerseDatabase: FirebaseDatabase,
+    wordleDatabase: FirebaseDatabase,
+    quizDatabase: FirebaseDatabase,
+    englishWords: FirebaseDatabase
+    ) : Repository {
 
     private val firebaseRef = baseDatabase.reference
     private val usersReference = usersDatabase.reference
     private val bibleVerseReference = dailyVerseDatabase.reference
     private val wordleReference = wordleDatabase.reference
     private val quizReference = quizDatabase.reference
+    private val englishWordsReference = englishWords.reference
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
         val ref = quizReference.child(Locale.current.language).child("day$day")
@@ -242,6 +244,8 @@ class SoloModeRepoImpl @Inject constructor(
     }
 
     override suspend fun checkWord(word: String): Flow<ResultOf<String>> = callbackFlow {
+        val test = System.currentTimeMillis()
+        Log.i("Check Word", "Start at: $test")
         wordleService.checkWord(word)?.apply {
             enqueue(object : Callback<List<WordleCheck>> {
                 override fun onResponse(
@@ -253,8 +257,9 @@ class SoloModeRepoImpl @Inject constructor(
                             trySend(ResultOf.Success(word))
                         }
                     } else {
-                        trySend(ResultOf.Failure("Word doens't exist"))
+                        trySend(ResultOf.Failure("Word is not in our list."))
                     }
+                    Log.i("Check Word", "Ended at:${System.currentTimeMillis() - test}")
                 }
 
                 override fun onFailure(call: Call<List<WordleCheck>>, t: Throwable) {
@@ -308,6 +313,7 @@ class SoloModeRepoImpl @Inject constructor(
                         }
                         streak += 1
                     } else {
+                        streak = 0
                         lost += 1
                     }
                 }
@@ -368,5 +374,27 @@ class SoloModeRepoImpl @Inject constructor(
             }
 
         }
+
+    override suspend fun checkWordV2(word: String): Flow<ResultOf<String>> = callbackFlow {
+        val test = System.currentTimeMillis()
+        Log.i("Check Word", "Start at: $test")
+        val ref = englishWordsReference.child(word.lowercase())
+        val postListener = object: ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    trySend(ResultOf.Success(word))
+                } else {
+                    trySend(ResultOf.Failure("Word is not in our list."))
+                }
+                Log.i("Check Word", "End at: ${System.currentTimeMillis() - test}")
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(databaseError.message))
+            }
+        }
+        ref.addListenerForSingleValueEvent(postListener)
+        awaitClose { ref.removeEventListener(postListener) }
+    }
 
 }

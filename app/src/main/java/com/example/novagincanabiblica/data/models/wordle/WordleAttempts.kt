@@ -37,6 +37,7 @@ data class WordleAttempt(
         LetterState.LETTER_NOT_CHECKED,
         LetterState.LETTER_NOT_CHECKED,
         LetterState.LETTER_NOT_CHECKED,
+        LetterState.LETTER_NOT_CHECKED,
         LetterState.LETTER_NOT_CHECKED
     )
 )

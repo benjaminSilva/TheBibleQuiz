@@ -6,7 +6,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.repositories.SoloModeRepo
+import com.example.novagincanabiblica.data.repositories.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repo: SoloModeRepo
+    private val repo: Repository
 ) : BaseViewModel(repo) {
 
     private val _dailyBibleVerse = MutableStateFlow(BibleVerse())

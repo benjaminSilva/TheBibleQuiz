@@ -12,7 +12,7 @@ import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import kotlinx.coroutines.flow.Flow
 
-interface SoloModeRepo {
+interface Repository {
     suspend fun signOut()
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
     suspend fun getSession(result: ActivityResult): Flow<ResultOf<Session>>
@@ -28,10 +28,10 @@ interface SoloModeRepo {
     fun updateGameModeValue(key: String, value: Boolean)
     suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>>
     suspend fun updateWordleStats(userFoundTheWord: Boolean, session: Session, numberOfAttempt: List<WordleAttempt>): Flow<String>
+    suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>>
+    suspend fun checkWordV2(word: String): Flow<ResultOf<String>>
     suspend fun updateWordleList(
         session: Session,
         attemptList: List<WordleAttempt>
     ): Flow<String>
-
-    suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>>
 }

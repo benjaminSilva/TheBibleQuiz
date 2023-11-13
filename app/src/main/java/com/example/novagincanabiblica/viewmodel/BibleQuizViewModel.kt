@@ -1,11 +1,10 @@
 package com.example.novagincanabiblica.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.data.models.quiz.Answer
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
-import com.example.novagincanabiblica.data.repositories.SoloModeRepo
+import com.example.novagincanabiblica.data.repositories.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BibleQuizViewModel @Inject constructor(
-    private val repo: SoloModeRepo
+    private val repo: Repository
 ) : BaseViewModel(repo) {
 
     private val _nextDestination = MutableSharedFlow<Boolean>()
