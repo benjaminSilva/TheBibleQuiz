@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,12 +30,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.wordle.KeyboardLetter
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
@@ -44,7 +45,7 @@ import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAtte
 import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
 import com.example.novagincanabiblica.ui.basicviews.AutoResizeText
 import com.example.novagincanabiblica.ui.basicviews.BasicText
-import com.example.novagincanabiblica.ui.basicviews.ErrorMessage
+import com.example.novagincanabiblica.ui.basicviews.FeedbackMessage
 import com.example.novagincanabiblica.ui.basicviews.FontSizeRange
 import com.example.novagincanabiblica.ui.basicviews.ShakeConfig
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
@@ -69,7 +70,7 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
     val attempts by viewModel.attemps.collectAsStateWithLifecycle()
     val attempt by viewModel.attempsString.collectAsStateWithLifecycle()
     val listKeyBoardState = viewModel.keyboardState
-    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigate) {
         if (navigate) {
@@ -102,7 +103,7 @@ fun WordleScreen(
     attempt: String,
     listWordleAttemps: List<WordleAttempt>,
     listOfKeyboardStates: List<KeyboardLetter>,
-    errorMessage: String,
+    errorMessage: FeedbackMessage,
     resetErrorMessage: () -> Unit,
     updateAttemptString: (String) -> Unit,
     checkWord: () -> Unit
@@ -130,12 +131,12 @@ fun WordleScreen(
                 .weight(0.75f)
         ) {
 
-            if (errorMessage.isNotEmpty()) {
-                ErrorMessage(
+            if (errorMessage != FeedbackMessage.NoError) {
+                FeedbackMessage(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(16.dp),
-                    errorMessage = errorMessage
+                    errorMessage = stringResource(id = errorMessage.messageId)
                 )
             }
             Column(
@@ -468,7 +469,7 @@ fun WordleRows(
     wordleWord: String,
     attempt: String,
     listWordleAttemps: List<WordleAttempt>,
-    errorMessage: String,
+    errorMessage: FeedbackMessage,
     resetErrorMessage: () -> Unit,
     isFromResults: Boolean = false
 ) {
@@ -655,7 +656,7 @@ fun RowLetterWordle(
     wordleWord: String,
     attempt: String,
     letterStates: WordleAttempt,
-    errorMessage: String,
+    errorMessage: FeedbackMessage,
     isFromResults: Boolean = false,
     resetErrorMessage: () -> Unit = {}
 ) {
@@ -672,7 +673,10 @@ fun RowLetterWordle(
     }
 
     LaunchedEffect(errorMessage) {
-        if ((errorMessage == "Word is not in our list." || errorMessage == "You have tried this word before" || errorMessage == "It has to be at least ${wordleWord.length} letters") && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE) {
+        if ((errorMessage == FeedbackMessage.WordNotIntList || errorMessage == FeedbackMessage.RepeatedWord || errorMessage == FeedbackMessage.WordNotLongEnough(
+                letterStates.word.length
+            )) && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
+        ) {
             shakeController.shake(
                 ShakeConfig(
                     iterations = 4,
@@ -950,7 +954,7 @@ fun PreviewWordle() {
             "MONKE",
             listWordleAttemps = generateStartWordleAttemptList(),
             listOfKeyboardStates = initiateKeyboardState(),
-            "Test error",
+            FeedbackMessage.RepeatedWord,
             {},
             {}) {
 

@@ -6,4 +6,16 @@
     <string name="go_back">Go Back</string>
     <string name="start_question">Start Question</string>
     <string name="title_activity_splash_screen">The Bible Quiz</string>
+
+
+    <string name="error_word_is_not_in_our_list">Word is not in our list.</string>
+    <string name="error_network_issue">It looks like we have some internet issues, try again with better signal</string>
+    <string name="error_word_not_long_enough">It has to be at least %1$d letters</string>
+    <string name="error_wordle_repeated_word">You have tried this word before</string>
+    <string name="error_profile_user_doesnt_exist">User doesn\'t exist</string>
+    <string name="no_error" />
+    <string name="feedback_you_cant_add_yourself">You can\'t add yourself</string>
+    <string name="feedback_you_are_already_friends_with_this_user">You are already friends with this user</string>
+    <string name="feedback_you_have_already_sent_a_friend_request_to_this_user">You have already sent a friend request to this user</string>
+    <string name="feedback_you_have_sent_a_friend_request">You have sent a friend request</string>
 </resources>

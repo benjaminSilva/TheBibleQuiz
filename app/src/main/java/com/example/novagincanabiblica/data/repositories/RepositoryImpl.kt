@@ -13,6 +13,7 @@ import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
@@ -45,7 +46,7 @@ class RepositoryImpl @Inject constructor(
     wordleDatabase: FirebaseDatabase,
     quizDatabase: FirebaseDatabase,
     englishWords: FirebaseDatabase
-    ) : Repository {
+) : Repository {
 
     private val firebaseRef = baseDatabase.reference
     private val usersReference = usersDatabase.reference
@@ -64,7 +65,7 @@ class RepositoryImpl @Inject constructor(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(databaseError.message))
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
         ref.addListenerForSingleValueEvent(postListener)
@@ -75,7 +76,7 @@ class RepositoryImpl @Inject constructor(
         currentQuestion: Question,
         isCorrect: Boolean,
         session: Session
-    ): Flow<String> =
+    ): Flow<FeedbackMessage> =
         channelFlow {
             Log.i("Stats update", "Channel flow")
             session.let { user ->
@@ -106,8 +107,7 @@ class RepositoryImpl @Inject constructor(
                     usersReference.child(userId).child("quizStats").setValue(currentUserStats)
                         .addOnFailureListener {
                             it.message?.apply {
-                                Log.i("Stats update", "Error message: $this")
-                                trySend(this)
+                                trySend(FeedbackMessage.InternetIssues)
                             }
                         }
                 }
@@ -166,10 +166,10 @@ class RepositoryImpl @Inject constructor(
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(databaseError.message))
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                 }
             }
-            test.addListenerForSingleValueEvent(postListener)
+            test.addValueEventListener(postListener)
             awaitClose { test.removeEventListener(postListener) }
         }
     }
@@ -203,7 +203,7 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDay(): Flow<ResultOf<Int>> = callbackFlow {
+    override suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>> = callbackFlow {
         val ref = firebaseRef.child("day")
         val currentDay = sharedPreferences.getInt("day", 0)
         val postListener = object : ValueEventListener {
@@ -219,10 +219,14 @@ class RepositoryImpl @Inject constructor(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(databaseError.message))
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        ref.addValueEventListener(postListener)
+        if (onlyOnce) {
+            ref.addListenerForSingleValueEvent(postListener)
+        } else {
+            ref.addValueEventListener(postListener)
+        }
         awaitClose { ref.removeEventListener(postListener) }
     }
 
@@ -236,7 +240,7 @@ class RepositoryImpl @Inject constructor(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(databaseError.message))
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
         ref.addValueEventListener(postListener)
@@ -257,14 +261,14 @@ class RepositoryImpl @Inject constructor(
                             trySend(ResultOf.Success(word))
                         }
                     } else {
-                        trySend(ResultOf.Failure("Word is not in our list."))
+                        trySend(ResultOf.Failure(FeedbackMessage.WordNotIntList))
                     }
                     Log.i("Check Word", "Ended at:${System.currentTimeMillis() - test}")
                 }
 
                 override fun onFailure(call: Call<List<WordleCheck>>, t: Throwable) {
                     t.message?.apply {
-                        trySend(ResultOf.Failure(this))
+                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                     }
                 }
 
@@ -284,10 +288,10 @@ class RepositoryImpl @Inject constructor(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(databaseError.message))
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        ref.addValueEventListener(postListener)
+        ref.addListenerForSingleValueEvent(postListener)
         awaitClose { ref.removeEventListener(postListener) }
     }
 
@@ -295,7 +299,7 @@ class RepositoryImpl @Inject constructor(
         userFoundTheWord: Boolean,
         session: Session,
         numberOfAttempt: List<WordleAttempt>
-    ): Flow<String> = channelFlow {
+    ): Flow<FeedbackMessage> = channelFlow {
         updateGameModeValue(key = "hasPlayedWordleGame", true)
         session.let { user ->
             user.userInfo?.userId?.let { userId ->
@@ -322,13 +326,13 @@ class RepositoryImpl @Inject constructor(
                     .setValue(currentUserStats)
                     .addOnFailureListener {
                         it.message?.apply {
-                            trySend(this)
+                            trySend(FeedbackMessage.InternetIssues)
                         }
                     }
 
                 thisUser.child("hasPlayerWordleGame").setValue(true).addOnFailureListener {
                     it.message?.apply {
-                        trySend(this)
+                        trySend(FeedbackMessage.InternetIssues)
                     }
                 }
             }
@@ -338,7 +342,7 @@ class RepositoryImpl @Inject constructor(
     override suspend fun updateWordleList(
         session: Session,
         attemptList: List<WordleAttempt>
-    ): Flow<String> = channelFlow {
+    ): Flow<FeedbackMessage> = channelFlow {
         Log.i("Wordle Test", "Inside Channel Flow")
         session.userInfo?.userId?.let { userId ->
             Log.i("Wordle Test", "User Id $userId")
@@ -347,7 +351,7 @@ class RepositoryImpl @Inject constructor(
                 .setValue(attemptList)
                 .addOnFailureListener {
                     it.message?.apply {
-                        trySend(this)
+                        trySend(FeedbackMessage.InternetIssues)
                     }
                 }
 
@@ -366,35 +370,247 @@ class RepositoryImpl @Inject constructor(
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
-                        trySend(ResultOf.Failure(databaseError.message))
+                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                     }
                 }
-                ref.addListenerForSingleValueEvent(postListener)
+                ref.addValueEventListener(postListener)
                 awaitClose { ref.removeEventListener(postListener) }
             }
 
         }
 
     override suspend fun checkWordV2(word: String): Flow<ResultOf<String>> = callbackFlow {
-        val test = System.currentTimeMillis()
-        Log.i("Check Word", "Start at: $test")
         val ref = englishWordsReference.child(word.lowercase())
-        val postListener = object: ValueEventListener {
+        val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     trySend(ResultOf.Success(word))
                 } else {
-                    trySend(ResultOf.Failure("Word is not in our list."))
+                    trySend(ResultOf.Failure(FeedbackMessage.WordNotIntList))
                 }
-                Log.i("Check Word", "End at: ${System.currentTimeMillis() - test}")
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(databaseError.message))
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        ref.addListenerForSingleValueEvent(postListener)
+        ref.addValueEventListener(postListener)
         awaitClose { ref.removeEventListener(postListener) }
     }
 
+    override suspend fun verifyIfFriendExists(friendId: String): Flow<ResultOf<Boolean>> =
+        callbackFlow {
+            val ref = usersReference.child(friendId)
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (!dataSnapshot.exists()) {
+                        trySend(ResultOf.Success(false))
+                    } else {
+                        trySend(ResultOf.Success(true))
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                }
+            }
+            ref.addValueEventListener(postListener)
+            awaitClose { ref.removeEventListener(postListener) }
+        }
+
+    override suspend fun sendFriendRequestV2(
+        session: Session,
+        friendId: String
+    ): Flow<ResultOf<FeedbackMessage>> =
+        callbackFlow {
+            session.userInfo?.userId?.let { userId ->
+                val postListener = object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        if (userId == friendId) {
+                            trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
+                            return
+                        }
+                        if (!dataSnapshot.exists()) {
+                            trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
+                            return
+                        }
+                        val friendsFriendList = dataSnapshot.child("friendList")
+                        if (friendsFriendList.exists()) {
+                            friendsFriendList.getValue<List<String>>()?.apply {
+                                if (contains(userId)) {
+                                    trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
+                                    return
+                                }
+                            }
+                        }
+                        val friendsFriendRequestList = dataSnapshot.child("friendRequests")
+                        if (!friendsFriendRequestList.exists()) {
+                            friendsFriendRequestList.ref.setValue(listOf(userId))
+                        } else {
+                            friendsFriendRequestList.getValue<List<String>>()?.apply {
+                                if (contains(userId)) {
+                                    trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
+                                    return
+                                }
+                                val mutableList = this.toMutableList()
+                                mutableList.add(userId)
+                                friendsFriendRequestList.ref.setValue(mutableList)
+                            }
+                        }
+                        trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                    }
+                }
+                usersReference.child(friendId).addValueEventListener(postListener)
+                awaitClose { usersReference.removeEventListener(postListener) }
+            }
+        }
+
+    override suspend fun loadFriendRequests(
+        friendRequests: List<String>,
+        friends: List<String>
+    ): Flow<ResultOf<Pair<List<Session>, List<Session>>>> = callbackFlow {
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val listOfRequests = mutableListOf<Session>()
+                val listOfFriends = mutableListOf<Session>()
+                friendRequests.forEach { userId ->
+                    if (dataSnapshot.hasChild(userId)) {
+                        dataSnapshot.child(userId).getValue<Session>()?.apply {
+                            listOfRequests.add(this)
+                        }
+                    }
+                }
+                friends.forEach { userId ->
+                    if (dataSnapshot.hasChild(userId)) {
+                        dataSnapshot.child(userId).getValue<Session>()?.apply {
+                            listOfFriends.add(this)
+                        }
+                    }
+                }
+                trySend(ResultOf.Success(Pair(listOfRequests, listOfFriends)))
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            }
+        }
+        usersReference.addValueEventListener(postListener)
+        awaitClose { usersReference.removeEventListener(postListener) }
+    }
+
+    override suspend fun updateFriendRequest(
+        session: Session,
+        hasAccepted: Boolean,
+        friendId: String
+    ): Flow<ResultOf<Nothing>> = callbackFlow {
+        session.userInfo?.userId?.let { userId ->
+            val ref = usersReference
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val friendsRef = dataSnapshot.child(userId).child("friendList")
+                    val friendRequest = dataSnapshot.child(userId).child("friendRequests")
+                    val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
+                    if (hasAccepted) {
+                        // Remove from the requests
+                        friendRequest.getValue<List<String>>()?.apply {
+                            val mutableList = this.toMutableList()
+                            mutableList.remove(friendId)
+                            friendRequest.ref.setValue(mutableList)
+                        }
+                        //Add friend to the friend
+                        //friendsListOfRequester.safelyAddSnapshot(userId)
+                        //Add friend to user
+                        //friendsRef.safelyAddSnapshot(friendId)
+                        if (!friendsListOfRequester.exists()) {
+                            friendsListOfRequester.ref.setValue(listOf(userId))
+                        } else {
+                            friendsListOfRequester.getValue<List<String>>()?.apply {
+                                if (!this.contains(userId)) {
+                                    val mutableList = toMutableList().apply {
+                                        add(userId)
+                                    }
+                                    friendsListOfRequester.ref.setValue(mutableList)
+                                }
+                            }
+                        }
+                        if (!friendsRef.exists()) {
+                            friendsRef.ref.setValue(listOf(friendId))
+                        } else {
+                            friendsRef.getValue<List<String>>()?.apply {
+                                if (!this.contains(friendId)) {
+                                    val mutableList = toMutableList().apply {
+                                        add(friendId)
+                                    }
+                                    friendsRef.ref.setValue(mutableList)
+                                }
+                            }
+                        }
+                    } else {
+                        //If rejected, just removes the request
+                        friendRequest.child(friendId).ref.removeValue()
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                }
+            }
+            ref.addValueEventListener(postListener)
+            awaitClose { ref.removeEventListener(postListener) }
+        }
+    }
+
+    override suspend fun sendFriendRequest(
+        session: Session,
+        friendId: String
+    ): Flow<ResultOf<Boolean>> =
+        callbackFlow {
+            session.userInfo?.userId?.let { userId ->
+                Log.i("Add friend", friendId)
+                val ref = usersReference.child(friendId).child("friendRequests")
+                val postListener = object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        Log.i("Add friend", dataSnapshot.toString())
+                        if (!dataSnapshot.exists()) {
+                            ref.setValue(listOf(userId))
+                        } else {
+
+                            dataSnapshot.getValue<List<String>>()?.apply {
+                                val mutableList = this.toMutableList()
+                                mutableList.add(userId)
+                                ref.setValue(mutableList)
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                    }
+                }
+                ref.addValueEventListener(postListener)
+                awaitClose { ref.removeEventListener(postListener) }
+            }
+
+        }
+
+    private fun MutableList<String>.addOnlyIfItDoesntContains(element: String) {
+        if (!contains(element)) {
+            add(element)
+        }
+    }
+
+    private fun DataSnapshot.safelyAddSnapshot(element: String) {
+        if (!exists()) {
+            ref.setValue(listOf(element))
+        } else {
+            getValue<List<String>>()?.apply {
+                val updatedList = toMutableList().addOnlyIfItDoesntContains(element)
+                ref.setValue(updatedList)
+            }
+        }
+    }
 }

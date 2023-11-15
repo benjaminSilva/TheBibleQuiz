@@ -28,7 +28,6 @@ android {
             isDebuggable = true
         }
         release {
-            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -48,7 +47,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.4.5"
     }
     packaging {
         resources {
@@ -66,8 +65,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.compose.material3:material3:1.1.2")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -75,16 +74,16 @@ dependencies {
 
 
     //Hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
-    implementation("androidx.hilt:hilt-work:1.0.0")
+    implementation("com.google.dagger:hilt-android:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-fragment:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.1.0")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.test:runner:1.5.2")
     implementation("com.google.firebase:firebase-database:20.3.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    kapt("androidx.hilt:hilt-compiler:1.0.0")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    kapt("androidx.hilt:hilt-compiler:1.1.0")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     testImplementation("com.google.dagger:hilt-android-testing:2.44")
 

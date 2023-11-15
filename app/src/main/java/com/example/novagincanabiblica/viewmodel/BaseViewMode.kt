@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.repositories.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +15,14 @@ import kotlinx.coroutines.launch
 
 open class BaseViewModel(private val repo: Repository) : ViewModel() {
 
-    protected val _errorMessage = MutableStateFlow("")
-    val errorMessage = _errorMessage.asStateFlow()
+    protected val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoError)
+    val feedbackMessage = _feedbackMessage.asStateFlow()
 
     protected val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
+
+    protected val _day = MutableStateFlow(0)
+    val day = _day.asStateFlow()
 
     private val _calculatedQuizData = MutableStateFlow(QuestionStatsDataCalculated())
     val calculatedQuizData = _calculatedQuizData.asStateFlow()
@@ -26,12 +30,16 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
     private val _calculatedWordleData = MutableStateFlow(WordleDataCalculated())
     val calculatedWordleData = _calculatedWordleData.asStateFlow()
 
-    init {
-        collectSession()
+    fun collectDay(onlyOnce: Boolean) = viewModelScope.launch {
+        repo.getDay(onlyOnce).collectLatest {
+            it.handleSuccessAndFailure {
+                collectSession()
+            }
+        }
     }
 
     fun resetErrorMessage() = viewModelScope.launch {
-        _errorMessage.emit("")
+        _feedbackMessage.emit(FeedbackMessage.NoError)
     }
 
     private fun collectSession() = viewModelScope.launch {
@@ -46,7 +54,7 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
         when (this) {
             is ResultOf.Success -> action(value)
             is ResultOf.Failure -> {
-                _errorMessage.emit(errorMessage)
+                _feedbackMessage.emit(errorMessage)
             }
         }
 

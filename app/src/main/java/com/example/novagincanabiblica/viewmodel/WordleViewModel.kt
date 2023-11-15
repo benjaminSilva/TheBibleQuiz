@@ -2,6 +2,7 @@ package com.example.novagincanabiblica.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.wordle.KeyboardLetter
 import com.example.novagincanabiblica.data.models.wordle.LetterState
 import com.example.novagincanabiblica.data.models.wordle.Wordle
@@ -40,21 +41,20 @@ class WordleViewModel @Inject constructor(
     val keyboardState = _listOfKeyboardStates
 
     init {
+        collectDay(onlyOnce = true)
+        initWordle()
+    }
+
+    private fun initWordle() = viewModelScope.launch {
         initiateKeyboardStateList()
-        getDay()
+        day.collectLatest {
+            listenToWordle(it)
+            getAttempts()
+        }
     }
 
     private fun initiateKeyboardStateList() {
         _listOfKeyboardStates.addAll(initiateKeyboardState())
-    }
-
-    private fun getDay() = viewModelScope.launch {
-        repo.getDay().collectLatest { day ->
-            day.handleSuccessAndFailure {
-                listenToWordle(it)
-                getAttempts()
-            }
-        }
     }
 
     private fun getAttempts() = viewModelScope.launch {
@@ -86,11 +86,11 @@ class WordleViewModel @Inject constructor(
 
     fun checkWord() = viewModelScope.launch {
         if (attempsString.value.length != wordle.value.word.length) {
-            _errorMessage.emit("It has to be at least ${wordle.value.word.length} letters")
+            _feedbackMessage.emit(FeedbackMessage.WordNotLongEnough(length = wordle.value.word.length))
             return@launch
         }
         if (attempsString.value.isRepeatedWord(attemps.value)) {
-            _errorMessage.emit("You have tried this word before")
+            _feedbackMessage.emit(FeedbackMessage.RepeatedWord)
             return@launch
         }
 
@@ -117,7 +117,7 @@ class WordleViewModel @Inject constructor(
             it.copy(isFinished = true, hasUserFoundTheWord = userFoundTheWord)
         }
         repo.updateWordleStats(userFoundTheWord, localSession.value, attemps.value).collectLatest {
-            _errorMessage.emit(it)
+            _feedbackMessage.emit(it)
         }
         delay(2000)
         _navigateToResults.emit(true)
@@ -147,7 +147,7 @@ class WordleViewModel @Inject constructor(
         }
         repo.updateWordleList(session = localSession.value, attemptList = attemps.value)
             .collectLatest {
-                _errorMessage.emit(it)
+                _feedbackMessage.emit(it)
             }
     }
 

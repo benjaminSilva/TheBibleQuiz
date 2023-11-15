@@ -36,14 +36,13 @@ class BibleQuizViewModel @Inject constructor(
     val startSecondAnimation = _startSecondAnimation.asStateFlow()
 
     init {
-        getDay()
+        collectDay(onlyOnce = true)
+        initBibleQuiz()
     }
 
-    private fun getDay() = viewModelScope.launch {
-        repo.getDay().collectLatest { day ->
-            day.handleSuccessAndFailure {
-                listenToQuestion(it)
-            }
+    private fun initBibleQuiz() = viewModelScope.launch {
+        day.collectLatest {
+            listenToQuestion(it)
         }
     }
 
@@ -69,7 +68,7 @@ class BibleQuizViewModel @Inject constructor(
         _screenClickable.emit(false)
         _nextDestination.emit(true)
         repo.updateStats(currentQuestion.value, false, localSession.value).collectLatest {
-            _errorMessage.emit(it)
+            _feedbackMessage.emit(it)
         }
     }
 
@@ -90,7 +89,7 @@ class BibleQuizViewModel @Inject constructor(
 
     fun updateQuestionResult(isCorrect: Boolean) = viewModelScope.launch {
         repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatest {
-            _errorMessage.emit(it)
+            _feedbackMessage.emit(it)
         }
     }
 

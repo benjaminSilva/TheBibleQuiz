@@ -9,7 +9,9 @@ data class Session(
     val hasPlayedQuizGame: Boolean = false,
     val hasPlayerWordleGame: Boolean = false,
     val quizStats: QuestionStatsData = QuestionStatsData(),
-    val wordle: WordleGame = WordleGame()
+    val wordle: WordleGame = WordleGame(),
+    val friendList: List<String> = listOf(),
+    val friendRequests: List<String> = listOf()
 )
 
 data class WordleGame(

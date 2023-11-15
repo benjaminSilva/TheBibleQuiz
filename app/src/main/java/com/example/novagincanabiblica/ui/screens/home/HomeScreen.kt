@@ -2,7 +2,6 @@ package com.example.novagincanabiblica.ui.screens.home
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
@@ -68,7 +67,7 @@ import java.util.Calendar
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
-    val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle("")
+    val errorMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle("")
     val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
 
@@ -77,14 +76,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 
     var hourOfTheDay by remember {
         mutableIntStateOf(0)
-    }
-
-    val context = LocalContext.current
-
-    LaunchedEffect(key1 = errorMessage) {
-        if (errorMessage.isNotEmpty()) {
-            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-        }
     }
 
     LaunchedEffect(Unit) {

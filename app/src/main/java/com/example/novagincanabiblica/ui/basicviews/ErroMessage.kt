@@ -27,7 +27,7 @@ import com.example.novagincanabiblica.ui.theme.almostWhite
 import kotlinx.coroutines.delay
 
 @Composable
-fun ErrorMessage(modifier: Modifier = Modifier, errorMessage: String) {
+fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: String, isItError: Boolean = true) {
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -60,7 +60,7 @@ fun ErrorMessage(modifier: Modifier = Modifier, errorMessage: String) {
         Image(
             modifier = Modifier
                 .size(24.dp),
-            painter = painterResource(id = R.drawable.baseline_error_outline_24),
+            painter = painterResource(id = if (isItError) R.drawable.baseline_error_outline_24 else R.drawable.baseline_check_24),
             contentDescription = null
         )
         BasicText(
@@ -76,7 +76,7 @@ fun ErrorMessage(modifier: Modifier = Modifier, errorMessage: String) {
 @Composable
 fun PreviewErrorMessage() {
     NovaGincanaBiblicaTheme {
-        ErrorMessage(
+        FeedbackMessage(
             errorMessage = "Not a valid word"
         )
     }

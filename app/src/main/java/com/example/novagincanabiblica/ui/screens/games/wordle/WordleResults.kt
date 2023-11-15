@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.data.models.WordleData
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.wordle.LetterState
 import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
@@ -154,7 +155,7 @@ fun WordleResultsScreen(
                         LetterState.LETTER_CORRECT_PLACE
                     )
                 ),
-                errorMessage = "",
+                errorMessage = FeedbackMessage.NoError,
                 isFromResults = true
             )
             BasicText(text = "Found in this verse")
@@ -189,7 +190,7 @@ fun WordleResultsScreen(
                 wordleWord = wordle.word,
                 attempt = "",
                 listWordleAttemps = listOfAttempts,
-                errorMessage = "",
+                errorMessage = FeedbackMessage.NoError,
                 resetErrorMessage = {},
                 isFromResults = true
             )
