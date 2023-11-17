@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,9 +88,6 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
         listWordleAttemps = attempts,
         listOfKeyboardStates = listKeyBoardState,
         errorMessage = errorMessage,
-        resetErrorMessage = {
-            viewModel.resetErrorMessage()
-        },
         updateAttemptString = {
             viewModel.updateAttemptString(it)
         }) {
@@ -104,7 +102,6 @@ fun WordleScreen(
     listWordleAttemps: List<WordleAttempt>,
     listOfKeyboardStates: List<KeyboardLetter>,
     errorMessage: FeedbackMessage,
-    resetErrorMessage: () -> Unit,
     updateAttemptString: (String) -> Unit,
     checkWord: () -> Unit
 ) {
@@ -130,15 +127,6 @@ fun WordleScreen(
                 .fillMaxHeight()
                 .weight(0.75f)
         ) {
-
-            if (errorMessage != FeedbackMessage.NoError) {
-                FeedbackMessage(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(16.dp),
-                    errorMessage = stringResource(id = errorMessage.messageId)
-                )
-            }
             Column(
                 modifier = Modifier
                     .padding(vertical = 16.dp, horizontal = 32.dp)
@@ -154,8 +142,15 @@ fun WordleScreen(
                     wordleWord = wordleWord,
                     attempt = attempt,
                     listWordleAttemps = listWordleAttemps,
-                    errorMessage = errorMessage,
-                    resetErrorMessage = resetErrorMessage
+                    errorMessage = errorMessage
+                )
+            }
+            if (errorMessage != FeedbackMessage.NoMessage) {
+                FeedbackMessage(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp),
+                    errorMessage = errorMessage
                 )
             }
         }
@@ -165,6 +160,7 @@ fun WordleScreen(
                 .fillMaxHeight()
                 .weight(0.25f)
                 .padding(bottom = 8.dp)
+                .systemGestureExclusion()
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(
@@ -203,7 +199,7 @@ fun WordleScreen(
                         modifier = Modifier.weight(1f),
                         letter = "R",
                         listOfKeyboardStates[3]
-                    ) { it ->
+                    ) {
                         if (attempt.length < wordleWord.length) {
                             updateAttemptString(attempt.plus(it))
                         }
@@ -470,7 +466,6 @@ fun WordleRows(
     attempt: String,
     listWordleAttemps: List<WordleAttempt>,
     errorMessage: FeedbackMessage,
-    resetErrorMessage: () -> Unit,
     isFromResults: Boolean = false
 ) {
     RowLetterWordle(
@@ -484,8 +479,7 @@ fun WordleRows(
         },
         letterStates = listWordleAttemps[0],
         errorMessage = errorMessage,
-        isFromResults = isFromResults,
-        resetErrorMessage = resetErrorMessage
+        isFromResults = isFromResults
     )
 
     if (isFromResults) {
@@ -501,8 +495,7 @@ fun WordleRows(
                 },
                 letterStates = listWordleAttemps[1],
                 errorMessage = errorMessage,
-                isFromResults = isFromResults,
-                resetErrorMessage = resetErrorMessage
+                isFromResults = isFromResults
             )
         }
 
@@ -518,8 +511,7 @@ fun WordleRows(
                 },
                 letterStates = listWordleAttemps[2],
                 errorMessage = errorMessage,
-                isFromResults = isFromResults,
-                resetErrorMessage = resetErrorMessage
+                isFromResults = isFromResults
             )
         }
 
@@ -535,8 +527,7 @@ fun WordleRows(
                 },
                 letterStates = listWordleAttemps[3],
                 errorMessage = errorMessage,
-                isFromResults = isFromResults,
-                resetErrorMessage = resetErrorMessage
+                isFromResults = isFromResults
             )
         }
 
@@ -552,8 +543,7 @@ fun WordleRows(
                 },
                 letterStates = listWordleAttemps[4],
                 errorMessage = errorMessage,
-                isFromResults = isFromResults,
-                resetErrorMessage = resetErrorMessage
+                isFromResults = isFromResults
             )
         }
 
@@ -569,8 +559,7 @@ fun WordleRows(
                 },
                 letterStates = listWordleAttemps[5],
                 errorMessage = errorMessage,
-                isFromResults = isFromResults,
-                resetErrorMessage = resetErrorMessage
+                isFromResults = isFromResults
             )
         }
     } else {
@@ -585,8 +574,7 @@ fun WordleRows(
             },
             letterStates = listWordleAttemps[1],
             errorMessage = errorMessage,
-            isFromResults = isFromResults,
-            resetErrorMessage = resetErrorMessage
+            isFromResults = isFromResults
         )
 
         RowLetterWordle(
@@ -600,8 +588,7 @@ fun WordleRows(
             },
             letterStates = listWordleAttemps[2],
             errorMessage = errorMessage,
-            isFromResults = isFromResults,
-            resetErrorMessage = resetErrorMessage
+            isFromResults = isFromResults
         )
 
         RowLetterWordle(
@@ -615,8 +602,7 @@ fun WordleRows(
             },
             letterStates = listWordleAttemps[3],
             errorMessage = errorMessage,
-            isFromResults = isFromResults,
-            resetErrorMessage = resetErrorMessage
+            isFromResults = isFromResults
         )
 
         RowLetterWordle(
@@ -630,8 +616,7 @@ fun WordleRows(
             },
             letterStates = listWordleAttemps[4],
             errorMessage = errorMessage,
-            isFromResults = isFromResults,
-            resetErrorMessage = resetErrorMessage
+            isFromResults = isFromResults
         )
 
         RowLetterWordle(
@@ -645,8 +630,7 @@ fun WordleRows(
             },
             letterStates = listWordleAttemps[5],
             errorMessage = errorMessage,
-            isFromResults = isFromResults,
-            resetErrorMessage = resetErrorMessage
+            isFromResults = isFromResults
         )
     }
 }
@@ -657,8 +641,7 @@ fun RowLetterWordle(
     attempt: String,
     letterStates: WordleAttempt,
     errorMessage: FeedbackMessage,
-    isFromResults: Boolean = false,
-    resetErrorMessage: () -> Unit = {}
+    isFromResults: Boolean = false
 ) {
 
     var startLocalWordAnimation by remember {
@@ -673,9 +656,7 @@ fun RowLetterWordle(
     }
 
     LaunchedEffect(errorMessage) {
-        if ((errorMessage == FeedbackMessage.WordNotIntList || errorMessage == FeedbackMessage.RepeatedWord || errorMessage == FeedbackMessage.WordNotLongEnough(
-                letterStates.word.length
-            )) && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
+        if (errorMessage != FeedbackMessage.NoMessage && (errorMessage == FeedbackMessage.WordNotIntList || errorMessage == FeedbackMessage.RepeatedWord || attempt.length != wordleWord.length) && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
         ) {
             shakeController.shake(
                 ShakeConfig(
@@ -686,8 +667,6 @@ fun RowLetterWordle(
                 )
             )
         }
-        delay(5000)
-        resetErrorMessage()
     }
 
     LaunchedEffect(letterStates.listOfLetterStates) {
@@ -955,7 +934,6 @@ fun PreviewWordle() {
             listWordleAttemps = generateStartWordleAttemptList(),
             listOfKeyboardStates = initiateKeyboardState(),
             FeedbackMessage.RepeatedWord,
-            {},
             {}) {
 
         }

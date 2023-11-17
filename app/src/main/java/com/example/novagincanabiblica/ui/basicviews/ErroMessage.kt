@@ -19,15 +19,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import kotlinx.coroutines.delay
 
 @Composable
-fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: String, isItError: Boolean = true) {
+fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: FeedbackMessage, isItError: Boolean = true) {
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -59,13 +61,14 @@ fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: String, isItErr
     ) {
         Image(
             modifier = Modifier
-                .size(24.dp),
+                .size(24.dp)
+                .align(Alignment.CenterVertically),
             painter = painterResource(id = if (isItError) R.drawable.baseline_error_outline_24 else R.drawable.baseline_check_24),
             contentDescription = null
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterVertically),
-            text = errorMessage, fontSize = 16
+            text = stringResource(id = errorMessage.messageId, formatArgs = errorMessage.extraData), fontSize = 16
         )
     }
 
@@ -77,7 +80,7 @@ fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: String, isItErr
 fun PreviewErrorMessage() {
     NovaGincanaBiblicaTheme {
         FeedbackMessage(
-            errorMessage = "Not a valid word"
+            errorMessage = FeedbackMessage.FriendRemoved
         )
     }
 }

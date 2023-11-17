@@ -105,6 +105,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.4.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     //Koil
     implementation("io.coil-kt:coil-compose:2.4.0")
@@ -116,5 +118,8 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.4.0")
+
+    //Accompanist
+    implementation("com.google.accompanist:accompanist-permissions:0.30.1")
 
 }

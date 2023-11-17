@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -514,17 +515,14 @@ class RepositoryImpl @Inject constructor(
                     val friendsRef = dataSnapshot.child(userId).child("friendList")
                     val friendRequest = dataSnapshot.child(userId).child("friendRequests")
                     val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
+
+                    // Remove from the requests
+                    friendRequest.getValue<List<String>>()?.apply {
+                        val mutableList = this.toMutableList()
+                        mutableList.remove(friendId)
+                        friendRequest.ref.setValue(mutableList)
+                    }
                     if (hasAccepted) {
-                        // Remove from the requests
-                        friendRequest.getValue<List<String>>()?.apply {
-                            val mutableList = this.toMutableList()
-                            mutableList.remove(friendId)
-                            friendRequest.ref.setValue(mutableList)
-                        }
-                        //Add friend to the friend
-                        //friendsListOfRequester.safelyAddSnapshot(userId)
-                        //Add friend to user
-                        //friendsRef.safelyAddSnapshot(friendId)
                         if (!friendsListOfRequester.exists()) {
                             friendsListOfRequester.ref.setValue(listOf(userId))
                         } else {
@@ -549,9 +547,6 @@ class RepositoryImpl @Inject constructor(
                                 }
                             }
                         }
-                    } else {
-                        //If rejected, just removes the request
-                        friendRequest.child(friendId).ref.removeValue()
                     }
                 }
 
@@ -559,7 +554,7 @@ class RepositoryImpl @Inject constructor(
                     trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                 }
             }
-            ref.addValueEventListener(postListener)
+            ref.addListenerForSingleValueEvent(postListener)
             awaitClose { ref.removeEventListener(postListener) }
         }
     }
@@ -591,26 +586,42 @@ class RepositoryImpl @Inject constructor(
                         trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                     }
                 }
-                ref.addValueEventListener(postListener)
+                ref.addListenerForSingleValueEvent(postListener)
                 awaitClose { ref.removeEventListener(postListener) }
             }
 
         }
 
-    private fun MutableList<String>.addOnlyIfItDoesntContains(element: String) {
-        if (!contains(element)) {
-            add(element)
-        }
-    }
+    override suspend fun removeFriend(
+        session: Session,
+        friendId: String
+    ): Flow<ResultOf<FeedbackMessage>> =
+        callbackFlow {
+            session.userInfo?.userId?.let { userId ->
+                Log.i("Remove Friend", friendId)
+                val postListener = object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val usersList = dataSnapshot.child(userId).child("friendList")
+                        val friendsList = dataSnapshot.child(friendId).child("friendList")
+                        friendsList.getValue<List<String>>()?.apply {
+                            val mutableList = this.toMutableList()
+                            mutableList.remove(userId)
+                            friendsList.ref.setValue(mutableList)
+                        }
+                        usersList.getValue<List<String>>()?.apply {
+                            val mutableList = this.toMutableList()
+                            mutableList.remove(friendId)
+                            usersList.ref.setValue(mutableList)
+                        }
+                        trySend(ResultOf.Success(FeedbackMessage.FriendRemoved))
+                    }
 
-    private fun DataSnapshot.safelyAddSnapshot(element: String) {
-        if (!exists()) {
-            ref.setValue(listOf(element))
-        } else {
-            getValue<List<String>>()?.apply {
-                val updatedList = toMutableList().addOnlyIfItDoesntContains(element)
-                ref.setValue(updatedList)
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                    }
+                }
+                usersReference.addListenerForSingleValueEvent(postListener)
+                awaitClose { usersReference.removeEventListener(postListener) }
             }
         }
-    }
 }

@@ -86,11 +86,11 @@ class WordleViewModel @Inject constructor(
 
     fun checkWord() = viewModelScope.launch {
         if (attempsString.value.length != wordle.value.word.length) {
-            _feedbackMessage.emit(FeedbackMessage.WordNotLongEnough(length = wordle.value.word.length))
+            emitFeedbackMessage(FeedbackMessage.WordNotLongEnough(length = wordle.value.word.length))
             return@launch
         }
         if (attempsString.value.isRepeatedWord(attemps.value)) {
-            _feedbackMessage.emit(FeedbackMessage.RepeatedWord)
+            emitFeedbackMessage(FeedbackMessage.RepeatedWord)
             return@launch
         }
 
@@ -117,7 +117,7 @@ class WordleViewModel @Inject constructor(
             it.copy(isFinished = true, hasUserFoundTheWord = userFoundTheWord)
         }
         repo.updateWordleStats(userFoundTheWord, localSession.value, attemps.value).collectLatest {
-            _feedbackMessage.emit(it)
+            emitFeedbackMessage(it)
         }
         delay(2000)
         _navigateToResults.emit(true)
@@ -147,7 +147,7 @@ class WordleViewModel @Inject constructor(
         }
         repo.updateWordleList(session = localSession.value, attemptList = attemps.value)
             .collectLatest {
-                _feedbackMessage.emit(it)
+                emitFeedbackMessage(it)
             }
     }
 

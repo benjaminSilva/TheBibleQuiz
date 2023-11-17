@@ -68,7 +68,7 @@ class BibleQuizViewModel @Inject constructor(
         _screenClickable.emit(false)
         _nextDestination.emit(true)
         repo.updateStats(currentQuestion.value, false, localSession.value).collectLatest {
-            _feedbackMessage.emit(it)
+            emitFeedbackMessage(it)
         }
     }
 
@@ -89,7 +89,7 @@ class BibleQuizViewModel @Inject constructor(
 
     fun updateQuestionResult(isCorrect: Boolean) = viewModelScope.launch {
         repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatest {
-            _feedbackMessage.emit(it)
+            emitFeedbackMessage(it)
         }
     }
 

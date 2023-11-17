@@ -155,7 +155,7 @@ fun WordleResultsScreen(
                         LetterState.LETTER_CORRECT_PLACE
                     )
                 ),
-                errorMessage = FeedbackMessage.NoError,
+                errorMessage = FeedbackMessage.NoMessage,
                 isFromResults = true
             )
             BasicText(text = "Found in this verse")
@@ -190,8 +190,7 @@ fun WordleResultsScreen(
                 wordleWord = wordle.word,
                 attempt = "",
                 listWordleAttemps = listOfAttempts,
-                errorMessage = FeedbackMessage.NoError,
-                resetErrorMessage = {},
+                errorMessage = FeedbackMessage.NoMessage,
                 isFromResults = true
             )
             Spacer(modifier = Modifier.height(height = heightForSpacer))

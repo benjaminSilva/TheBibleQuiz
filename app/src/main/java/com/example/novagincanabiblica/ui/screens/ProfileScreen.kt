@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,10 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.ClipboardManager
@@ -39,22 +41,32 @@ import com.example.novagincanabiblica.ui.basicviews.AddFriendDialog
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.FeedbackMessage
 import com.example.novagincanabiblica.ui.basicviews.QuizStats
+import com.example.novagincanabiblica.ui.basicviews.RemoveFriendDialog
+import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.screens.games.wordle.WordleStats
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
+import kotlinx.coroutines.delay
 
 
 @Composable
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
-    val userData by homeViewModel.localSession.collectAsStateWithLifecycle()
+    val userData by homeViewModel.visibleSession.collectAsStateWithLifecycle()
+    val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
     val displayData by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val calculatedWordleData by homeViewModel.calculatedWordleData.collectAsStateWithLifecycle()
     val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
     val friendsRequests by homeViewModel.listOfFriendRequests.collectAsStateWithLifecycle()
     val friends by homeViewModel.listOfFriends.collectAsStateWithLifecycle()
+    val transitionAnimation by homeViewModel.transitionAnimation.collectAsStateWithLifecycle()
+
+    BackHandler {
+        navController.popBackStack()
+        homeViewModel.updateVisibleSession(null)
+    }
 
     val (dialogType, displayDialog) = displayData
 
@@ -122,16 +134,44 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     }
                 }
             }
+
+            ProfileDialogType.REMOVE_FRIEND -> {
+                Dialog(onDismissRequest = {
+                    homeViewModel.displayDialog(
+                        profileDialogType = ProfileDialogType.IRRELEVANT,
+                        displayIt = false
+                    )
+                }) {
+                    RemoveFriendDialog(
+                        goBackClick = {
+                            homeViewModel.displayDialog(
+                                profileDialogType = ProfileDialogType.IRRELEVANT,
+                                displayIt = false
+                            )
+                        }) {
+                        homeViewModel.removeFriend()
+                    }
+                }
+            }
+
             ProfileDialogType.IRRELEVANT -> Unit
         }
     }
 
+    val alphaAnimation by animateAlpha(condition = transitionAnimation, duration = 300, delay = 0)
 
+    LaunchedEffect(transitionAnimation) {
+        if (transitionAnimation) {
+            delay(300)
+            homeViewModel.finishTransitionAnimation()
+        }
+    }
 
     ProfileScreen(
+        modifier = Modifier.alpha(alphaAnimation),
         session = userData,
-        calculateQuizData = { homeViewModel.calculateQuizData() },
-        calculateWordleData = { homeViewModel.calculateWordleData() },
+        calculateQuizData = { homeViewModel.calculateQuizData(session = userData) },
+        calculateWordleData = { homeViewModel.calculateWordleData(session = userData) },
         displayDialogFunction = { isThisQuiz, displayIt ->
             homeViewModel.displayDialog(profileDialogType = isThisQuiz, displayIt = displayIt)
         },
@@ -141,6 +181,19 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             homeViewModel.updateFriendRequest(hasAccepted, userId)
         },
         feedbackMessage = feedbackMessage,
+        isFromLocalSession = isFromMainUser,
+        updateVisibleSession = {
+            homeViewModel.updateVisibleSession(it)
+        },
+        removeFriend = {
+            homeViewModel.displayDialog(
+                profileDialogType = ProfileDialogType.REMOVE_FRIEND,
+                displayIt = true
+            )
+        },
+        checkVisibleUserIsFriendsWithLocal = {
+            //homeViewModel.checkIfVisibleUserIsFriendWithLocalUser()
+        }
     ) {
         homeViewModel.signOut()
         navController.popBackStack()
@@ -152,11 +205,13 @@ enum class ProfileDialogType {
     QUIZ,
     WORDLE,
     ADD_FRIEND,
+    REMOVE_FRIEND,
     IRRELEVANT
 }
 
 @Composable
 fun ProfileScreen(
+    modifier: Modifier,
     session: Session,
     calculateQuizData: () -> Unit,
     calculateWordleData: () -> Unit,
@@ -165,49 +220,71 @@ fun ProfileScreen(
     listOfFriends: List<Session>,
     updateFriendRequest: (Boolean, String?) -> Unit,
     feedbackMessage: FeedbackMessage,
+    isFromLocalSession: Boolean,
+    updateVisibleSession: (Session?) -> Unit,
+    removeFriend: () -> Unit,
+    checkVisibleUserIsFriendsWithLocal: () -> Unit,
     signOut: () -> Unit
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (feedbackMessage == FeedbackMessage.FriendRequestSent) {
-            FeedbackMessage(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(16.dp),
-                errorMessage = stringResource(id = feedbackMessage.messageId)
-            )
-        }
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            Box(modifier = Modifier
-                .shadow(20.dp)
-                .align(Alignment.End)
-                .clip(RoundedCornerShape(16.dp))
-                .clickable {
-                    signOut()
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (!isFromLocalSession) {
+                    Box(modifier = Modifier
+                        .shadow(20.dp)
+                        .align(Alignment.CenterStart)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            removeFriend()
+                        }
+                        .background(almostWhite)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Image(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.Center),
+                            painter = painterResource(id = R.drawable.baseline_delete_24),
+                            contentDescription = null
+                        )
+                    }
                 }
-                .background(almostWhite)) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .size(24.dp),
-                        painter = painterResource(id = R.drawable.logout_24),
-                        contentDescription = null
-                    )
-                    BasicText(
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        text = "Logout",
-                        fontSize = 16
-                    )
+                Box(modifier = Modifier
+                    .shadow(20.dp)
+                    .align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable {
+                        if (isFromLocalSession) {
+                            signOut()
+                        } else {
+                            updateVisibleSession(null)
+                        }
+                    }
+                    .background(almostWhite)) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(24.dp),
+                            painter = painterResource(id = if (isFromLocalSession) R.drawable.logout_24 else R.drawable.baseline_arrow_back_24),
+                            contentDescription = null
+                        )
+                        BasicText(
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                            text = if (isFromLocalSession) "Logout" else "Go back to your Profile",
+                            fontSize = 16
+                        )
+                    }
                 }
             }
 
@@ -311,30 +388,41 @@ fun ProfileScreen(
                     )
                 }
             }
+            BasicText(text = "Friends list", fontSize = 22)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-
-                BasicText(text = "Friends list", fontSize = 22)
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .shadow(20.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(almostWhite)
+                        .animateContentSize()
                 ) {
-                    Column (modifier = Modifier
-                        .padding(8.dp)
-                        .animateContentSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-                        AddFriendButton { dialogType, shouldDisplay ->
-                            displayDialogFunction(dialogType, shouldDisplay)
+                    Column(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .animateContentSize()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(lessWhite),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (isFromLocalSession) {
+                            AddFriendButton { dialogType, shouldDisplay ->
+                                displayDialogFunction(dialogType, shouldDisplay)
+                            }
                         }
-                        if (listOfFriendRequests.isNotEmpty()) {
-                            BasicText(text = "Friend Requests")
+                        if (listOfFriendRequests.isNotEmpty() && isFromLocalSession) {
+                            BasicText(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = "Friend Requests"
+                            )
                             listOfFriendRequests.forEach {
                                 FriendRequest(
                                     profilePicture = it.userInfo?.profilePictureUrl,
-                                    userName = it.userInfo?.userName
+                                    userName = it.userInfo?.userName,
+                                    updateVisibleSession = {
+                                        updateVisibleSession(it)
+                                    }
                                 ) { hasAccepted ->
                                     updateFriendRequest(
                                         hasAccepted,
@@ -344,17 +432,32 @@ fun ProfileScreen(
                             }
                         }
                         if (listOfFriends.isNotEmpty()) {
-                            BasicText(text = "Friends")
+                            BasicText(
+                                modifier = Modifier.padding(
+                                    start = 8.dp,
+                                    top = if (isFromLocalSession) 0.dp else 8.dp
+                                ), text = "Friends"
+                            )
                             listOfFriends.forEach {
                                 FriendItem(
                                     profilePicture = it.userInfo?.profilePictureUrl,
                                     userName = it.userInfo?.userName
-                                )
+                                ) {
+                                    updateVisibleSession(it)
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+        if (feedbackMessage == FeedbackMessage.FriendRequestSent || feedbackMessage == FeedbackMessage.FriendRemoved) {
+            FeedbackMessage(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(16.dp),
+                errorMessage = feedbackMessage
+            )
         }
     }
 }
@@ -396,19 +499,24 @@ fun FriendRequest(
     modifier: Modifier = Modifier,
     profilePicture: String?,
     userName: String?,
+    updateVisibleSession: () -> Unit,
     updateFriendStatus: (Boolean) -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(lessWhite)
+            .clickable {
+                updateVisibleSession()
+            }
+            .background(almostWhite)
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
             modifier = Modifier
-                .align(CenterVertically)
+                .align(Alignment.CenterVertically)
                 .fillMaxWidth()
         ) {
 
@@ -426,7 +534,7 @@ fun FriendRequest(
                 BasicText(
                     modifier = Modifier
                         .padding(8.dp)
-                        .align(CenterVertically),
+                        .align(Alignment.CenterVertically),
                     text = userName,
                     fontSize = 18
                 )
@@ -438,7 +546,7 @@ fun FriendRequest(
             ) {
                 Image(
                     modifier = Modifier
-                        .align(CenterVertically)
+                        .align(Alignment.CenterVertically)
                         .size(24.dp)
                         .clickable {
                             updateFriendStatus(false)
@@ -448,7 +556,7 @@ fun FriendRequest(
                 )
                 Image(
                     modifier = Modifier
-                        .align(CenterVertically)
+                        .align(Alignment.CenterVertically)
                         .size(24.dp)
                         .clickable {
                             updateFriendStatus(true)
@@ -466,22 +574,26 @@ fun FriendRequest(
 fun FriendItem(
     modifier: Modifier = Modifier,
     profilePicture: String?,
-    userName: String?
+    userName: String?,
+    updateVisibleSession: () -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(lessWhite)
+            .background(almostWhite)
+            .clickable {
+                updateVisibleSession()
+            }
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
             modifier = Modifier
-                .align(CenterVertically)
+                .align(Alignment.CenterVertically)
                 .fillMaxWidth()
         ) {
-
             Row(
                 modifier = Modifier.align(Alignment.CenterStart),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -496,7 +608,7 @@ fun FriendItem(
                 BasicText(
                     modifier = Modifier
                         .padding(8.dp)
-                        .align(CenterVertically),
+                        .align(Alignment.CenterVertically),
                     text = userName,
                     fontSize = 18
                 )

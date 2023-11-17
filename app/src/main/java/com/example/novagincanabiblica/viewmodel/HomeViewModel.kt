@@ -3,7 +3,6 @@ package com.example.novagincanabiblica.viewmodel
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
@@ -42,6 +41,16 @@ class HomeViewModel @Inject constructor(
     private val _displayDialog = MutableStateFlow(Pair(ProfileDialogType.IRRELEVANT, false))
     val displayDialog = _displayDialog.asStateFlow()
 
+    private val _visibleSession = MutableStateFlow(Session())
+    val visibleSession = _visibleSession.asStateFlow()
+
+    private val _isFromLocalSession = MutableStateFlow(true)
+    val isFromLocalSession = _isFromLocalSession.asStateFlow()
+
+    private val _transitionAnimation = MutableStateFlow(false)
+    val transitionAnimation = _transitionAnimation.asStateFlow()
+
+
     init {
         initHomeViewModel()
     }
@@ -50,7 +59,12 @@ class HomeViewModel @Inject constructor(
         day.collectLatest {
             listenToBibleVerseUpdate(it)
             localSession.collectLatest { session ->
-                loadFriendRequests(session)
+                val currentUserId = visibleSession.value.userInfo?.userId
+                if (currentUserId.isNullOrBlank() || currentUserId == session.userInfo?.userId) {
+                    _isFromLocalSession.emit(true)
+                    _visibleSession.emit(session)
+                    loadFriendRequests(session)
+                }
             }
         }
     }
@@ -91,6 +105,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun resetState() = viewModelScope.launch {
+        _visibleSession.update {
+            Session()
+        }
         _localSession.update {
             Session()
         }
@@ -106,7 +123,6 @@ class HomeViewModel @Inject constructor(
         repo.getSession(result).collectLatest {
             it.handleSuccessAndFailure { session ->
                 _localSession.emit(session)
-                loadFriendRequests(session)
             }
         }
     }
@@ -129,9 +145,11 @@ class HomeViewModel @Inject constructor(
     fun addFriend(userId: String) = viewModelScope.launch {
         repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
             it.handleSuccessAndFailure { feedbackMessage ->
-                _feedbackMessage.emit(feedbackMessage)
                 if (feedbackMessage == FeedbackMessage.FriendRequestSent) {
-                    _displayDialog.emit(Pair(ProfileDialogType.IRRELEVANT, false))
+                    emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = true)
+                    displayDialog(ProfileDialogType.IRRELEVANT, false)
+                } else {
+                    emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = false)
                 }
             }
         }
@@ -142,6 +160,39 @@ class HomeViewModel @Inject constructor(
             repo.updateFriendRequest(localSession.value, hasAccepted, this).collectLatest {
                 it.handleSuccessAndFailure {
 
+                }
+            }
+        }
+    }
+
+    fun updateVisibleSession(session: Session?) = viewModelScope.launch {
+        _transitionAnimation.emit(true)
+        delay(300)
+        val userSelectedHimself = session?.userInfo?.userId == localSession.value.userInfo?.userId
+
+        if (session == null || userSelectedHimself) {
+            _isFromLocalSession.emit(true)
+            _visibleSession.emit(value = localSession.value)
+            loadFriendRequests(session = localSession.value)
+        } else {
+            _isFromLocalSession.emit(false)
+            _visibleSession.emit(session)
+            loadFriendRequests(session = session)
+        }
+    }
+
+    fun finishTransitionAnimation() = viewModelScope.launch {
+        _transitionAnimation.emit(false)
+    }
+
+    fun removeFriend() = viewModelScope.launch {
+        visibleSession.value.userInfo?.userId?.apply {
+            repo.removeFriend(session = localSession.value, friendId = this).collectLatest {
+                it.handleSuccessAndFailure { feedbackMessage ->
+                    _transitionAnimation.emit(true)
+                    displayDialog(ProfileDialogType.IRRELEVANT, false)
+                    emitFeedbackMessage(feedbackMessage)
+                    _visibleSession.emit(localSession.value)
                 }
             }
         }

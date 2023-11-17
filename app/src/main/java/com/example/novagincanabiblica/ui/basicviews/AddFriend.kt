@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,7 +59,8 @@ fun AddFriendDialog(
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp).animateContentSize(),
+                        .padding(16.dp)
+                        .animateContentSize(),
                     value = userIdString,
                     onValueChange = { newString ->
                         updateErrorMessage()
@@ -145,11 +145,106 @@ fun AddFriendDialog(
     }
 }
 
+@Composable
+fun RemoveFriendDialog(
+    modifier: Modifier = Modifier,
+    goBackClick: () -> Unit,
+    removeUser: () -> Unit,
+) {
+
+    Box(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(almostWhite)
+                    .animateContentSize()
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                BasicText(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Start),
+                    text = "Friend Removal",
+                    fontSize = 24
+                )
+                BasicText(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Start),
+                    text = "Are you sure you want to remove this friend?"
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(.5f)
+                        .shadow(20.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            goBackClick()
+                        }
+                        .background(almostWhite)
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(24.dp),
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                        contentDescription = null
+                    )
+                    BasicText(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        text = "No",
+                        fontSize = 16
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(.5f)
+                        .shadow(20.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            removeUser()
+                        }
+                        .background(almostWhite)
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(24.dp),
+                        painter = painterResource(id = R.drawable.baseline_delete_24),
+                        contentDescription = null
+                    )
+                    BasicText(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        text = "Yes",
+                        fontSize = 16
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewAddFriend() {
     NovaGincanaBiblicaTheme {
         AddFriendDialog(errorMessage = "Something went wrong", goBackClick = { }, addUser = { }) {
+
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRemoveFriend() {
+    NovaGincanaBiblicaTheme {
+        RemoveFriendDialog(goBackClick = { }) {
 
         }
     }

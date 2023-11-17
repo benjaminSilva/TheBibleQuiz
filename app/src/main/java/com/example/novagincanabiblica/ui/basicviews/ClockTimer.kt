@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +16,7 @@ import com.example.novagincanabiblica.ui.theme.almostWhite
 fun ClockTimer(modifier: Modifier, time: String, progress: Float) {
 
     Box(modifier = modifier) {
-        CircularProgressIndicator(
+        androidx.compose.material3.CircularProgressIndicator(
             modifier = Modifier.fillMaxSize(),
             progress = progress,
             strokeWidth = 15.dp

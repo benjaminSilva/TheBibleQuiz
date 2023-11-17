@@ -1,7 +1,9 @@
 package com.example.novagincanabiblica.ui.screens.home
 
 import android.app.Activity.RESULT_OK
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.BibleVerse
@@ -130,18 +133,18 @@ fun HomeScreen(
 
     val animationLayoutList =
         generateSubSequentialAlphaAnimations(
-            numberOfViews = 4,
+            numberOfViews = 5,
             condition = startAnimation,
             duration = 500
         )
     val animationPositionList = generateSubSequentialPositionAnimations(
-        numberOfViews = 4,
+        numberOfViews = 5,
         condition = startAnimation,
         offsetStart = IntOffset(-80, 0),
         duration = 500
     )
 
-    val sendIntent: Intent = Intent().apply {
+    val bibleVerseIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(
             Intent.EXTRA_TEXT,
@@ -149,13 +152,25 @@ fun HomeScreen(
         )
         type = "text/plain"
     }
-    val shareIntent = Intent.createChooser(sendIntent, null)
+    val appIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(
+            Intent.EXTRA_TEXT,
+            "Hi, we should play The Bible Quiz together. Download it here."
+        )
+        type = "text/plain"
+    }
+
+    val bibleVerseShareIntent = Intent.createChooser(bibleVerseIntent, null)
+    val appShareIntent = Intent.createChooser(appIntent, "Choose where you're sharing this")
     val haptic = LocalHapticFeedback.current
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pullRefresh(pullRefreshState)
-        .verticalScroll(rememberScrollState())) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
+            .verticalScroll(rememberScrollState())
+    ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
@@ -205,7 +220,7 @@ fun HomeScreen(
                         .clip(shape = RoundedCornerShape(16.dp))
                         .combinedClickable(onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            context.startActivity(shareIntent)
+                            context.startActivity(bibleVerseShareIntent)
                         }) {}
                         .animateContentSize()
                         .background(almostWhite)
@@ -386,7 +401,98 @@ fun HomeScreen(
                     }
                 }
             }
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .shadowWithAnimation(
+                        20.dp,
+                        offset = animationPositionList[4].value,
+                        alpha = animationLayoutList[4].value
+                    ).offset {
+                        animationPositionList[4].value
+                    }
+                    .alpha(animationLayoutList[4].value)
+                    .clip(shape = RoundedCornerShape(16.dp))
+                    .clickable {
+                        context.startActivity(appShareIntent)
+                    }
+                    .background(almostWhite)
+                ) {
+
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+
+                        Image(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.CenterVertically),
+                            painter = painterResource(id = R.drawable.baseline_share_24),
+                            contentDescription = null
+                        )
+
+                        BasicText(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp),
+                            text = "Share",
+                            fontSize = 24,
+                            lineHeight = 22
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .shadowWithAnimation(
+                        20.dp,
+                        offset = animationPositionList[4].value,
+                        alpha = animationLayoutList[4].value
+                    ).offset {
+                        animationPositionList[4].value
+                    }
+                    .alpha(animationLayoutList[4].value)
+                    .clip(shape = RoundedCornerShape(16.dp))
+                    .clickable {
+
+                    }
+                    .background(almostWhite)
+                ) {
+
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+
+                        Image(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.CenterVertically),
+                            painter = painterResource(id = R.drawable.baseline_star_rate_24),
+                            contentDescription = null
+                        )
+
+                        BasicText(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp),
+                            text = "Rate",
+                            fontSize = 24,
+                            lineHeight = 22
+                        )
+                    }
+                }
+            }
         }
+
+
         PullRefreshIndicator(
             modifier = Modifier.align(Alignment.TopCenter),
             refreshing = isRefreshing,
@@ -395,10 +501,21 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
     NovaGincanaBiblicaTheme {
-
+        HomeScreen(
+            navController = rememberNavController(),
+            hourOfTheDay = 22,
+            localSession = Session(),
+            dailyBibleVerse = BibleVerse(),
+            hasUserPlayedLocally = true,
+            pullRefreshState = rememberPullRefreshState(refreshing = true, onRefresh = { /*TODO*/ }),
+            isRefreshing = true
+        ) {
+            
+        }
     }
 }

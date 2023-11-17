@@ -8,6 +8,7 @@ import com.example.novagincanabiblica.data.models.WordleDataCalculated
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.repositories.Repository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -15,13 +16,13 @@ import kotlinx.coroutines.launch
 
 open class BaseViewModel(private val repo: Repository) : ViewModel() {
 
-    protected val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoError)
+    private val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoMessage)
     val feedbackMessage = _feedbackMessage.asStateFlow()
 
     protected val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
-    protected val _day = MutableStateFlow(0)
+    private val _day = MutableStateFlow(0)
     val day = _day.asStateFlow()
 
     private val _calculatedQuizData = MutableStateFlow(QuestionStatsDataCalculated())
@@ -30,22 +31,27 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
     private val _calculatedWordleData = MutableStateFlow(WordleDataCalculated())
     val calculatedWordleData = _calculatedWordleData.asStateFlow()
 
+    init {
+        collectDay(onlyOnce = false)
+    }
+
     fun collectDay(onlyOnce: Boolean) = viewModelScope.launch {
-        repo.getDay(onlyOnce).collectLatest {
-            it.handleSuccessAndFailure {
+        repo.getDay(onlyOnce = onlyOnce).collectLatest {
+            it.handleSuccessAndFailure { day ->
+                _day.emit(value = day)
                 collectSession()
             }
         }
     }
 
     fun resetErrorMessage() = viewModelScope.launch {
-        _feedbackMessage.emit(FeedbackMessage.NoError)
+        _feedbackMessage.emit(value = FeedbackMessage.NoMessage)
     }
 
     private fun collectSession() = viewModelScope.launch {
         repo.getSession().collectLatest {
             it.handleSuccessAndFailure { session ->
-                _localSession.emit(session)
+                _localSession.emit(value = session)
             }
         }
     }
@@ -54,12 +60,23 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
         when (this) {
             is ResultOf.Success -> action(value)
             is ResultOf.Failure -> {
-                _feedbackMessage.emit(errorMessage)
+                emitFeedbackMessage(errorMessage)
+                Unit
             }
         }
 
-    fun calculateQuizData() = viewModelScope.launch {
-        val questionData = localSession.value.quizStats
+    fun emitFeedbackMessage(feedbackMessage: FeedbackMessage, isAutoDelete: Boolean = true) = viewModelScope.launch {
+        if (_feedbackMessage.value == FeedbackMessage.NoMessage) {
+            _feedbackMessage.emit(feedbackMessage)
+            if (isAutoDelete) {
+                delay(4000)
+                _feedbackMessage.emit(FeedbackMessage.NoMessage)
+            }
+        }
+    }
+
+    fun calculateQuizData(session: Session = localSession.value) = viewModelScope.launch {
+        val questionData = session.quizStats
         _calculatedQuizData.emit(
             QuestionStatsDataCalculated(
                 easyFloat = getAlphaValueToAnimate(
@@ -96,8 +113,8 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
     //Checks if we are not dividing zero or by zero.
     private fun itDoesntBreak(correct: Int, wrong: Int) = !(correct == 0 || correct + wrong == 0)
 
-    fun calculateWordleData() = viewModelScope.launch {
-        val wordleData = localSession.value.wordle.wordleStats
+    fun calculateWordleData(session: Session = localSession.value) = viewModelScope.launch {
+        val wordleData = session.wordle.wordleStats
         val max = wordleData.getMax()
         _calculatedWordleData.emit(
             WordleDataCalculated(
