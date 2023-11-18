@@ -52,18 +52,25 @@ class HomeViewModel @Inject constructor(
 
 
     init {
+        loadToken()
         initHomeViewModel()
+    }
+
+    private fun loadToken() = viewModelScope.launch {
+        repo.loadToken()
     }
 
     private fun initHomeViewModel() = viewModelScope.launch {
         day.collectLatest {
-            listenToBibleVerseUpdate(it)
-            localSession.collectLatest { session ->
-                val currentUserId = visibleSession.value.userInfo?.userId
-                if (currentUserId.isNullOrBlank() || currentUserId == session.userInfo?.userId) {
-                    _isFromLocalSession.emit(true)
-                    _visibleSession.emit(session)
-                    loadFriendRequests(session)
+            if (it != -1) {
+                listenToBibleVerseUpdate(it)
+                localSession.collectLatest { session ->
+                    val currentUserId = visibleSession.value.userInfo?.userId
+                    if (currentUserId.isNullOrBlank() || currentUserId == session.userInfo?.userId) {
+                        _isFromLocalSession.emit(true)
+                        _visibleSession.emit(session)
+                        loadFriendRequests(session)
+                    }
                 }
             }
         }

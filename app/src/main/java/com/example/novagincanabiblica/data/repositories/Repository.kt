@@ -38,4 +38,5 @@ interface Repository {
     suspend fun loadFriendRequests(friendRequests: List<String>, friends: List<String>): Flow<ResultOf<Pair<List<Session>,List<Session>>>>
     suspend fun updateFriendRequest(session: Session, hasAccepted: Boolean, friendId: String): Flow<ResultOf<Nothing>>
     suspend fun removeFriend(session: Session, friendId: String): Flow<ResultOf<FeedbackMessage>>
+    suspend fun loadToken()
 }

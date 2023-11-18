@@ -9,6 +9,7 @@ import com.example.novagincanabiblica.data.repositories.Repository
 import com.example.novagincanabiblica.data.repositories.RepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,6 +49,7 @@ object AppModule {
         @Named("wordleDatabase") wordleDatabase: FirebaseDatabase,
         @Named("quizDatabase") quizDatabase: FirebaseDatabase,
         @Named("englishWordsDatabase") englishWords: FirebaseDatabase,
+        firebaseMessaging: FirebaseMessaging
     ): Repository = RepositoryImpl(
         googleAuthUiClient = googleAuthUiClient,
         wordleService = wordleService,
@@ -57,7 +59,8 @@ object AppModule {
         dailyVerseDatabase = dailyVerseDatabase,
         wordleDatabase = wordleDatabase,
         quizDatabase = quizDatabase,
-        englishWords = englishWords
+        englishWords = englishWords,
+        firebaseMessaging = firebaseMessaging
     )
 
     @Singleton
@@ -89,6 +92,10 @@ object AppModule {
     @Provides
     @Named("englishWordsDatabase")
     fun getAllEnglishWords() = FirebaseDatabase.getInstance("https://the-bible-quiz-list-of-words-english.firebaseio.com/")
+
+    @Singleton
+    @Provides
+    fun getFirebaseMessaging() = FirebaseMessaging.getInstance()
 
     @Singleton
     @Provides

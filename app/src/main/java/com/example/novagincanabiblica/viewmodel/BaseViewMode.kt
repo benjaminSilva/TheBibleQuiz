@@ -22,7 +22,7 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
     protected val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
-    private val _day = MutableStateFlow(0)
+    private val _day = MutableStateFlow(-1)
     val day = _day.asStateFlow()
 
     private val _calculatedQuizData = MutableStateFlow(QuestionStatsDataCalculated())

@@ -10,19 +10,27 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.novagincanabiblica.MainActivity
 import com.example.novagincanabiblica.R
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.google.firebase.messaging.messaging
 import kotlin.random.Random
 
-class MyFirebaseMessagingServices: FirebaseMessagingService() {
+class MyFirebaseMessagingServices : FirebaseMessagingService() {
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        remoteMessage.notification?.let { message ->
-            sendNotification(message)
-        }
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
     }
 
-    private fun sendNotification(message: RemoteMessage.Notification) {
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        sendNotification(remoteMessage)
+    }
+
+    private fun sendNotification(remoteMessage: RemoteMessage) {
+
+        val notificationType = remoteMessage.data["notificationType"]
+
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(FLAG_ACTIVITY_CLEAR_TOP)
         }
@@ -31,23 +39,36 @@ class MyFirebaseMessagingServices: FirebaseMessagingService() {
             this, 0, intent, FLAG_IMMUTABLE
         )
 
-        val channelId = this.getString(R.string.reminder_channel)
+        val channelId = when (notificationType) {
+            "Reminders" -> {
+                this.getString(R.string.reminder_channel)
+            }
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setContentTitle(message.title)
-            .setContentText(message.body)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Reminder", NotificationManager.IMPORTANCE_DEFAULT)
-            manager.createNotificationChannel(channel)
+            else -> {
+                "The Bible Quiz"
+            }
         }
 
-        manager.notify(Random.nextInt(), notificationBuilder.build())
-    }
+        remoteMessage.notification?.apply {
+            val notificationBuilder = NotificationCompat.Builder(this@MyFirebaseMessagingServices, channelId)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setSmallIcon(R.drawable.baseline_star_rate_24)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
 
+            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    channelId,
+                    notificationType ?: "The Bible Quiz",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                manager.createNotificationChannel(channel)
+            }
+
+            manager.notify(Random.nextInt(), notificationBuilder.build())
+        }
+    }
 }

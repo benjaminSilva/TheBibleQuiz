@@ -42,7 +42,9 @@ class BibleQuizViewModel @Inject constructor(
 
     private fun initBibleQuiz() = viewModelScope.launch {
         day.collectLatest {
-            listenToQuestion(it)
+            if (it != -1) {
+                listenToQuestion(it)
+            }
         }
     }
 

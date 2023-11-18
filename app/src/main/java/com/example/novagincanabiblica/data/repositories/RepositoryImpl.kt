@@ -24,13 +24,15 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.tasks.await
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,7 +48,8 @@ class RepositoryImpl @Inject constructor(
     dailyVerseDatabase: FirebaseDatabase,
     wordleDatabase: FirebaseDatabase,
     quizDatabase: FirebaseDatabase,
-    englishWords: FirebaseDatabase
+    englishWords: FirebaseDatabase,
+    val firebaseMessaging: FirebaseMessaging
 ) : Repository {
 
     private val firebaseRef = baseDatabase.reference
@@ -55,6 +58,14 @@ class RepositoryImpl @Inject constructor(
     private val wordleReference = wordleDatabase.reference
     private val quizReference = quizDatabase.reference
     private val englishWordsReference = englishWords.reference
+    private var globalToken = ""
+
+    override suspend fun loadToken() {
+        val token = firebaseMessaging.token.await()
+        token?.apply {
+            globalToken = this
+        }
+    }
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
         val ref = quizReference.child(Locale.current.language).child("day$day")
@@ -159,10 +170,11 @@ class RepositoryImpl @Inject constructor(
                             trySend(ResultOf.Success(this))
                         }
                     } else {
+                        val updatedSession = session.copy(fcmToken = globalToken)
                         this@apply.apply {
-                            usersReference.child(this).setValue(session)
+                            usersReference.child(this).setValue(updatedSession)
                         }
-                        trySend(ResultOf.Success(session))
+                        trySend(ResultOf.Success(updatedSession))
                     }
                 }
 
@@ -285,6 +297,7 @@ class RepositoryImpl @Inject constructor(
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Wordle>()?.apply {
                     trySend(ResultOf.Success(this))
+
                 }
             }
 

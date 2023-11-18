@@ -48,8 +48,10 @@ class WordleViewModel @Inject constructor(
     private fun initWordle() = viewModelScope.launch {
         initiateKeyboardStateList()
         day.collectLatest {
-            listenToWordle(it)
-            getAttempts()
+            if (it != -1) {
+                listenToWordle(it)
+                getAttempts()
+            }
         }
     }
 
