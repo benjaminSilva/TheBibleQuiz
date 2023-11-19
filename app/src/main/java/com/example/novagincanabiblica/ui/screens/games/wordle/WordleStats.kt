@@ -26,6 +26,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.data.models.WordleData
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
+import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.DaysStreak
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
@@ -47,14 +48,7 @@ fun WordleStats(
     closeDialog: () -> Unit = {}
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Box(
-            modifier = modifier
-                .shadow(20.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    almostWhite
-                )
-        ) {
+        BasicContainer {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)

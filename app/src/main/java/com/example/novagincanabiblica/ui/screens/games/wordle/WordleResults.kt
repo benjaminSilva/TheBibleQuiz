@@ -44,6 +44,7 @@ import com.example.novagincanabiblica.data.models.wordle.Wordle
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
+import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.highlightText
 import com.example.novagincanabiblica.ui.screens.Routes
@@ -159,20 +160,13 @@ fun WordleResultsScreen(
                 isFromResults = true
             )
             BasicText(text = "Found in this verse")
-            Box(
-                modifier = Modifier
-                    .shadow(20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .combinedClickable(onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        context.startActivity(shareVerse)
-                    }) {}
-                    .background(
-                        almostWhite
-                    )
-            ) {
+            BasicContainer {
                 Column(
                     modifier = Modifier
+                        .combinedClickable(onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            context.startActivity(shareVerse)
+                        }) {}
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {

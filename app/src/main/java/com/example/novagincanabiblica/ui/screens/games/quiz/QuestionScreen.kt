@@ -122,13 +122,6 @@ fun InitializeSoloQuestionScreen(
 
 }
 
-fun handleAnotherNavigation(
-    navController: NavHostController,
-    navigateNextScreen: Boolean
-) {
-    
-}
-
 @Composable
 fun SoloQuestionScreen(
     currentQuestion: Question,

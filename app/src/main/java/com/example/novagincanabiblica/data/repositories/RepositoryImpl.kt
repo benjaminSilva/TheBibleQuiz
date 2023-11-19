@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.data.repositories
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -27,7 +28,6 @@ import com.google.firebase.database.getValue
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -123,7 +123,6 @@ class RepositoryImpl @Inject constructor(
                             }
                         }
                 }
-
             }
         }
 
@@ -150,9 +149,9 @@ class RepositoryImpl @Inject constructor(
         googleAuthUiClient.signOut()
     }
 
-    override suspend fun getSession(result: ActivityResult): Flow<ResultOf<Session>> = channelFlow {
+    override suspend fun getSession(result: Intent?): Flow<ResultOf<Session>> = channelFlow {
         googleAuthUiClient.signInWithIntent(
-            intent = result.data ?: return@channelFlow
+            intent = result ?: return@channelFlow
         ).also { session ->
             handleSessionIfItExists(session).collectLatest {
                 trySend(it)
@@ -387,7 +386,7 @@ class RepositoryImpl @Inject constructor(
                         trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                     }
                 }
-                ref.addValueEventListener(postListener)
+                ref.addListenerForSingleValueEvent(postListener)
                 awaitClose { ref.removeEventListener(postListener) }
             }
 
@@ -408,7 +407,7 @@ class RepositoryImpl @Inject constructor(
                 trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        ref.addValueEventListener(postListener)
+        ref.addListenerForSingleValueEvent(postListener)
         awaitClose { ref.removeEventListener(postListener) }
     }
 
@@ -428,7 +427,7 @@ class RepositoryImpl @Inject constructor(
                     trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                 }
             }
-            ref.addValueEventListener(postListener)
+            ref.addListenerForSingleValueEvent(postListener)
             awaitClose { ref.removeEventListener(postListener) }
         }
 
@@ -478,8 +477,10 @@ class RepositoryImpl @Inject constructor(
                         trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                     }
                 }
-                usersReference.child(friendId).addValueEventListener(postListener)
-                awaitClose { usersReference.removeEventListener(postListener) }
+                usersReference.child(friendId).addListenerForSingleValueEvent(postListener)
+                awaitClose {
+                    Log.i("This was cancelled", "Very cancelled")
+                    usersReference.removeEventListener(postListener) }
             }
         }
 

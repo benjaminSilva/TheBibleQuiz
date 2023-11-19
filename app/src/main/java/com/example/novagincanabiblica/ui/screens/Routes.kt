@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.ui.screens
 
+
 sealed class Routes(val value: String) {
     object Root: Routes(value = "root")
     object Home: Routes(value = "home_screen")

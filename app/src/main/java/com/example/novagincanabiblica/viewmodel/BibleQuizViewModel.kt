@@ -1,11 +1,11 @@
 package com.example.novagincanabiblica.viewmodel
 
-import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.quiz.Answer
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
 import com.example.novagincanabiblica.data.repositories.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,7 +41,7 @@ class BibleQuizViewModel @Inject constructor(
         initBibleQuiz()
     }
 
-    private fun initBibleQuiz() = viewModelScope.launch {
+    private fun initBibleQuiz() = backGroundScope.launch {
         day.collectLatest {
             if (it != -1) {
                 listenToQuestion(it)
@@ -48,15 +49,17 @@ class BibleQuizViewModel @Inject constructor(
         }
     }
 
-    private fun listenToQuestion(day: Int) = viewModelScope.launch {
-        repo.loadDailyQuestion(day).collectLatest { questionResult ->
-            questionResult.handleSuccessAndFailure {
-                _currentQuestion.emit(it.copy(listOfAnswers = it.listOfAnswers.shuffled()))
+    private fun listenToQuestion(day: Int) = backGroundScope.launch {
+        autoCancellable {
+            repo.loadDailyQuestion(day).collectLatestAndApplyOnMain { questionResult ->
+                questionResult.handleSuccessAndFailure {
+                    _currentQuestion.emit(it.copy(listOfAnswers = it.listOfAnswers.shuffled()))
+                }
             }
         }
     }
 
-    fun startClock() = viewModelScope.launch {
+    fun startClock() = mainScope.launch {
         var remainingTime = 30
         delay(500)
         while (remainingTime >= 0) {
@@ -69,18 +72,23 @@ class BibleQuizViewModel @Inject constructor(
         }
         _screenClickable.emit(false)
         _nextDestination.emit(true)
-        repo.updateStats(currentQuestion.value, false, localSession.value).collectLatest {
-            emitFeedbackMessage(it)
+
+        withContext(Dispatchers.IO) {
+            autoCancellable {
+                repo.updateStats(currentQuestion.value, false, localSession.value).collectLatestAndApplyOnMain {
+                    emitFeedbackMessage(it)
+                }
+            }
         }
     }
 
-    fun verifyAnswer(selectedAnswer: Answer) = viewModelScope.launch {
+    fun verifyAnswer(selectedAnswer: Answer) = mainScope.launch {
         _screenClickable.emit(false)
         selectedAnswer.selected = true
         handleAnswerEffects(selectedAnswer.correct)
     }
 
-    private fun handleAnswerEffects(isCorrect: Boolean) = viewModelScope.launch {
+    private fun handleAnswerEffects(isCorrect: Boolean) = mainScope.launch {
         updateQuestionResult(isCorrect = isCorrect)
         delay(500)
         _startSecondAnimation.emit(true)
@@ -89,13 +97,13 @@ class BibleQuizViewModel @Inject constructor(
         _nextDestination.emit(true)
     }
 
-    fun updateQuestionResult(isCorrect: Boolean) = viewModelScope.launch {
-        repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatest {
+    fun updateQuestionResult(isCorrect: Boolean) = backGroundScope.launch {
+        repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatestAndApplyOnMain {
             emitFeedbackMessage(it)
         }
     }
 
-    fun updateSession() = viewModelScope.launch {
+    fun updateGameAvailability() = backGroundScope.launch {
         repo.updateHasPlayedBibleQuiz()
     }
 

@@ -5,14 +5,23 @@ import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
+import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
+import com.example.novagincanabiblica.data.models.state.ProfileDialogType
 import com.example.novagincanabiblica.data.models.state.ResultOf
 import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.ui.theme.jobTimeOut
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 open class BaseViewModel(private val repo: Repository) : ViewModel() {
 
@@ -31,15 +40,25 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
     private val _calculatedWordleData = MutableStateFlow(WordleDataCalculated())
     val calculatedWordleData = _calculatedWordleData.asStateFlow()
 
+    private val _displayDialog = MutableStateFlow(Pair<DialogType, Boolean>(DialogType.EmptyValue, false))
+    val displayDialog = _displayDialog.asStateFlow()
+
+    private val sessionFlow = collectSession()
+
     init {
         collectDay(onlyOnce = false)
     }
+
+    fun displayDialog(dialogType: DialogType = DialogType.EmptyValue, displayIt: Boolean) =
+        backGroundScope.launch {
+            _displayDialog.emit(Pair(dialogType, displayIt))
+        }
 
     fun collectDay(onlyOnce: Boolean) = viewModelScope.launch {
         repo.getDay(onlyOnce = onlyOnce).collectLatest {
             it.handleSuccessAndFailure { day ->
                 _day.emit(value = day)
-                collectSession()
+                sessionFlow
             }
         }
     }
@@ -54,6 +73,10 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
                 _localSession.emit(value = session)
             }
         }
+    }
+
+    fun cancelCollectSession() {
+        sessionFlow.cancel()
     }
 
     suspend fun <T> ResultOf<T>.handleSuccessAndFailure(action: suspend (value: T) -> Unit) =
@@ -75,7 +98,7 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
         }
     }
 
-    fun calculateQuizData(session: Session = localSession.value) = viewModelScope.launch {
+    fun calculateQuizData(session: Session = localSession.value) = backGroundScope.launch {
         val questionData = session.quizStats
         _calculatedQuizData.emit(
             QuestionStatsDataCalculated(
@@ -159,5 +182,38 @@ open class BaseViewModel(private val repo: Repository) : ViewModel() {
 
     private fun checkIfItDoesntBreak(cantBeZeroOne: Int, cantBeZeroTwo: Int) =
         cantBeZeroOne > 0 && cantBeZeroTwo > 0
+
+    private val viewModelJob by lazy {
+        Job()
+    }
+
+    protected val backGroundScope by lazy {
+        CoroutineScope(Dispatchers.IO + viewModelJob)
+    }
+
+    protected val mainScope by lazy {
+        CoroutineScope(Dispatchers.Main + viewModelJob)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
+    }
+
+    suspend fun CoroutineScope.autoCancellable(code: suspend () -> Unit) {
+        launch {
+            withTimeout(jobTimeOut) {
+                code()
+            }
+        }
+    }
+
+    suspend fun <T> Flow<T>.collectLatestAndApplyOnMain(action: suspend (value: T) -> Unit) {
+        collectLatest {
+            withContext(Dispatchers.Main) {
+                action(it)
+            }
+        }
+    }
 
 }

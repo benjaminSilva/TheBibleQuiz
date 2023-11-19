@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.data.repositories
 
+import android.content.Intent
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.Flow
 interface Repository {
     suspend fun signOut()
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
-    suspend fun getSession(result: ActivityResult): Flow<ResultOf<Session>>
+    suspend fun getSession(result: Intent?): Flow<ResultOf<Session>>
     suspend fun getSignedInUser(): UserData?
     suspend fun updateHasPlayedBibleQuiz()
     suspend fun getSession(): Flow<ResultOf<Session>>

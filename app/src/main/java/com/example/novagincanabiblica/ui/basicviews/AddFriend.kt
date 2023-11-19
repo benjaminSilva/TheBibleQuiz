@@ -56,39 +56,45 @@ fun AddFriendDialog(
                     .background(almostWhite)
                     .animateContentSize()
             ) {
-                OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .animateContentSize(),
-                    value = userIdString,
-                    onValueChange = { newString ->
-                        updateErrorMessage()
-                        userIdString = newString
-                    },
-                    label = {
-                        BasicText(text = "User ID")
-                    }, supportingText = {
-                        BasicText(text = errorMessage, fontColor = wrongAnswerDark)
-                    }, isError = errorMessage.isNotEmpty(),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = closeToBlack,
-                        unfocusedTextColor = closeToBlack,
-                        errorTextColor = closeToBlack,
-                        disabledTextColor = closeToBlack,
-                        focusedContainerColor = almostWhite,
-                        unfocusedContainerColor = almostWhite,
-                        errorContainerColor = almostWhite
-                    ),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = {
-                            addUser(userIdString)
-                        }
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    BasicText(text = "Add a friend", fontSize = 22)
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize(),
+                        value = userIdString,
+                        onValueChange = { newString ->
+                            updateErrorMessage()
+                            userIdString = newString
+                        },
+                        label = {
+                            BasicText(text = "User ID")
+                        }, supportingText = {
+                            BasicText(text = errorMessage, fontColor = wrongAnswerDark)
+                        }, isError = errorMessage.isNotEmpty(),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = closeToBlack,
+                            unfocusedTextColor = closeToBlack,
+                            errorTextColor = closeToBlack,
+                            disabledTextColor = closeToBlack,
+                            focusedContainerColor = almostWhite,
+                            unfocusedContainerColor = almostWhite,
+                            errorContainerColor = almostWhite
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = {
+                                addUser(userIdString)
+                            }
+                        )
                     )
-                )
+                }
+
 
             }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {

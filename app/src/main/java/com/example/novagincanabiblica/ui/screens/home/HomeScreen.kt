@@ -1,16 +1,13 @@
 package com.example.novagincanabiblica.ui.screens.home
 
 import android.app.Activity.RESULT_OK
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -55,14 +51,15 @@ import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.example.novagincanabiblica.ui.basicviews.generateSubSequentialPositionAnimations
-import com.example.novagincanabiblica.ui.basicviews.shadowWithAnimation
 import com.example.novagincanabiblica.ui.screens.Routes
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.collect
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -70,9 +67,17 @@ import java.util.Calendar
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
-    val errorMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle("")
+    val errorMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
     val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
+    val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
+    val navigate by homeViewModel.navigate.collectAsStateWithLifecycle(initialValue = Routes.Home)
+
+    LaunchedEffect(navigate) {
+        if (navigate != Routes.Home) {
+            navController.navigate(navigate.value)
+        }
+    }
 
     val pullRefreshState =
         rememberPullRefreshState(isRefreshing, onRefresh = { homeViewModel.refresh() })
@@ -91,7 +96,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
             if (result.resultCode == RESULT_OK) {
-                homeViewModel.signInSomething(result)
+
+                homeViewModel.signInSomething(result.data)
             }
         }
     )
@@ -103,7 +109,11 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         dailyBibleVerse = dailyBibleVerse,
         pullRefreshState = pullRefreshState,
         hasUserPlayedLocally = hasUserPlayedLocally,
-        isRefreshing = isRefreshing
+        isRefreshing = isRefreshing,
+        enabled = enabled,
+        navigate = {
+            homeViewModel.updateClickable(it)
+        }
     ) {
         homeViewModel.signIn(launcher)
     }
@@ -119,6 +129,8 @@ fun HomeScreen(
     hasUserPlayedLocally: Boolean,
     pullRefreshState: PullRefreshState,
     isRefreshing: Boolean,
+    enabled: Boolean,
+    navigate: (Routes) -> Unit,
     onClickSignIn: () -> Unit
 ) {
     val context = LocalContext.current
@@ -202,28 +214,20 @@ fun HomeScreen(
                 )
 
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .shadowWithAnimation(
-                    20.dp,
-                    offset = animationPositionList[1].value,
-                    alpha = animationLayoutList[1].value
-                )
-                .offset {
-                    animationPositionList[1].value
-                }
-                .alpha(animationLayoutList[1].value)
+            BasicContainer(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shadowOffset = animationPositionList[1].value,
+                shadowAlpha = animationLayoutList[1].value,
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(16.dp))
                         .combinedClickable(onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             context.startActivity(bibleVerseShareIntent)
                         }) {}
                         .animateContentSize()
-                        .background(almostWhite)
                 ) {
                     Column(
                         modifier = Modifier
@@ -253,175 +257,135 @@ fun HomeScreen(
                     }
                 }
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .shadowWithAnimation(
-                    20.dp,
-                    offset = animationPositionList[1].value,
-                    alpha = animationLayoutList[1].value
-                )
-                .offset {
-                    animationPositionList[1].value
+            BasicContainer(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shadowOffset = animationPositionList[2].value,
+                shadowAlpha = animationLayoutList[2].value,
+                enabled = enabled,
+                onClick = {
+                    // Uncomment this before release
+                    if (localSession.hasPlayedQuizGame/* || hasUserPlayedLocally*/)
+                        navigate(Routes.QuizResults)
+                    else
+                        navigate(Routes.QuizMode)
                 }
-                .alpha(animationLayoutList[1].value)
             ) {
-                Box(
+
+                Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(16.dp))
-                        .clickable {
-                            // Uncomment this before release
-                            if (localSession.hasPlayedQuizGame/* || hasUserPlayedLocally*/)
-                                navController.navigate(Routes.QuizResults.value)
-                            else
-                                navController.navigate(Routes.QuizMode.value)
-                        }
-                        .background(almostWhite)
+                        .padding(16.dp)
                 ) {
-                    Row(
+                    Image(
+                        modifier = Modifier.size(64.dp),
+                        painter = painterResource(id = R.drawable.baseline_menu_book_24),
+                        contentDescription = null
+                    )
+                    BasicText(
                         modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Image(
-                            modifier = Modifier.size(64.dp),
-                            painter = painterResource(id = R.drawable.baseline_menu_book_24),
-                            contentDescription = null
-                        )
-                        BasicText(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(start = 8.dp),
-                            text = "Daily Bible\nQuiz",
-                            fontSize = 24,
-                            lineHeight = 22
-                        )
-                    }
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
+                        text = "Daily Bible\nQuiz",
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
                 }
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .shadowWithAnimation(
-                    20.dp,
-                    offset = animationPositionList[2].value,
-                    alpha = animationLayoutList[2].value
-                )
-                .offset {
-                    animationPositionList[2].value
+            BasicContainer(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shadowOffset = animationPositionList[3].value,
+                shadowAlpha = animationLayoutList[3].value,
+                enabled = enabled,
+                onClick = {
+                    //navController.navigate(Routes.WordleMode.value)
+                    if (localSession.hasPlayerWordleGame/* || hasUserPlayedLocally*/)
+                        navigate(Routes.WordleResults)
+                    else
+                        navigate(Routes.WordleMode)
                 }
-                .alpha(animationLayoutList[2].value)
             ) {
-                Box(
+
+                Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(16.dp))
-                        .clickable {
-                            //navController.navigate(Routes.WordleMode.value)
-                            if (localSession.hasPlayerWordleGame/* || hasUserPlayedLocally*/)
-                                navController.navigate(Routes.WordleResults.value)
-                            else
-                                navController.navigate(Routes.WordleMode.value)
-                        }
-                        .background(almostWhite)
+                        .padding(16.dp)
                 ) {
-                    Row(
+                    Image(
+                        modifier = Modifier.size(64.dp),
+                        painter = painterResource(id = R.drawable.baseline_border_clear_24),
+                        contentDescription = null
+                    )
+                    BasicText(
                         modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Image(
-                            modifier = Modifier.size(64.dp),
-                            painter = painterResource(id = R.drawable.baseline_border_clear_24),
-                            contentDescription = null
-                        )
-                        BasicText(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(start = 8.dp),
-                            text = "Biblical\nWordle",
-                            fontSize = 24,
-                            lineHeight = 22
-                        )
-                    }
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
+                        text = "Biblical\nWordle",
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
                 }
             }
 
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .shadowWithAnimation(
-                    20.dp,
-                    offset = animationPositionList[3].value,
-                    alpha = animationLayoutList[3].value
-                )
-                .offset {
-                    animationPositionList[3].value
-                }
-                .alpha(animationLayoutList[3].value)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(16.dp))
-                        .clickable {
-                            if (!localSession.userInfo?.userId.isNullOrBlank()) {
-                                navController.navigate(Routes.Profile.value)
-                            } else {
-                                onClickSignIn()
-                            }
-                        }
-                        .background(almostWhite)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        if (!localSession.userInfo?.userId.isNullOrBlank()) {
-                            AsyncImage(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape),
-                                model = localSession.userInfo?.profilePictureUrl,
-                                contentDescription = null
-                            )
-                        } else {
-                            Image(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .align(Alignment.CenterVertically),
-                                painter = painterResource(id = R.drawable.baseline_login_24),
-                                contentDescription = null
-                            )
-                        }
-                        BasicText(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(start = 8.dp),
-                            text = if (!localSession.userInfo?.userId.isNullOrBlank()) "Profile" else "Sign Up / Login with Google",
-                            fontSize = 24,
-                            lineHeight = 22
-                        )
-                    }
-                }
-            }
-
-            Row(modifier = Modifier
+            BasicContainer(modifier = Modifier
                 .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                shadowOffset = animationPositionList[4].value,
+                shadowAlpha = animationLayoutList[4].value,
+                enabled = enabled,
+                onClick = {
+                    if (!localSession.userInfo?.userId.isNullOrBlank()) {
+                        navigate(Routes.Profile)
+                    } else {
+                        onClickSignIn()
+                    }
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    if (!localSession.userInfo?.userId.isNullOrBlank()) {
+                        AsyncImage(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            model = localSession.userInfo?.profilePictureUrl,
+                            contentDescription = null
+                        )
+                    } else {
+                        Image(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.CenterVertically),
+                            painter = painterResource(id = R.drawable.baseline_login_24),
+                            contentDescription = null
+                        )
+                    }
+                    BasicText(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
+                        text = if (!localSession.userInfo?.userId.isNullOrBlank()) "Profile" else "Login with Google",
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
+                }
+            }
 
-                Box(modifier = Modifier
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+
+                BasicContainer(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .shadowWithAnimation(
-                        20.dp,
-                        offset = animationPositionList[4].value,
-                        alpha = animationLayoutList[4].value
-                    ).offset {
-                        animationPositionList[4].value
+                    .weight(1f),
+                    shadowOffset = animationPositionList[5].value,
+                    shadowAlpha = animationLayoutList[5].value,
+                    enabled = enabled,
+                    onClick = {
+
                     }
-                    .alpha(animationLayoutList[4].value)
-                    .clip(shape = RoundedCornerShape(16.dp))
-                    .clickable {
-                        context.startActivity(appShareIntent)
-                    }
-                    .background(almostWhite)
                 ) {
 
                     Row(
@@ -448,24 +412,16 @@ fun HomeScreen(
                     }
                 }
 
-                Box(modifier = Modifier
+                BasicContainer(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .shadowWithAnimation(
-                        20.dp,
-                        offset = animationPositionList[4].value,
-                        alpha = animationLayoutList[4].value
-                    ).offset {
-                        animationPositionList[4].value
-                    }
-                    .alpha(animationLayoutList[4].value)
-                    .clip(shape = RoundedCornerShape(16.dp))
-                    .clickable {
+                    .weight(1f),
+                    shadowOffset = animationPositionList[5].value,
+                    shadowAlpha = animationLayoutList[5].value,
+                    enabled = enabled,
+                    onClick = {
 
                     }
-                    .background(almostWhite)
                 ) {
-
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -512,10 +468,16 @@ fun HomePreview() {
             localSession = Session(),
             dailyBibleVerse = BibleVerse(),
             hasUserPlayedLocally = true,
-            pullRefreshState = rememberPullRefreshState(refreshing = true, onRefresh = { /*TODO*/ }),
-            isRefreshing = true
+            pullRefreshState = rememberPullRefreshState(
+                refreshing = true,
+                onRefresh = { /*TODO*/ }),
+            isRefreshing = true,
+            enabled = true,
+            navigate = {
+
+            }
         ) {
-            
+
         }
     }
 }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,19 +20,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
-import com.example.novagincanabiblica.ui.basicviews.BasicButton
+import com.example.novagincanabiblica.data.models.state.QuizDialogType
+import com.example.novagincanabiblica.ui.basicviews.BasicContainer
+import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
 import com.example.novagincanabiblica.ui.basicviews.animateAngle
 import com.example.novagincanabiblica.ui.basicviews.animatePosition
@@ -48,11 +50,28 @@ fun InitializePreSoloScreen(
     soloViewModel: BibleQuizViewModel
 ) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
+    val displayDialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
+
+    val (dialogType, displayIt) = displayDialog
+
+    if (displayIt) {
+        Dialog(onDismissRequest = {
+            soloViewModel.displayDialog(
+                displayIt = false
+            )
+        }) {
+            HowToPlayQuizDialog()
+        }
+    }
+
     PreSoloScreen(
         navController = navController,
-        currentQuestionDifficulty = currentQuestion.difficulty
+        currentQuestionDifficulty = currentQuestion.difficulty,
+        openHowToPlayQuestionDialog = {
+            soloViewModel.displayDialog(dialogType = QuizDialogType.HowToPlay, displayIt = true)
+        }
     ) {
-        soloViewModel.updateSession()
+        soloViewModel.updateGameAvailability()
         navController.navigateWithoutRemembering(route = Routes.Quiz, baseRoute = Routes.QuizMode)
     }
 }
@@ -61,6 +80,7 @@ fun InitializePreSoloScreen(
 fun PreSoloScreen(
     navController: NavHostController,
     currentQuestionDifficulty: QuestionDifficulty,
+    openHowToPlayQuestionDialog: () -> Unit,
     startQuestionClick: () -> Unit
 ) {
     var startAnimation by remember {
@@ -133,29 +153,71 @@ fun PreSoloScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .alpha(animateButtonsAlpha)
             ) {
                 Row(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    BasicButton(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.3f)
-                            .clip(RoundedCornerShape(16.dp)),
-                        text = stringResource(id = R.string.go_back)
+                    Column(
+                        modifier = Modifier.weight(0.3f),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        navController.popBackStack()
+                        BasicContainer(modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .weight(1f),
+                            shadowAlpha = animateButtonsAlpha, onClick = {
+                                openHowToPlayQuestionDialog()
+                            }) {
+                            BasicText(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = "How to play"
+                            )
+                        }
+
+                        BasicContainer(modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .weight(1f),
+                            shadowAlpha = animateButtonsAlpha, onClick = {
+
+                            }) {
+                            BasicText(
+                                modifier = Modifier.align(Alignment.Center),
+                                textAlign = TextAlign.Center,
+                                text = "Suggest a question"
+                            )
+                        }
+
+                        BasicContainer(modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .weight(1f),
+                            shadowAlpha = animateButtonsAlpha, onClick = {
+                                navController.popBackStack()
+                            }) {
+                            BasicText(
+                                modifier = Modifier.align(Alignment.Center), text = stringResource(
+                                    id = R.string.go_back
+                                )
+                            )
+                        }
                     }
-                    BasicButton(
+
+                    BasicContainer(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.7f)
-                            .clip(RoundedCornerShape(16.dp)),
-                        text = stringResource(R.string.start_question)
+                            .fillMaxHeight()
+                            .fillMaxWidth()
+                            .weight(0.7f),
+                        shadowAlpha = animateButtonsAlpha,
+                        onClick = {
+                            startQuestionClick()
+                        }
                     ) {
-                        startQuestionClick()
+                        BasicText(
+                            modifier = Modifier.align(Alignment.Center),
+                            text = stringResource(id = R.string.start_question)
+                        )
                     }
                 }
             }
@@ -167,7 +229,7 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(), QuestionDifficulty.EASY) {
+        PreSoloScreen(rememberNavController(), QuestionDifficulty.EASY, {}) {
 
         }
     }

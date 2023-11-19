@@ -32,6 +32,7 @@ import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.QuestionStatsData
 import com.example.novagincanabiblica.data.models.QuestionStatsDataCalculated
 import com.example.novagincanabiblica.ui.screens.games.quiz.BackAndShare
+import com.example.novagincanabiblica.ui.screens.games.wordle.generatedCalculatedData
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.closeToBlack
@@ -155,39 +156,34 @@ fun DaysStreak(streakDays: Int) {
         endValue = streakDays
     )
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(20.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(almostWhite)
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(lessWhite)
-        ) {
+    BasicContainer (modifier = Modifier.fillMaxWidth()) {
+        Row {
+            BasicContainer (
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(64.dp)
+            ) {
+                BasicText(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.Center),
+                    text = animateStreak.toString(),
+                    fontSize = 28
+                )
+            }
+
             BasicText(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.Center),
-                text = animateStreak.toString(),
-                fontSize = 28
+                    .align(Alignment.CenterVertically)
+                    .offset {
+                        animateDaysPosition
+                    }
+                    .alpha(animateDaysAlpha),
+                text = "Days in streak", fontSize = 22
             )
         }
-
-        BasicText(
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .offset {
-                    animateDaysPosition
-                }
-                .alpha(animateDaysAlpha),
-            text = "Days in streak", fontSize = 22
-        )
     }
+    
 }
 
 @Composable
@@ -293,9 +289,11 @@ fun MyProgressBar(modifier: Modifier = Modifier, progress: Float, text: String) 
 @Composable
 fun PreviewQuestionStats() {
     NovaGincanaBiblicaTheme {
-        //QuestionStats(generateStatsData())
+        QuizStats(generateStatsData(), calculatedData = generateCalculatedData())
     }
 }
 
 fun generateStatsData(): QuestionStatsData =
     QuestionStatsData(43, 3, 30, 88, 77, 80, 10, 60, 6)
+
+fun generateCalculatedData(): QuestionStatsDataCalculated = QuestionStatsDataCalculated(.5f, .3f, .2f, .15f, 5, 10 ,12 ,25)

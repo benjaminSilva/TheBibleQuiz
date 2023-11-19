@@ -1,19 +1,24 @@
 package com.example.novagincanabiblica.viewmodel
 
+import android.content.Intent
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.repositories.Repository
-import com.example.novagincanabiblica.ui.screens.ProfileDialogType
+import com.example.novagincanabiblica.ui.screens.Routes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,9 +43,6 @@ class HomeViewModel @Inject constructor(
     private var _listOfFriends = MutableStateFlow(listOf<Session>())
     val listOfFriends = _listOfFriends.asStateFlow()
 
-    private val _displayDialog = MutableStateFlow(Pair(ProfileDialogType.IRRELEVANT, false))
-    val displayDialog = _displayDialog.asStateFlow()
-
     private val _visibleSession = MutableStateFlow(Session())
     val visibleSession = _visibleSession.asStateFlow()
 
@@ -50,17 +52,27 @@ class HomeViewModel @Inject constructor(
     private val _transitionAnimation = MutableStateFlow(false)
     val transitionAnimation = _transitionAnimation.asStateFlow()
 
+    private val _notFriends = MutableStateFlow(false)
+    val notFriends = _notFriends.asStateFlow()
+
+    private val _clickable = MutableStateFlow(true)
+    val clickable = _clickable.asStateFlow()
+
+    private val _navigate = Channel<Routes>()
+    val navigate = _navigate.receiveAsFlow()
+
+    private var loginSession: Job? = null
 
     init {
         loadToken()
         initHomeViewModel()
     }
 
-    private fun loadToken() = viewModelScope.launch {
+    private fun loadToken() = backGroundScope.launch {
         repo.loadToken()
     }
 
-    private fun initHomeViewModel() = viewModelScope.launch {
+    private fun initHomeViewModel() = backGroundScope.launch {
         day.collectLatest {
             if (it != -1) {
                 listenToBibleVerseUpdate(it)
@@ -76,34 +88,36 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun checkGamesAvailability() = viewModelScope.launch {
+    fun checkGamesAvailability() = backGroundScope.launch {
         repo.isThisGameModeAvailable("hasPlayedQuizGame").collectLatest {
             _hasUserPlayedLocally.emit(it)
         }
     }
 
-    private fun loadFriendRequests(session: Session) = viewModelScope.launch {
-        repo.loadFriendRequests(session.friendRequests, session.friendList).collectLatest {
-            it.handleSuccessAndFailure { (requests, friends) ->
-                _listOfFriendRequests.update {
-                    requests
-                }
-                _listOfFriends.update {
-                    friends
+    private fun loadFriendRequests(session: Session) = backGroundScope.launch {
+        autoCancellable {
+            repo.loadFriendRequests(session.friendRequests, session.friendList).collectLatest {
+                it.handleSuccessAndFailure { (requests, friends) ->
+                    _listOfFriendRequests.update {
+                        requests
+                    }
+                    _listOfFriends.update {
+                        friends
+                    }
                 }
             }
         }
     }
 
-    fun refresh() = viewModelScope.launch {
+    fun refresh() = backGroundScope.launch {
         _isRefreshing.emit(true)
-        delay(1000)
         checkGamesAvailability()
         collectDay(onlyOnce = false)
+        delay(1000)
         _isRefreshing.emit(false)
     }
 
-    private fun listenToBibleVerseUpdate(day: Int) = viewModelScope.launch {
+    private fun listenToBibleVerseUpdate(day: Int) = backGroundScope.launch {
         repo.getDailyBibleVerse(day).collectLatest {
             it.handleSuccessAndFailure { bibleVerse ->
                 _dailyBibleVerse.emit(bibleVerse)
@@ -111,7 +125,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun resetState() = viewModelScope.launch {
+    private fun resetState() = backGroundScope.launch {
+        cancelSubscriptions()
         _visibleSession.update {
             Session()
         }
@@ -126,10 +141,17 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun signInSomething(result: ActivityResult) = viewModelScope.launch {
-        repo.getSession(result).collectLatest {
-            it.handleSuccessAndFailure { session ->
-                _localSession.emit(session)
+    private fun cancelSubscriptions() {
+        loginSession?.cancel()
+        cancelCollectSession()
+    }
+
+    fun signInSomething(intent: Intent?) {
+        loginSession = backGroundScope.launch {
+            repo.getSession(intent).collectLatest {
+                it.handleSuccessAndFailure { session ->
+                    _localSession.emit(session)
+                }
             }
         }
     }
@@ -139,40 +161,40 @@ class HomeViewModel @Inject constructor(
             repo.signIn(launcher)
         }
 
-    fun signOut() = viewModelScope.launch {
+    fun signOut() = backGroundScope.launch {
         repo.signOut()
         resetState()
     }
 
-    fun displayDialog(profileDialogType: ProfileDialogType, displayIt: Boolean) =
-        viewModelScope.launch {
-            _displayDialog.emit(Pair(profileDialogType, displayIt))
-        }
-
-    fun addFriend(userId: String) = viewModelScope.launch {
-        repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
-            it.handleSuccessAndFailure { feedbackMessage ->
-                if (feedbackMessage == FeedbackMessage.FriendRequestSent) {
-                    emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = true)
-                    displayDialog(ProfileDialogType.IRRELEVANT, false)
-                } else {
-                    emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = false)
+    fun addFriend(userId: String) = backGroundScope.launch {
+        autoCancellable {
+            repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
+                it.handleSuccessAndFailure { feedbackMessage ->
+                    val checkIfUserIsAddingFromFriendsProfile = visibleSession.value.userInfo?.userId != localSession.value.userInfo?.userId
+                    if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
+                        emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = true)
+                        displayDialog(displayIt = false)
+                    } else {
+                        emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = false)
+                    }
                 }
             }
         }
     }
 
-    fun updateFriendRequest(hasAccepted: Boolean, userId: String?) = viewModelScope.launch {
-        userId?.apply {
-            repo.updateFriendRequest(localSession.value, hasAccepted, this).collectLatest {
-                it.handleSuccessAndFailure {
+    fun updateFriendRequest(hasAccepted: Boolean, userId: String?) = backGroundScope.launch {
+        autoCancellable {
+            userId?.apply {
+                repo.updateFriendRequest(localSession.value, hasAccepted, this).collectLatest {
+                    it.handleSuccessAndFailure {
 
+                    }
                 }
             }
         }
     }
 
-    fun updateVisibleSession(session: Session?) = viewModelScope.launch {
+    fun updateVisibleSession(session: Session?) = backGroundScope.launch {
         _transitionAnimation.emit(true)
         delay(300)
         val userSelectedHimself = session?.userInfo?.userId == localSession.value.userInfo?.userId
@@ -184,25 +206,46 @@ class HomeViewModel @Inject constructor(
         } else {
             _isFromLocalSession.emit(false)
             _visibleSession.emit(session)
+            _notFriends.emit(
+                checkIfSessionIsNotFriendsWithLocal(session) && checkIfSessionDoesntAlreadyHaveAFriendRequest(
+                    session
+                )
+            )
+
             loadFriendRequests(session = session)
         }
     }
 
-    fun finishTransitionAnimation() = viewModelScope.launch {
+    private fun checkIfSessionDoesntAlreadyHaveAFriendRequest(session: Session): Boolean =
+        !localSession.value.friendRequests.contains(session.userInfo?.userId)
+
+    private fun checkIfSessionIsNotFriendsWithLocal(session: Session): Boolean =
+        !localSession.value.friendList.contains(session.userInfo?.userId)
+
+
+    fun finishTransitionAnimation() = backGroundScope.launch {
         _transitionAnimation.emit(false)
     }
 
-    fun removeFriend() = viewModelScope.launch {
-        visibleSession.value.userInfo?.userId?.apply {
-            repo.removeFriend(session = localSession.value, friendId = this).collectLatest {
-                it.handleSuccessAndFailure { feedbackMessage ->
-                    _transitionAnimation.emit(true)
-                    displayDialog(ProfileDialogType.IRRELEVANT, false)
-                    emitFeedbackMessage(feedbackMessage)
-                    _visibleSession.emit(localSession.value)
+    fun removeFriend() = backGroundScope.launch {
+        autoCancellable {
+            visibleSession.value.userInfo?.userId?.apply {
+                repo.removeFriend(session = localSession.value, friendId = this).collectLatest {
+                    it.handleSuccessAndFailure { feedbackMessage ->
+                        _transitionAnimation.emit(true)
+                        displayDialog(displayIt = false)
+                        emitFeedbackMessage(feedbackMessage)
+                        _visibleSession.emit(localSession.value)
+                    }
                 }
             }
         }
     }
 
+    fun updateClickable(route: Routes) = mainScope.launch {
+        _clickable.emit(false)
+        _navigate.send(route)
+        delay(1000)
+        _clickable.emit(true)
+    }
 }

@@ -1,15 +1,20 @@
 package com.example.novagincanabiblica.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.example.novagincanabiblica.ui.screens.InitializeProfileScreen
 import com.example.novagincanabiblica.ui.screens.Routes
@@ -24,6 +29,9 @@ import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
 import com.example.novagincanabiblica.viewmodel.WordleViewModel
 
+const val MY_URI = "https://profile-deeplink.com"
+const val MY_ARG = "id"
+
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
@@ -37,7 +45,10 @@ fun SetupNavGraph(navController: NavHostController) {
             }
 
             composable(
-                route = Routes.Profile.value
+                route = Routes.Profile.value,
+                deepLinks = listOf(navDeepLink {
+                    uriPattern = MY_URI
+                })
             ) {
                 val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)

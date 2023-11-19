@@ -39,7 +39,8 @@ fun BasicText(
     fontSize: Int = 14,
     fontFamily: FontFamily = zillasFontFamily,
     lineHeight: Int = 18,
-    fontColor: Color = closeToBlack
+    fontColor: Color = closeToBlack,
+    textAlign: TextAlign = TextAlign.Start
 ) {
     if (text != null) {
         Text(
@@ -48,7 +49,8 @@ fun BasicText(
             fontSize = fontSize.sp,
             fontFamily = fontFamily,
             lineHeight = lineHeight.sp,
-            color = fontColor
+            color = fontColor,
+            textAlign = textAlign
         )
     }
 }
