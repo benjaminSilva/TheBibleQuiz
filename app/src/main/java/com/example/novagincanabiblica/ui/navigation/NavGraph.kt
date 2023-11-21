@@ -1,29 +1,26 @@
 package com.example.novagincanabiblica.ui.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
-import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
-import com.example.novagincanabiblica.ui.screens.InitializeProfileScreen
+import com.example.novagincanabiblica.ui.screens.profile.InitializeProfileScreen
 import com.example.novagincanabiblica.ui.screens.Routes
-import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloResultScreen
-import com.example.novagincanabiblica.ui.screens.games.quiz.InitializePreSoloScreen
-import com.example.novagincanabiblica.ui.screens.games.quiz.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.InitSuggestQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.InitializeSoloResultScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.InitializePreSoloScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.InitializeSoloQuestionScreen
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.SuggestQuestionScreen
 import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleResult
 import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleScreen
-import com.example.novagincanabiblica.ui.screens.games.wordle.WordleResultsScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
@@ -97,6 +94,11 @@ fun SetupNavGraph(navController: NavHostController) {
                     navController = navController,
                     soloViewModel = soloViewModel
                 )
+            }
+            composable(route = Routes.SuggestQuestion.value) {
+                val viewModel =
+                    it.sharedViewModel<BibleQuizViewModel>(navController = navController)
+                InitSuggestQuestionScreen(viewModel =  viewModel)
             }
         }
     }

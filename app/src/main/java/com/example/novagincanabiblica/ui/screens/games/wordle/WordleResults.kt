@@ -2,7 +2,6 @@ package com.example.novagincanabiblica.ui.screens.games.wordle
 
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,8 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -48,9 +44,8 @@ import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.highlightText
 import com.example.novagincanabiblica.ui.screens.Routes
-import com.example.novagincanabiblica.ui.screens.games.quiz.BackAndShare
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.BackAndShare
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
-import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.viewmodel.WordleViewModel
 
 @Composable

@@ -3,6 +3,7 @@ package com.example.novagincanabiblica.client
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.util.Log
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.UserData
@@ -71,6 +72,7 @@ class GoogleAuthUiClient(
     }
 
     fun getSignerUser(): UserData? = auth.currentUser?.run {
+        Log.i("Current user", displayName!!)
         UserData(
             userId = uid,
             userName = displayName,

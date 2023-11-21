@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.ui.basicviews
 
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.DefaultShadowColor
@@ -47,4 +48,14 @@ fun Modifier.shadowWithAnimation(
     }
 } else {
     this
+}
+
+fun Modifier.clickableIfClickNotNull(clickableCondition: Boolean, modifier : () -> Unit) : Modifier {
+    return if (clickableCondition) {
+        then(clickable {
+            modifier()
+        })
+    } else {
+        this
+    }
 }

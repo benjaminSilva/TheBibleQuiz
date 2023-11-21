@@ -68,7 +68,7 @@ fun FeedbackMessage(modifier: Modifier = Modifier, errorMessage: FeedbackMessage
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterVertically),
-            text = stringResource(id = errorMessage.messageId, formatArgs = errorMessage.extraData), fontSize = 16
+            text = errorMessage.get(), fontSize = 16
         )
     }
 

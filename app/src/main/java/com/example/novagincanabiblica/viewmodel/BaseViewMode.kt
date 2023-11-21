@@ -7,9 +7,8 @@ import com.example.novagincanabiblica.data.models.Session
 import com.example.novagincanabiblica.data.models.WordleDataCalculated
 import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
-import com.example.novagincanabiblica.data.models.state.ProfileDialogType
 import com.example.novagincanabiblica.data.models.state.ResultOf
-import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.data.repositories.BaseRepository
 import com.example.novagincanabiblica.ui.theme.jobTimeOut
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
-open class BaseViewModel(private val repo: Repository) : ViewModel() {
+open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
 
     private val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoMessage)
     val feedbackMessage = _feedbackMessage.asStateFlow()

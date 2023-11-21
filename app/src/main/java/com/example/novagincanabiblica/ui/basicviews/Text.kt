@@ -1,10 +1,16 @@
 package com.example.novagincanabiblica.ui.basicviews
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -21,6 +27,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,7 +35,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.example.novagincanabiblica.ui.theme.almostWhite
 import com.example.novagincanabiblica.ui.theme.closeToBlack
+import com.example.novagincanabiblica.ui.theme.wrongAnswerDark
 import com.example.novagincanabiblica.ui.theme.wrongPlace
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 
@@ -38,7 +47,7 @@ fun BasicText(
     text: String?,
     fontSize: Int = 14,
     fontFamily: FontFamily = zillasFontFamily,
-    lineHeight: Int = 18,
+    lineHeight: Int = fontSize + 2,
     fontColor: Color = closeToBlack,
     textAlign: TextAlign = TextAlign.Start
 ) {
@@ -79,8 +88,10 @@ fun BasicText(
 fun highlightText(text: String, highlightText: String) = buildAnnotatedString {
     var wordToHighlightLowerCase = highlightText.lowercase()
     var countOfOccurrences = countOccurrences(text, searchStr = wordToHighlightLowerCase)
-    val wordToHighlightCapitalized = wordToHighlightLowerCase.replaceFirstChar { it.uppercaseChar() }
-    var countOfOccurrencesCapitalized = countOccurrences(text, searchStr = wordToHighlightCapitalized)
+    val wordToHighlightCapitalized =
+        wordToHighlightLowerCase.replaceFirstChar { it.uppercaseChar() }
+    var countOfOccurrencesCapitalized =
+        countOccurrences(text, searchStr = wordToHighlightCapitalized)
     var countOfOccurrencesTotal = countOfOccurrences + countOfOccurrencesCapitalized
     var modifiedString = text
     for (i in 0 until countOfOccurrencesTotal) {
@@ -88,7 +99,7 @@ fun highlightText(text: String, highlightText: String) = buildAnnotatedString {
         val subStringBeforeLowerLengh = substringBeforeLower.length
         val substringBeforeCapitalized = modifiedString.substringBefore(wordToHighlightCapitalized)
         val subStringBeforeCapitalizedLengh = substringBeforeCapitalized.length
-        val highlightNextCase = if ( subStringBeforeLowerLengh > subStringBeforeCapitalizedLengh) {
+        val highlightNextCase = if (subStringBeforeLowerLengh > subStringBeforeCapitalizedLengh) {
             countOfOccurrencesCapitalized -= 1
             wordToHighlightCapitalized
         } else {
@@ -121,6 +132,53 @@ fun countOccurrences(str: String, searchStr: String): Int {
     }
 
     return count
+}
+
+@Composable
+fun BasicEditText(
+    modifier: Modifier = Modifier,
+    label: String = "",
+    text: String,
+    errorMessage: String = "",
+    keyboardOption: KeyboardOptions = KeyboardOptions(
+        imeAction = ImeAction.Next
+    ),
+    keyboardAction: () -> Unit = {},
+    updateText: (String) -> Unit
+) {
+    OutlinedTextField(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        value = text,
+        onValueChange = { newString ->
+            updateText(newString)
+        },
+        label = {
+            if (label.isNotEmpty()) {
+                BasicText(text = label)
+            }
+        }, supportingText = {
+            if (errorMessage.isNotEmpty()) {
+                BasicText(text = errorMessage, fontColor = wrongAnswerDark)
+            }
+        }, isError = errorMessage.isNotEmpty(),
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = closeToBlack,
+            unfocusedTextColor = closeToBlack,
+            errorTextColor = closeToBlack,
+            disabledTextColor = closeToBlack,
+            focusedContainerColor = almostWhite,
+            unfocusedContainerColor = almostWhite,
+            errorContainerColor = almostWhite
+        ),
+        keyboardOptions = keyboardOption,
+        keyboardActions = KeyboardActions(
+            onNext = {
+                keyboardAction()
+            }
+        )
+    )
 }
 
 @Composable

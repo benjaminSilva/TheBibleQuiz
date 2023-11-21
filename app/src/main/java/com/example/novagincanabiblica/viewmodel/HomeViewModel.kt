@@ -7,9 +7,8 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
-import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.data.repositories.BaseRepository
 import com.example.novagincanabiblica.ui.screens.Routes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -25,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repo: Repository
+    private val repo: BaseRepository
 ) : BaseViewModel(repo) {
 
     private val _dailyBibleVerse = MutableStateFlow(BibleVerse())

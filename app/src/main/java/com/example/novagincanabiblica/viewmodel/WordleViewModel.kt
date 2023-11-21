@@ -1,7 +1,6 @@
 package com.example.novagincanabiblica.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.wordle.KeyboardLetter
 import com.example.novagincanabiblica.data.models.wordle.LetterState
@@ -10,7 +9,7 @@ import com.example.novagincanabiblica.data.models.wordle.WordleAttempState
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
 import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
-import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.data.repositories.BaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WordleViewModel @Inject constructor(
-    private val repo: Repository
+    private val repo: BaseRepository
 ) : BaseViewModel(repo = repo) {
 
     private val _wordle = MutableStateFlow(Wordle())
@@ -113,7 +112,7 @@ class WordleViewModel @Inject constructor(
 
         withContext(Dispatchers.IO) {
             autoCancellable {
-                repo.checkWordV2(attempsString.value).collectLatestAndApplyOnMain {
+                repo.checkWord(attempsString.value).collectLatestAndApplyOnMain {
                     it.handleSuccessAndFailure { validWord ->
                         updateAttemps(validWord)
                     }
@@ -138,7 +137,7 @@ class WordleViewModel @Inject constructor(
                     }
             }
         }
-        delay(2000)
+        delay(1000)
         _navigateToResults.emit(true)
     }
 

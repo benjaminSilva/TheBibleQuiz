@@ -9,7 +9,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateIntOffsetAsState
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -36,9 +35,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.novagincanabiblica.data.models.wordle.LetterState
-import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
-import com.example.novagincanabiblica.data.models.wordle.initiateKeyboardState
-import com.example.novagincanabiblica.ui.screens.games.wordle.WordleScreen
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.animationDuration
 import com.example.novagincanabiblica.ui.theme.correctAnswer
@@ -141,6 +137,26 @@ fun animateScaleBouncy(
             stiffness = Spring.StiffnessVeryLow
         ),
         label = "scaleWithBoucyness"
+    )
+}
+
+@Composable
+fun animateColor(
+    condition: Boolean,
+    startValue: Color,
+    endValue: Color,
+    duration: Int = animationDuration,
+    delay: Int = startDelayAnimation,
+    easing: Easing = LinearOutSlowInEasing
+): State<Color> {
+    return animateColorAsState(
+        targetValue = if (condition) startValue else endValue,
+        animationSpec = tween(
+            durationMillis = duration,
+            delayMillis = delay,
+            easing = easing
+        ),
+        label = "color"
     )
 }
 

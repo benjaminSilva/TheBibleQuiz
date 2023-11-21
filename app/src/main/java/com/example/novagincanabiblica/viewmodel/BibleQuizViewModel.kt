@@ -3,7 +3,7 @@ package com.example.novagincanabiblica.viewmodel
 import com.example.novagincanabiblica.data.models.quiz.Answer
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.state.QuestionAnswerState
-import com.example.novagincanabiblica.data.repositories.Repository
+import com.example.novagincanabiblica.data.repositories.BaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BibleQuizViewModel @Inject constructor(
-    private val repo: Repository
+    private val repo: BaseRepository
 ) : BaseViewModel(repo) {
 
     private val _nextDestination = MutableSharedFlow<Boolean>()
@@ -75,9 +75,10 @@ class BibleQuizViewModel @Inject constructor(
 
         withContext(Dispatchers.IO) {
             autoCancellable {
-                repo.updateStats(currentQuestion.value, false, localSession.value).collectLatestAndApplyOnMain {
-                    emitFeedbackMessage(it)
-                }
+                repo.updateStats(currentQuestion.value, false, localSession.value)
+                    .collectLatestAndApplyOnMain {
+                        emitFeedbackMessage(it)
+                    }
             }
         }
     }
@@ -92,19 +93,31 @@ class BibleQuizViewModel @Inject constructor(
         updateQuestionResult(isCorrect = isCorrect)
         delay(500)
         _startSecondAnimation.emit(true)
-        _currentQuestion.value.answerState = if (isCorrect) QuestionAnswerState.ANSWERED_CORRECTLY else QuestionAnswerState.ANSWERED_WRONGLY
+        _currentQuestion.value.answerState =
+            if (isCorrect) QuestionAnswerState.ANSWERED_CORRECTLY else QuestionAnswerState.ANSWERED_WRONGLY
         delay(2000)
         _nextDestination.emit(true)
     }
 
     fun updateQuestionResult(isCorrect: Boolean) = backGroundScope.launch {
-        repo.updateStats(currentQuestion.value, isCorrect, localSession.value).collectLatestAndApplyOnMain {
-            emitFeedbackMessage(it)
-        }
+        repo.updateStats(currentQuestion.value, isCorrect, localSession.value)
+            .collectLatestAndApplyOnMain {
+                emitFeedbackMessage(it)
+            }
     }
 
     fun updateGameAvailability() = backGroundScope.launch {
         repo.updateHasPlayedBibleQuiz()
+    }
+
+    fun sendQuestionSuggestion(question: Question) = backGroundScope.launch {
+        autoCancellable {
+            repo.sendQuestionSuggestion(question).collectLatest {
+                it.handleSuccessAndFailure { feedbackMessage ->
+                    emitFeedbackMessage(feedbackMessage)
+                }
+            }
+        }
     }
 
 }

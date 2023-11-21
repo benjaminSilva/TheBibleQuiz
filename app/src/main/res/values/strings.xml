@@ -14,10 +14,14 @@
     <string name="error_word_not_long_enough">It has to be at least %1$d letters</string>
     <string name="error_wordle_repeated_word">You have tried this word before</string>
     <string name="error_profile_user_doesnt_exist">User doesn\'t exist</string>
+    <string name="error_no_user_id">You have to add user ID</string>
     <string name="no_error" />
     <string name="feedback_you_cant_add_yourself">You can\'t add yourself</string>
     <string name="feedback_you_are_already_friends_with_this_user">You are already friends with this user</string>
     <string name="feedback_you_have_already_sent_a_friend_request_to_this_user">You have already sent a friend request to this user</string>
     <string name="feedback_you_have_sent_a_friend_request">You have sent a friend request</string>
     <string name="feedback_friend_removed">Friend Removed</string>
+    <string name="feedback_question_suggestion_sent">Question Suggestion was sent successfully</string>
+    <string name="question_suggestion_bible_verse_details">If bible verse does not apply just write N/A. Eg: If you ask \'What is the last book of the bible\', that does not have an specific bible verse with the answer.</string>
+    <string name="question_suggestion_created_by_details">We will credit you if your answer is selected.</string>
 </resources>

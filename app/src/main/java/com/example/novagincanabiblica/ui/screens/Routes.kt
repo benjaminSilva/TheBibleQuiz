@@ -9,6 +9,7 @@ sealed class Routes(val value: String) {
     object PreQuiz: Routes(value = "pre_quiz")
     object Quiz: Routes(value = "quiz")
     object QuizResults: Routes(value = "quiz_results")
+    object SuggestQuestion: Routes(value = "quiz_suggest")
     object Profile: Routes(value = "profile")
     object WordleMode: Routes(value = "wordle_mode")
     object Wordle: Routes(value = "wordle")

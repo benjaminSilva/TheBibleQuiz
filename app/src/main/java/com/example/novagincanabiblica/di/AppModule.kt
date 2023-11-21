@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
-import com.example.novagincanabiblica.client.WordleService
-import com.example.novagincanabiblica.data.repositories.Repository
-import com.example.novagincanabiblica.data.repositories.RepositoryImpl
+import com.example.novagincanabiblica.data.repositories.BaseRepository
+import com.example.novagincanabiblica.data.repositories.BaseRepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
@@ -15,8 +14,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -41,7 +38,6 @@ object AppModule {
     @Provides
     fun getSoloModeRepo(
         googleAuthUiClient: GoogleAuthUiClient,
-        wordleService: WordleService,
         sharedPreferences: SharedPreferences,
         @Named("baseDatabase") baseDatabase: FirebaseDatabase,
         @Named("usersDatabase") usersDatabase: FirebaseDatabase,
@@ -49,10 +45,11 @@ object AppModule {
         @Named("wordleDatabase") wordleDatabase: FirebaseDatabase,
         @Named("quizDatabase") quizDatabase: FirebaseDatabase,
         @Named("englishWordsDatabase") englishWords: FirebaseDatabase,
+        @Named("portugueseWordsDatabase") portugueseWords: FirebaseDatabase,
+        @Named("suggestedQuestionsDatabase") suggestedQuestionsDatabase: FirebaseDatabase,
         firebaseMessaging: FirebaseMessaging
-    ): Repository = RepositoryImpl(
+    ): BaseRepository = BaseRepositoryImpl(
         googleAuthUiClient = googleAuthUiClient,
-        wordleService = wordleService,
         sharedPreferences = sharedPreferences,
         baseDatabase = baseDatabase,
         usersDatabase = usersDatabase,
@@ -60,6 +57,8 @@ object AppModule {
         wordleDatabase = wordleDatabase,
         quizDatabase = quizDatabase,
         englishWords = englishWords,
+        portugueseWords = portugueseWords,
+        suggestedQuestionsDatabase = suggestedQuestionsDatabase,
         firebaseMessaging = firebaseMessaging
     )
 
@@ -95,13 +94,16 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun getFirebaseMessaging() = FirebaseMessaging.getInstance()
+    @Named("portugueseWordsDatabase")
+    fun getAllPortugueseWords() = FirebaseDatabase.getInstance("https://the-bible-quiz-list-of-words-portuguese.firebaseio.com/")
 
     @Singleton
     @Provides
-    fun getWordleService() = Retrofit.Builder()
-        .baseUrl("https://api.dictionaryapi.dev/api/v2/entries/en/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build().create(WordleService::class.java)
+    @Named("suggestedQuestionsDatabase")
+    fun getSuggestedQuestionsDatabase() = FirebaseDatabase.getInstance("https://the-bible-quiz-suggested-questions.firebaseio.com/")
+
+    @Singleton
+    @Provides
+    fun getFirebaseMessaging() = FirebaseMessaging.getInstance()
 
 }
