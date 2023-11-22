@@ -32,7 +32,6 @@ interface BaseRepository {
     suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>>
     suspend fun checkWord(word: String): Flow<ResultOf<String>>
     suspend fun updateWordleList(session: Session, attemptList: List<WordleAttempt>): Flow<FeedbackMessage>
-    suspend fun verifyIfFriendExists(friendId: String): Flow<ResultOf<Boolean>>
     suspend fun sendFriendRequestV2(session: Session, friendId: String): Flow<ResultOf<FeedbackMessage>>
     suspend fun loadFriendRequests(friendRequests: List<String>, friends: List<String>): Flow<ResultOf<Pair<List<Session>,List<Session>>>>
     suspend fun updateFriendRequest(session: Session, hasAccepted: Boolean, friendId: String): Flow<ResultOf<Nothing>>

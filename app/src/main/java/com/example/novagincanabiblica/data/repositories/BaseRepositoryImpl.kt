@@ -62,7 +62,6 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun loadToken() {
         val token = firebaseMessaging.token.await()
         token?.apply {
-            Log.i("FB Token",this)
             globalToken = this
         }
     }
@@ -166,7 +165,7 @@ class BaseRepositoryImpl @Inject constructor(
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     if (dataSnapshot.exists()) {
                         dataSnapshot.getValue<Session>()?.apply {
-                            trySend(ResultOf.Success(this))
+                            trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
                         }
                     } else {
                         val updatedSession = session.copy(fcmToken = globalToken)
@@ -196,13 +195,12 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
-        getSignedInUser()?.userId?.apply {
-            val test = usersReference.child(this)
-
+        getSignedInUser()?.userId?.let { userId ->
+            val test = usersReference.child(userId)
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<Session>()?.apply {
-                        trySend(ResultOf.Success(this))
+                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
                     }
                 }
 
@@ -214,6 +212,14 @@ class BaseRepositoryImpl @Inject constructor(
             awaitClose { test.removeEventListener(postListener) }
         }
     }
+
+    fun Session.withLoadedFriends(dataSnapshot: DataSnapshot): Session =
+        copy(localFriendList = dataSnapshot.child("friendList").children.mapNotNull {
+            it.key
+        }, localFriendRequestList = dataSnapshot.child("friendRequests").children.mapNotNull {
+            it.key
+        })
+
 
     override suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>> = callbackFlow {
         val ref = firebaseRef.child("day")
@@ -265,7 +271,6 @@ class BaseRepositoryImpl @Inject constructor(
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Wordle>()?.apply {
                     trySend(ResultOf.Success(this))
-
                 }
             }
 
@@ -356,7 +361,6 @@ class BaseRepositoryImpl @Inject constructor(
                 ref.addListenerForSingleValueEvent(postListener)
                 awaitClose { ref.removeEventListener(postListener) }
             }
-
         }
 
     override suspend fun checkWord(word: String): Flow<ResultOf<String>> = callbackFlow {
@@ -364,6 +368,7 @@ class BaseRepositoryImpl @Inject constructor(
             "en" -> {
                 englishWordsReference.child(word.lowercase())
             }
+
             else -> {
                 portugueseWordsReference.child(word.lowercase())
             }
@@ -385,69 +390,38 @@ class BaseRepositoryImpl @Inject constructor(
         awaitClose { ref.removeEventListener(postListener) }
     }
 
-    override suspend fun verifyIfFriendExists(friendId: String): Flow<ResultOf<Boolean>> =
-        callbackFlow {
-            val ref = usersReference.child(friendId)
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (!dataSnapshot.exists()) {
-                        trySend(ResultOf.Success(false))
-                    } else {
-                        trySend(ResultOf.Success(true))
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
-                }
-            }
-            ref.addListenerForSingleValueEvent(postListener)
-            awaitClose { ref.removeEventListener(postListener) }
-        }
-
     override suspend fun sendFriendRequestV2(
         session: Session,
         friendId: String
     ): Flow<ResultOf<FeedbackMessage>> =
         callbackFlow {
             session.userInfo?.userId?.let { userId ->
+                if (friendId.isEmpty()) {
+                    channel.trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
+                    return@let
+                }
+                if (userId == friendId) {
+                    channel.trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
+                    return@let
+                }
                 val postListener = object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        if (friendId.isEmpty()) {
-                            trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
-                        }
-                        if (userId == friendId) {
-                            trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
-                            return
-                        }
                         if (!dataSnapshot.exists()) {
-                            trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
+                            channel.trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
                             return
                         }
-                        val friendsFriendList = dataSnapshot.child("friendList")
-                        if (friendsFriendList.exists()) {
-                            friendsFriendList.getValue<List<String>>()?.apply {
-                                if (contains(userId)) {
-                                    trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
-                                    return
-                                }
-                            }
+                        val userInFriendsList = dataSnapshot.child("friendList").child(userId)
+                        if (userInFriendsList.exists()) {
+                            channel.trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
+                            return
                         }
-                        val friendsFriendRequestList = dataSnapshot.child("friendRequests")
-                        if (!friendsFriendRequestList.exists()) {
-                            friendsFriendRequestList.ref.setValue(listOf(userId))
+                        if (dataSnapshot.child("friendRequests").hasChild(userId)) {
+                            channel.trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
+                            return
                         } else {
-                            friendsFriendRequestList.getValue<List<String>>()?.apply {
-                                if (contains(userId)) {
-                                    trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
-                                    return
-                                }
-                                val mutableList = this.toMutableList()
-                                mutableList.add(userId)
-                                friendsFriendRequestList.ref.setValue(mutableList)
-                            }
+                            dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
                         }
-                        trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
+                        channel.trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
@@ -485,14 +459,14 @@ class BaseRepositoryImpl @Inject constructor(
                 friendRequests.forEach { userId ->
                     if (dataSnapshot.hasChild(userId)) {
                         dataSnapshot.child(userId).getValue<Session>()?.apply {
-                            listOfRequests.add(this)
+                            listOfRequests.add(this.withLoadedFriends(dataSnapshot.child(userId)))
                         }
                     }
                 }
                 friends.forEach { userId ->
                     if (dataSnapshot.hasChild(userId)) {
                         dataSnapshot.child(userId).getValue<Session>()?.apply {
-                            listOfFriends.add(this)
+                            listOfFriends.add(this.withLoadedFriends(dataSnapshot.child(userId)))
                         }
                     }
                 }
@@ -521,36 +495,10 @@ class BaseRepositoryImpl @Inject constructor(
                     val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
 
                     // Remove from the requests
-                    friendRequest.getValue<List<String>>()?.apply {
-                        val mutableList = this.toMutableList()
-                        mutableList.remove(friendId)
-                        friendRequest.ref.setValue(mutableList)
-                    }
+                    friendRequest.child(friendId).ref.removeValue()
                     if (hasAccepted) {
-                        if (!friendsListOfRequester.exists()) {
-                            friendsListOfRequester.ref.setValue(listOf(userId))
-                        } else {
-                            friendsListOfRequester.getValue<List<String>>()?.apply {
-                                if (!this.contains(userId)) {
-                                    val mutableList = toMutableList().apply {
-                                        add(userId)
-                                    }
-                                    friendsListOfRequester.ref.setValue(mutableList)
-                                }
-                            }
-                        }
-                        if (!friendsRef.exists()) {
-                            friendsRef.ref.setValue(listOf(friendId))
-                        } else {
-                            friendsRef.getValue<List<String>>()?.apply {
-                                if (!this.contains(friendId)) {
-                                    val mutableList = toMutableList().apply {
-                                        add(friendId)
-                                    }
-                                    friendsRef.ref.setValue(mutableList)
-                                }
-                            }
-                        }
+                        friendsRef.child(friendId).ref.setValue(friendId)
+                        friendsListOfRequester.child(userId).ref.setValue(userId)
                     }
                 }
 
@@ -573,16 +521,8 @@ class BaseRepositoryImpl @Inject constructor(
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val usersList = dataSnapshot.child(userId).child("friendList")
                         val friendsList = dataSnapshot.child(friendId).child("friendList")
-                        friendsList.getValue<List<String>>()?.apply {
-                            val mutableList = this.toMutableList()
-                            mutableList.remove(userId)
-                            friendsList.ref.setValue(mutableList)
-                        }
-                        usersList.getValue<List<String>>()?.apply {
-                            val mutableList = this.toMutableList()
-                            mutableList.remove(friendId)
-                            usersList.ref.setValue(mutableList)
-                        }
+                        usersList.child(friendId).ref.removeValue()
+                        friendsList.child(userId).ref.removeValue()
                         trySend(ResultOf.Success(FeedbackMessage.FriendRemoved))
                     }
 

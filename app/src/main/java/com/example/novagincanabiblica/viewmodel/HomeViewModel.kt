@@ -54,6 +54,9 @@ class HomeViewModel @Inject constructor(
     private val _notFriends = MutableStateFlow(false)
     val notFriends = _notFriends.asStateFlow()
 
+    private val _notFriendRequest = MutableStateFlow(false)
+    val notFriendRequest = _notFriendRequest.asStateFlow()
+
     private val _clickable = MutableStateFlow(true)
     val clickable = _clickable.asStateFlow()
 
@@ -95,7 +98,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadFriendRequests(session: Session) = backGroundScope.launch {
         autoCancellable {
-            repo.loadFriendRequests(session.friendRequests, session.friendList).collectLatest {
+            repo.loadFriendRequests(session.localFriendRequestList, session.localFriendList).collectLatest {
                 it.handleSuccessAndFailure { (requests, friends) ->
                     _listOfFriendRequests.update {
                         requests
@@ -171,7 +174,7 @@ class HomeViewModel @Inject constructor(
                 it.handleSuccessAndFailure { feedbackMessage ->
                     val checkIfUserIsAddingFromFriendsProfile = visibleSession.value.userInfo?.userId != localSession.value.userInfo?.userId
                     if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
-                        emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = true)
+                        emitFeedbackMessage(feedbackMessage = feedbackMessage)
                         displayDialog(displayIt = false)
                     } else {
                         emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = false)
@@ -210,16 +213,18 @@ class HomeViewModel @Inject constructor(
                     session
                 )
             )
-
+            _notFriendRequest.emit(
+                checkIfSessionDoesntAlreadyHaveAFriendRequest(session)
+            )
             loadFriendRequests(session = session)
         }
     }
 
     private fun checkIfSessionDoesntAlreadyHaveAFriendRequest(session: Session): Boolean =
-        !localSession.value.friendRequests.contains(session.userInfo?.userId)
+        !localSession.value.localFriendRequestList.contains(session.userInfo?.userId)
 
     private fun checkIfSessionIsNotFriendsWithLocal(session: Session): Boolean =
-        !localSession.value.friendList.contains(session.userInfo?.userId)
+        !localSession.value.localFriendList.contains(session.userInfo?.userId)
 
 
     fun finishTransitionAnimation() = backGroundScope.launch {

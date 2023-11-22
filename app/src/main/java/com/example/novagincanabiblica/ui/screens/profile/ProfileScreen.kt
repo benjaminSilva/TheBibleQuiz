@@ -62,6 +62,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val friends by homeViewModel.listOfFriends.collectAsStateWithLifecycle()
     val transitionAnimation by homeViewModel.transitionAnimation.collectAsStateWithLifecycle()
     val notFriends by homeViewModel.notFriends.collectAsStateWithLifecycle()
+    val notFriendRequest by homeViewModel.notFriendRequest.collectAsStateWithLifecycle()
 
     BackHandler {
         navController.popBackStack()
@@ -113,6 +114,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.displayDialog(
                         displayIt = false
                     )
+                    homeViewModel.resetErrorMessage()
                 }) {
                     AddFriendDialog(
                         errorMessage = feedbackMessage.get(),
@@ -182,6 +184,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             )
         },
         possibleToAdd = notFriends,
+        notFriendRequest = notFriendRequest,
         addUser = {
             userData.userInfo?.userId?.apply {
                 homeViewModel.addFriend(this)
@@ -209,6 +212,7 @@ fun ProfileScreen(
     updateVisibleSession: (Session?) -> Unit,
     removeFriend: () -> Unit,
     possibleToAdd: Boolean,
+    notFriendRequest: Boolean,
     addUser: () -> Unit,
     signOut: () -> Unit
 ) {
@@ -245,7 +249,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    !isFromLocalSession -> {
+                    !isFromLocalSession && notFriendRequest -> {
                         Box(modifier = Modifier
                             .shadow(20.dp)
                             .align(Alignment.CenterStart)

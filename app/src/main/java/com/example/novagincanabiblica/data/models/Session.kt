@@ -10,8 +10,8 @@ data class Session(
     val hasPlayerWordleGame: Boolean = false,
     val quizStats: QuestionStatsData = QuestionStatsData(),
     val wordle: WordleGame = WordleGame(),
-    val friendList: List<String> = listOf(),
-    val friendRequests: List<String> = listOf(),
+    val localFriendList: List<String> = listOf(),
+    val localFriendRequestList: List<String> = listOf(),
     val fcmToken: String = ""
 )
 
