@@ -1,12 +1,16 @@
 package com.example.novagincanabiblica.viewmodel
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.viewModelScope
 import com.example.novagincanabiblica.data.models.BibleVerse
+import com.example.novagincanabiblica.data.models.League
+import com.example.novagincanabiblica.data.models.LeagueRule
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.SessionInLeague
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.repositories.BaseRepository
 import com.example.novagincanabiblica.ui.screens.Routes
@@ -42,6 +46,9 @@ class HomeViewModel @Inject constructor(
     private var _listOfFriends = MutableStateFlow(listOf<Session>())
     val listOfFriends = _listOfFriends.asStateFlow()
 
+    private var _listOfFriendsNotInLeague = MutableStateFlow(listOf<Session>())
+    val listOfFriendsNotInLeague = _listOfFriendsNotInLeague.asStateFlow()
+
     private val _visibleSession = MutableStateFlow(Session())
     val visibleSession = _visibleSession.asStateFlow()
 
@@ -63,6 +70,21 @@ class HomeViewModel @Inject constructor(
     private val _navigate = Channel<Routes>()
     val navigate = _navigate.receiveAsFlow()
 
+    private val _currentLeague = MutableStateFlow(League())
+    val currentLeague = _currentLeague.asStateFlow()
+
+    private val _listOfLeagues = MutableStateFlow(listOf<League>())
+    val listOfLeague = _listOfLeagues.asStateFlow()
+
+    private val _listOfLeagueInvitation = MutableStateFlow(listOf<League>())
+    val listOfLeagueInvitation = _listOfLeagueInvitation.asStateFlow()
+
+    private val _isFromLeague = MutableStateFlow(false)
+    val isFromLeague = _isFromLeague.asStateFlow()
+
+    private val _sessionInLeague = MutableStateFlow(SessionInLeague())
+    val sessionInLeague = _sessionInLeague.asStateFlow()
+
     private var loginSession: Job? = null
 
     init {
@@ -78,13 +100,27 @@ class HomeViewModel @Inject constructor(
         day.collectLatest {
             if (it != -1) {
                 listenToBibleVerseUpdate(it)
-                localSession.collectLatest { session ->
-                    val currentUserId = visibleSession.value.userInfo?.userId
-                    if (currentUserId.isNullOrBlank() || currentUserId == session.userInfo?.userId) {
-                        _isFromLocalSession.emit(true)
+                localSession.collectLatestAndApplyOnMain { session ->
+                    val currentUserId = visibleSession.value.userInfo.userId
+                    if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId) && session.userInfo.userId.isNotEmpty()) {
                         _visibleSession.emit(session)
+                        _isFromLocalSession.emit(true)
                         loadFriendRequests(session)
+                        loadLeagues(session)
                     }
+                }
+            }
+        }
+    }
+
+    private fun loadLeagues(session: Session) = backGroundScope.launch {
+        Log.i("League Test", "Leagues Loaded Function Called")
+        autoCancellable {
+            repo.loadLeagues(session).collectLatestAndApplyOnMain {
+                it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
+                    _listOfLeagues.emit(listOfLeagues)
+                    _listOfLeagueInvitation.emit(listOfLeagueInvitation)
+                    Log.i("League Test", "Leagues loaded: $listOfLeagues")
                 }
             }
         }
@@ -98,16 +134,17 @@ class HomeViewModel @Inject constructor(
 
     private fun loadFriendRequests(session: Session) = backGroundScope.launch {
         autoCancellable {
-            repo.loadFriendRequests(session.localFriendRequestList, session.localFriendList).collectLatest {
-                it.handleSuccessAndFailure { (requests, friends) ->
-                    _listOfFriendRequests.update {
-                        requests
-                    }
-                    _listOfFriends.update {
-                        friends
+            repo.loadFriendRequests(session.localFriendRequestList, session.localFriendList)
+                .collectLatest {
+                    it.handleSuccessAndFailure { (requests, friends) ->
+                        _listOfFriendRequests.update {
+                            requests
+                        }
+                        _listOfFriends.update {
+                            friends
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -132,9 +169,7 @@ class HomeViewModel @Inject constructor(
         _visibleSession.update {
             Session()
         }
-        _localSession.update {
-            Session()
-        }
+        updateSession(Session())
         _listOfFriendRequests.update {
             listOf()
         }
@@ -152,7 +187,7 @@ class HomeViewModel @Inject constructor(
         loginSession = backGroundScope.launch {
             repo.getSession(intent).collectLatest {
                 it.handleSuccessAndFailure { session ->
-                    _localSession.emit(session)
+                    updateSession(session)
                 }
             }
         }
@@ -172,10 +207,11 @@ class HomeViewModel @Inject constructor(
         autoCancellable {
             repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
                 it.handleSuccessAndFailure { feedbackMessage ->
-                    val checkIfUserIsAddingFromFriendsProfile = visibleSession.value.userInfo?.userId != localSession.value.userInfo?.userId
+                    val checkIfUserIsAddingFromFriendsProfile =
+                        visibleSession.value.userInfo.userId != localSession.value.userInfo.userId
                     if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
                         emitFeedbackMessage(feedbackMessage = feedbackMessage)
-                        displayDialog(displayIt = false)
+                        updateDialog()
                     } else {
                         emitFeedbackMessage(feedbackMessage = feedbackMessage, isAutoDelete = false)
                     }
@@ -199,12 +235,10 @@ class HomeViewModel @Inject constructor(
     fun updateVisibleSession(session: Session?) = backGroundScope.launch {
         _transitionAnimation.emit(true)
         delay(300)
-        val userSelectedHimself = session?.userInfo?.userId == localSession.value.userInfo?.userId
+        val userSelectedHimself = session?.userInfo?.userId == localSession.value.userInfo.userId
 
         if (session == null || userSelectedHimself) {
-            _isFromLocalSession.emit(true)
-            _visibleSession.emit(value = localSession.value)
-            loadFriendRequests(session = localSession.value)
+            emitCurrentSession()
         } else {
             _isFromLocalSession.emit(false)
             _visibleSession.emit(session)
@@ -220,11 +254,47 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun updateVisibleSession(userId: String) = backGroundScope.launch {
+        val userSelectedHimself = userId == localSession.value.userInfo.userId
+
+        if (userSelectedHimself) {
+            emitCurrentSession()
+        } else {
+            repo.getSession(userId).collectLatestAndApplyOnMain {
+                it.handleSuccessAndFailure { session ->
+                    if (session.userInfo.userId == "") {
+                        emitCurrentSession()
+                    } else {
+                        _visibleSession.emit(session)
+                        _isFromLocalSession.emit(false)
+                        _notFriends.emit(
+                            checkIfSessionIsNotFriendsWithLocal(session) && checkIfSessionDoesntAlreadyHaveAFriendRequest(
+                                session
+                            )
+                        )
+                        _notFriendRequest.emit(
+                            checkIfSessionDoesntAlreadyHaveAFriendRequest(session)
+                        )
+                        loadFriendRequests(session = session)
+                    }
+                }
+            }
+
+        }
+    }
+
+    private fun emitCurrentSession() = backGroundScope.launch {
+        _isFromLocalSession.emit(true)
+        _isFromLeague.emit(false)
+        _visibleSession.emit(value = localSession.value)
+        loadFriendRequests(session = localSession.value)
+    }
+
     private fun checkIfSessionDoesntAlreadyHaveAFriendRequest(session: Session): Boolean =
-        !localSession.value.localFriendRequestList.contains(session.userInfo?.userId)
+        !localSession.value.localFriendRequestList.contains(session.userInfo.userId)
 
     private fun checkIfSessionIsNotFriendsWithLocal(session: Session): Boolean =
-        !localSession.value.localFriendList.contains(session.userInfo?.userId)
+        !localSession.value.localFriendList.contains(session.userInfo.userId)
 
 
     fun finishTransitionAnimation() = backGroundScope.launch {
@@ -233,11 +303,11 @@ class HomeViewModel @Inject constructor(
 
     fun removeFriend() = backGroundScope.launch {
         autoCancellable {
-            visibleSession.value.userInfo?.userId?.apply {
+            visibleSession.value.userInfo.userId.apply {
                 repo.removeFriend(session = localSession.value, friendId = this).collectLatest {
                     it.handleSuccessAndFailure { feedbackMessage ->
                         _transitionAnimation.emit(true)
-                        displayDialog(displayIt = false)
+                        updateDialog()
                         emitFeedbackMessage(feedbackMessage)
                         _visibleSession.emit(localSession.value)
                     }
@@ -251,5 +321,71 @@ class HomeViewModel @Inject constructor(
         _navigate.send(route)
         delay(1000)
         _clickable.emit(true)
+    }
+
+    fun createNewLeague() = backGroundScope.launch {
+        autoCancellable {
+            repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
+                it.handleSuccessAndFailure { league ->
+                    emitFeedbackMessage(feedbackMessage = FeedbackMessage.LeagueCreated, isFastDelete = true)
+                    _currentLeague.emit(league)
+                    loadLeagueUsers(league)
+                }
+            }
+        }
+    }
+
+    private fun loadLeagueUsers(league: League) = backGroundScope.launch {
+        autoCancellable {
+            repo.loadLeagueUsers(league).collectLatestAndApplyOnMain { resultOf ->
+                resultOf.handleSuccessAndFailure { league ->
+                    _currentLeague.emit(league.copy(listOfUsers = league.listOfUsers.sortedByDescending {
+                        when (league.leagueRule) {
+                            LeagueRule.QUIZ_AND_WORDLE -> it.totalPoints
+                            LeagueRule.QUIZ_ONLY -> it.pointsForQuiz
+                            LeagueRule.WORDLE_ONLY -> it.pointsForWordle
+                        }
+                    }))
+                    loadFriendsNotInLeague()
+                    _isFromLeague.emit(true)
+                    _sessionInLeague.emit(getSessionOfCurrentUser(league))
+                }
+            }
+        }
+    }
+
+    fun setCurrentLeague(it: League) = backGroundScope.launch {
+        _currentLeague.emit(it)
+        loadLeagueUsers(it)
+    }
+
+    private fun getSessionOfCurrentUser(league: League): SessionInLeague =
+        league.listOfUsers.first { it.userId == localSession.value.userInfo.userId }
+
+    private fun loadFriendsNotInLeague() = backGroundScope.launch {
+        _listOfFriendsNotInLeague.emit(listOfFriends.value.filter { currentLeague.value.listOfUsers.find { leagueUser -> leagueUser.userId == it.userInfo.userId } != null })
+    }
+
+    fun sendLeagueRequest(list: List<Session>) = backGroundScope.launch {
+        if (list.isNotEmpty()) {
+            autoCancellable {
+                repo.sendLeagueRequest(list, currentLeague.value).collectLatestAndApplyOnMain {
+
+                }
+            }
+        }
+    }
+
+    fun updateLeagueInvitation(hasAccepted: Boolean, leagueId: String) = backGroundScope.launch {
+        autoCancellable {
+            repo.updateLeagueInvitation(hasAccepted, session = localSession.value, leagueId)
+                .collectLatestAndApplyOnMain {
+
+                }
+        }
+    }
+
+    fun updateIsFromLeague() = backGroundScope.launch {
+        _isFromLeague.emit(false)
     }
 }

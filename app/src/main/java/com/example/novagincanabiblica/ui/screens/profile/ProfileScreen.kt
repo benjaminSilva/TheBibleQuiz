@@ -1,5 +1,6 @@
 package com.example.novagincanabiblica.ui.screens.profile
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -9,24 +10,31 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,16 +43,27 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.novagincanabiblica.R
+import com.example.novagincanabiblica.data.models.League
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.state.ProfileDialogType
+import com.example.novagincanabiblica.data.models.state.getPainter
+import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
 import com.example.novagincanabiblica.ui.basicviews.FeedbackMessage
-import com.example.novagincanabiblica.ui.screens.games.quiz.QuizStats
 import com.example.novagincanabiblica.ui.basicviews.animateAlpha
+import com.example.novagincanabiblica.ui.basicviews.animateColor
+import com.example.novagincanabiblica.ui.basicviews.generateSubSequentialAlphaAnimations
+import com.example.novagincanabiblica.ui.screens.Routes
+import com.example.novagincanabiblica.ui.screens.games.quiz.QuizStats
+import com.example.novagincanabiblica.ui.screens.games.quiz.screens.ButtonWithHold
 import com.example.novagincanabiblica.ui.screens.games.wordle.WordleStats
 import com.example.novagincanabiblica.ui.theme.NovaGincanaBiblicaTheme
 import com.example.novagincanabiblica.ui.theme.almostWhite
+import com.example.novagincanabiblica.ui.theme.closeToBlack
+import com.example.novagincanabiblica.ui.theme.darkGray
+import com.example.novagincanabiblica.ui.theme.gray
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -54,7 +73,7 @@ import kotlinx.coroutines.delay
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val userData by homeViewModel.visibleSession.collectAsStateWithLifecycle()
     val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
-    val displayData by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+    val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val calculatedWordleData by homeViewModel.calculatedWordleData.collectAsStateWithLifecycle()
     val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
@@ -63,65 +82,70 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val transitionAnimation by homeViewModel.transitionAnimation.collectAsStateWithLifecycle()
     val notFriends by homeViewModel.notFriends.collectAsStateWithLifecycle()
     val notFriendRequest by homeViewModel.notFriendRequest.collectAsStateWithLifecycle()
+    val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
+    val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
+    val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
 
     BackHandler {
-        navController.popBackStack()
+        if (isFromLeague) {
+            navController.navigate(Routes.LeagueScreen.value)
+            return@BackHandler
+        }
+        if (isFromMainUser) {
+            navController.popBackStack()
+        }
         homeViewModel.updateVisibleSession(null)
     }
 
-    val (dialogType, displayDialog) = displayData
+    var displayDialog by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(dialog) {
+        if (dialog != DialogType.EmptyValue) {
+            displayDialog = true
+        }
+    }
 
     if (displayDialog) {
-        when (dialogType as ProfileDialogType) {
+        when (dialog) {
             ProfileDialogType.Quiz -> {
                 Dialog(onDismissRequest = {
-                    homeViewModel.displayDialog(
-                        displayIt = false
-                    )
+                    homeViewModel.updateDialog()
                 }) {
                     QuizStats(
                         data = userData.quizStats,
                         calculatedData = calculatedQuizData,
                         isFromProfileScreen = true
                     ) {
-                        homeViewModel.displayDialog(
-                            displayIt = false
-                        )
+                        homeViewModel.updateDialog()
                     }
                 }
             }
 
             ProfileDialogType.Wordle -> {
                 Dialog(onDismissRequest = {
-                    homeViewModel.displayDialog(
-                        displayIt = false
-                    )
+                    homeViewModel.updateDialog()
                 }) {
                     WordleStats(
                         wordleStats = userData.wordle.wordleStats,
                         progresses = calculatedWordleData,
                         isFromProfileScreen = true
                     ) {
-                        homeViewModel.displayDialog(
-                            displayIt = false
-                        )
+                        homeViewModel.updateDialog()
                     }
                 }
             }
 
             ProfileDialogType.AddFriend -> {
                 Dialog(onDismissRequest = {
-                    homeViewModel.displayDialog(
-                        displayIt = false
-                    )
+                    homeViewModel.updateDialog()
                     homeViewModel.resetErrorMessage()
                 }) {
                     AddFriendDialog(
                         errorMessage = feedbackMessage.get(),
                         goBackClick = {
-                            homeViewModel.displayDialog(
-                                displayIt = false
-                            )
+                            homeViewModel.updateDialog()
                         },
                         addUser = {
                             homeViewModel.addFriend(it)
@@ -133,20 +157,18 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
             ProfileDialogType.RemoveFriend -> {
                 Dialog(onDismissRequest = {
-                    homeViewModel.displayDialog(
-                        displayIt = false
-                    )
+                    homeViewModel.updateDialog()
                 }) {
                     RemoveFriendDialog(
                         goBackClick = {
-                            homeViewModel.displayDialog(
-                                displayIt = false
-                            )
+                            homeViewModel.updateDialog()
                         }) {
                         homeViewModel.removeFriend()
                     }
                 }
             }
+
+            else -> Unit
         }
     }
 
@@ -159,13 +181,20 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         }
     }
 
+    LaunchedEffect(feedbackMessage) {
+        if (feedbackMessage == FeedbackMessage.LeagueCreated) {
+            Log.i("League Test", "Navigate to League Screen")
+            navController.navigate(Routes.LeagueScreen.value)
+        }
+    }
+
     ProfileScreen(
         modifier = Modifier.alpha(alphaAnimation),
         session = userData,
         calculateQuizData = { homeViewModel.calculateQuizData(session = userData) },
         calculateWordleData = { homeViewModel.calculateWordleData(session = userData) },
-        displayDialogFunction = { isThisQuiz, displayIt ->
-            homeViewModel.displayDialog(dialogType = isThisQuiz, displayIt = displayIt)
+        displayDialogFunction = { isThisQuiz ->
+            homeViewModel.updateDialog(dialogType = isThisQuiz)
         },
         listOfFriendRequests = friendsRequests,
         listOfFriends = friends,
@@ -178,15 +207,27 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             homeViewModel.updateVisibleSession(it)
         },
         removeFriend = {
-            homeViewModel.displayDialog(
-                dialogType = ProfileDialogType.RemoveFriend,
-                displayIt = true
+            homeViewModel.updateDialog(
+                dialogType = ProfileDialogType.RemoveFriend
             )
         },
         possibleToAdd = notFriends,
         notFriendRequest = notFriendRequest,
+        createNewLeague = {
+            homeViewModel.createNewLeague()
+            //navController.navigate()
+        },
+        listOfLeagues = listOfLeagues,
+        openLeague = {
+            homeViewModel.setCurrentLeague(it)
+            navController.navigate(Routes.LeagueScreen.value)
+        },
+        listOfLeagueInvitations = listOfLeagueInvitations,
+        updateLeagueInvitation = { hasAccepted, leagueId ->
+                                 homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
+        },
         addUser = {
-            userData.userInfo?.userId?.apply {
+            userData.userInfo.userId.apply {
                 homeViewModel.addFriend(this)
             }
         }
@@ -203,7 +244,7 @@ fun ProfileScreen(
     session: Session,
     calculateQuizData: () -> Unit,
     calculateWordleData: () -> Unit,
-    displayDialogFunction: (ProfileDialogType, Boolean) -> Unit,
+    displayDialogFunction: (ProfileDialogType) -> Unit,
     listOfFriendRequests: List<Session>,
     listOfFriends: List<Session>,
     updateFriendRequest: (Boolean, String?) -> Unit,
@@ -213,6 +254,11 @@ fun ProfileScreen(
     removeFriend: () -> Unit,
     possibleToAdd: Boolean,
     notFriendRequest: Boolean,
+    createNewLeague: () -> Unit,
+    listOfLeagues: List<League>,
+    openLeague: (League) -> Unit,
+    listOfLeagueInvitations: List<League>,
+    updateLeagueInvitation: (Boolean, String) -> Unit,
     addUser: () -> Unit,
     signOut: () -> Unit
 ) {
@@ -222,6 +268,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -310,7 +357,7 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
-                            session.userInfo?.userId?.apply {
+                            session.userInfo.userId.apply {
                                 clipboardManager.setText(AnnotatedString(this))
                             }
                         }
@@ -332,8 +379,8 @@ fun ProfileScreen(
                         Column(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            BasicText(text = session.userInfo?.userName, fontSize = 22)
-                            BasicText(text = "id: ${session.userInfo?.userId}", fontSize = 8)
+                            BasicText(text = session.userInfo.userName, fontSize = 22)
+                            BasicText(text = "id: ${session.userInfo.userId}", fontSize = 8)
                         }
                     }
 
@@ -361,7 +408,7 @@ fun ProfileScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
                             calculateQuizData()
-                            displayDialogFunction(ProfileDialogType.Quiz, true)
+                            displayDialogFunction(ProfileDialogType.Quiz)
                         }
                         .background(almostWhite)
                 ) {
@@ -385,7 +432,7 @@ fun ProfileScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
                             calculateWordleData()
-                            displayDialogFunction(ProfileDialogType.Wordle, true)
+                            displayDialogFunction(ProfileDialogType.Wordle)
                         }
                         .background(almostWhite)
                 ) {
@@ -401,6 +448,136 @@ fun ProfileScreen(
                         text = "Wordle",
                         fontSize = 16
                     )
+                }
+            }
+
+            if (isFromLocalSession) {
+                BasicText(text = "Leagues", fontSize = 22)
+                BasicContainer {
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ButtonWithHold(modifier = Modifier.fillMaxWidth(), holdAction = {
+                            createNewLeague()
+                        }) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    LeaguesIcon()
+                                    BasicText(
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                        text = "Create a New League (Hold)",
+                                        fontSize = 22
+                                    )
+                                }
+                            }
+                        }
+                        if (listOfLeagueInvitations.isNotEmpty()) {
+                            BasicText(text = "Leagues Invitations")
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOfLeagueInvitations.onEach {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable {
+                                                openLeague(it)
+                                            }
+                                            .background(lessWhite)
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(
+                                                    almostWhite
+                                                )
+                                        ) {
+                                            Image(
+                                                modifier = Modifier.padding(8.dp),
+                                                painter = it.leagueIcon.getPainter(),
+                                                contentDescription = null
+                                            )
+                                        }
+                                        BasicText(
+                                            modifier = Modifier.align(Alignment.CenterVertically),
+                                            text = it.leagueName,
+                                            fontSize = 22
+                                        )
+                                        Row(
+                                            modifier = Modifier.align(Alignment.CenterVertically),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Image(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterVertically)
+                                                    .size(24.dp)
+                                                    .clickable {
+                                                        updateLeagueInvitation(false, it.leagueId)
+                                                    },
+                                                painter = painterResource(id = R.drawable.baseline_close_24),
+                                                contentDescription = ""
+                                            )
+                                            Image(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterVertically)
+                                                    .size(24.dp)
+                                                    .clickable {
+                                                        updateLeagueInvitation(true, it.leagueId)
+                                                    },
+                                                painter = painterResource(id = R.drawable.baseline_check_24),
+                                                contentDescription = ""
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (listOfLeagues.isNotEmpty()) {
+                            BasicText(text = "Your Leagues")
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOfLeagues.onEach {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .clickable {
+                                                openLeague(it)
+                                            }
+                                            .background(lessWhite)
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(
+                                                    almostWhite
+                                                )
+                                        ) {
+                                            Image(
+                                                modifier = Modifier.padding(8.dp),
+                                                painter = it.leagueIcon.getPainter(),
+                                                contentDescription = null
+                                            )
+                                        }
+                                        BasicText(
+                                            modifier = Modifier.align(Alignment.CenterVertically),
+                                            text = it.leagueName,
+                                            fontSize = 22
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             BasicText(text = "Friends list", fontSize = 22)
@@ -420,8 +597,8 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (isFromLocalSession) {
-                        AddFriendButton { dialogType, shouldDisplay ->
-                            displayDialogFunction(dialogType, shouldDisplay)
+                        AddFriendButton { dialogType ->
+                            displayDialogFunction(dialogType)
                         }
                     }
                     if (listOfFriends.isNotEmpty() || listOfFriendRequests.isNotEmpty()) {
@@ -439,15 +616,15 @@ fun ProfileScreen(
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     listOfFriendRequests.forEach {
                                         FriendRequest(
-                                            profilePicture = it.userInfo?.profilePictureUrl,
-                                            userName = it.userInfo?.userName,
+                                            profilePicture = it.userInfo.profilePictureUrl,
+                                            userName = it.userInfo.userName,
                                             updateVisibleSession = {
                                                 updateVisibleSession(it)
                                             }
                                         ) { hasAccepted ->
                                             updateFriendRequest(
                                                 hasAccepted,
-                                                it.userInfo?.userId
+                                                it.userInfo.userId
                                             )
                                         }
                                     }
@@ -458,8 +635,8 @@ fun ProfileScreen(
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     listOfFriends.forEach {
                                         FriendItem(
-                                            profilePicture = it.userInfo?.profilePictureUrl,
-                                            userName = it.userInfo?.userName
+                                            profilePicture = it.userInfo.profilePictureUrl,
+                                            userName = it.userInfo.userName
                                         ) {
                                             updateVisibleSession(it)
                                         }
@@ -483,15 +660,19 @@ fun ProfileScreen(
 }
 
 @Composable
-fun AddFriendButton(displayDialogFunction: (ProfileDialogType, Boolean) -> Unit) {
+fun FriendList() {
+
+}
+
+@Composable
+fun AddFriendButton(displayDialogFunction: (ProfileDialogType) -> Unit) {
     Box {
         Row(modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable {
                 displayDialogFunction(
-                    ProfileDialogType.AddFriend,
-                    true
+                    ProfileDialogType.AddFriend
                 )
             }
             .padding(8.dp)) {
@@ -590,49 +771,129 @@ fun FriendRequest(
 }
 
 @Composable
+fun LeaguesIcon(modifier: Modifier = Modifier) {
+
+    var startAnimation by remember {
+        mutableStateOf(true)
+    }
+
+    val animateHeight = generateSubSequentialAlphaAnimations(
+        numberOfViews = 5,
+        condition = startAnimation,
+        initialDelay = -200
+    )
+
+    LaunchedEffect(Unit) {
+        delay(500)
+        startAnimation = false
+    }
+
+    Box(
+        modifier = modifier
+            .size(56.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(top = 18.dp)
+                .align(Alignment.BottomEnd)
+                .width(22.dp)
+                .fillMaxHeight(animateHeight[0].value)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp))
+
+                .background(gray)
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 4.dp), text = "3"
+            )
+        }
+        Box(
+            modifier = Modifier
+                .padding(top = 9.dp)
+                .align(Alignment.BottomStart)
+                .width(22.dp)
+                .fillMaxHeight(animateHeight[1].value)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp))
+
+                .background(darkGray)
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 4.dp), text = "2", fontColor = almostWhite
+            )
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .shadow(10.dp)
+                .fillMaxHeight(animateHeight[2].value)
+                .width(22.dp)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                .background(closeToBlack)
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 4.dp), text = "1", fontColor = almostWhite
+            )
+        }
+    }
+}
+
+@Composable
 fun FriendItem(
     modifier: Modifier = Modifier,
     profilePicture: String?,
     userName: String?,
+    selectable: Boolean = false,
+    backgroundColor: Color = almostWhite,
     updateVisibleSession: () -> Unit
 ) {
+
+    var isSelected by remember {
+        mutableStateOf(false)
+    }
+
+    val animateColor by animateColor(
+        condition = isSelected,
+        startValue = gray,
+        endValue = backgroundColor
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(almostWhite)
+            .background(animateColor)
             .clickable {
                 updateVisibleSession()
+                if (selectable) {
+                    isSelected = !isSelected
+                }
             }
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Box(
+
+        AsyncImage(
             modifier = Modifier
+                .size(32.dp)
                 .align(Alignment.CenterVertically)
-                .fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.align(Alignment.CenterStart),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape),
-                    model = profilePicture,
-                    contentDescription = null
-                )
-                BasicText(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.CenterVertically),
-                    text = userName,
-                    fontSize = 18
-                )
-            }
-        }
+                .clip(CircleShape),
+            model = profilePicture,
+            contentDescription = null
+        )
+        BasicText(
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterVertically),
+            text = userName,
+            fontSize = 18
+        )
     }
+
 }
 
 
@@ -640,24 +901,37 @@ fun FriendItem(
 @Composable
 fun ProfilePreview() {
     NovaGincanaBiblicaTheme {
-        /*ProfileScreen(
+        ProfileScreen(
+            modifier = Modifier,
             session = Session(),
             calculateQuizData = { },
             calculateWordleData = { },
-            displayDialogFunction = { one, two ->
-
-            },
-            listOf()
-        ) {
-
-        }*/
+            displayDialogFunction = { _ -> },
+            listOfFriendRequests = listOf(),
+            listOfFriends = listOf(),
+            updateFriendRequest = { _, _ -> },
+            feedbackMessage = FeedbackMessage.NoMessage,
+            isFromLocalSession = true,
+            updateVisibleSession = { _ -> },
+            removeFriend = {},
+            possibleToAdd = false,
+            notFriendRequest = false,
+            createNewLeague = {},
+            addUser = {},
+            signOut = {},
+            openLeague = {},
+            listOfLeagues = listOf(
+                League(leagueName = "League test"),
+                League(leagueName = "League test")
+            ),
+            listOfLeagueInvitations = listOf(),
+            updateLeagueInvitation = { _,_ -> }
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewFriendRequest() {
-    NovaGincanaBiblicaTheme {
-        //FriendRequest(profilePicture = "", userName = "Benjamin")
-    }
+fun PreviewIcon() {
+    LeaguesIcon()
 }

@@ -22,6 +22,8 @@ import com.example.novagincanabiblica.ui.screens.games.quiz.screens.SuggestQuest
 import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleResult
 import com.example.novagincanabiblica.ui.screens.games.wordle.InitializeWordleScreen
 import com.example.novagincanabiblica.ui.screens.home.InitializeHomeScreen
+import com.example.novagincanabiblica.ui.screens.league.InitializeLeagueEditScreen
+import com.example.novagincanabiblica.ui.screens.league.InitializeLeagueScreen
 import com.example.novagincanabiblica.viewmodel.HomeViewModel
 import com.example.novagincanabiblica.viewmodel.BibleQuizViewModel
 import com.example.novagincanabiblica.viewmodel.WordleViewModel
@@ -49,6 +51,20 @@ fun SetupNavGraph(navController: NavHostController) {
             ) {
                 val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)
+            }
+
+            composable(
+                route = Routes.LeagueScreen.value
+            ) {
+                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
+                InitializeLeagueScreen(navController = navController, viewModel = homeViewModel)
+            }
+
+            composable(
+                route = Routes.EditLeague.value
+            ) {
+                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
+                InitializeLeagueEditScreen(navController = navController, viewModel = homeViewModel)
             }
         }
 

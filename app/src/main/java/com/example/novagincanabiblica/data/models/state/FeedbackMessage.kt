@@ -41,4 +41,6 @@ sealed class FeedbackMessage(
     object FriendRequestSent : FeedbackMessage(R.string.feedback_you_have_sent_a_friend_request)
     object FriendRemoved : FeedbackMessage(R.string.feedback_friend_removed)
     object QuestionSuggestionSent: FeedbackMessage(R.string.feedback_question_suggestion_sent)
+    object LeagueCreated: FeedbackMessage(R.string.feedback_question_suggestion_sent)
+    object FriendInvited: FeedbackMessage(R.string.feedback_friend_invitation)
 }

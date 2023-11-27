@@ -27,7 +27,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoMessage)
     val feedbackMessage = _feedbackMessage.asStateFlow()
 
-    protected val _localSession = MutableStateFlow(Session())
+    private val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
     private val _day = MutableStateFlow(-1)
@@ -39,7 +39,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _calculatedWordleData = MutableStateFlow(WordleDataCalculated())
     val calculatedWordleData = _calculatedWordleData.asStateFlow()
 
-    private val _displayDialog = MutableStateFlow(Pair<DialogType, Boolean>(DialogType.EmptyValue, false))
+    private val _displayDialog = MutableStateFlow<DialogType>(DialogType.EmptyValue)
     val displayDialog = _displayDialog.asStateFlow()
 
     private val sessionFlow = collectSession()
@@ -48,9 +48,9 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         collectDay(onlyOnce = false)
     }
 
-    fun displayDialog(dialogType: DialogType = DialogType.EmptyValue, displayIt: Boolean) =
-        backGroundScope.launch {
-            _displayDialog.emit(Pair(dialogType, displayIt))
+    fun updateDialog(dialogType: DialogType = DialogType.EmptyValue) =
+        mainScope.launch {
+            _displayDialog.emit(dialogType)
         }
 
     fun collectDay(onlyOnce: Boolean) = viewModelScope.launch {
@@ -87,15 +87,20 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
             }
         }
 
-    fun emitFeedbackMessage(feedbackMessage: FeedbackMessage, isAutoDelete: Boolean = true) = viewModelScope.launch {
-        if (_feedbackMessage.value == FeedbackMessage.NoMessage) {
-            _feedbackMessage.emit(feedbackMessage)
-            if (isAutoDelete) {
-                delay(4000)
-                _feedbackMessage.emit(FeedbackMessage.NoMessage)
+    fun emitFeedbackMessage(
+        feedbackMessage: FeedbackMessage,
+        isAutoDelete: Boolean = true,
+        isFastDelete: Boolean = false
+    ) =
+        viewModelScope.launch {
+            if (_feedbackMessage.value == FeedbackMessage.NoMessage) {
+                _feedbackMessage.emit(feedbackMessage)
+                if (isAutoDelete) {
+                    delay(if (isFastDelete) 50 else 4000)
+                    _feedbackMessage.emit(FeedbackMessage.NoMessage)
+                }
             }
         }
-    }
 
     fun calculateQuizData(session: Session = localSession.value) = backGroundScope.launch {
         val questionData = session.quizStats
@@ -191,7 +196,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     }
 
     protected val mainScope by lazy {
-        CoroutineScope(Dispatchers.Main + viewModelJob)
+        CoroutineScope(Dispatchers.Default + viewModelJob)
     }
 
     override fun onCleared() {
@@ -209,10 +214,12 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
 
     suspend fun <T> Flow<T>.collectLatestAndApplyOnMain(action: suspend (value: T) -> Unit) {
         collectLatest {
-            withContext(Dispatchers.Main) {
-                action(it)
-            }
+            action(it)
         }
+    }
+
+    fun updateSession(session: Session) = backGroundScope.launch {
+        _localSession.emit(session)
     }
 
 }

@@ -47,6 +47,7 @@ object AppModule {
         @Named("englishWordsDatabase") englishWords: FirebaseDatabase,
         @Named("portugueseWordsDatabase") portugueseWords: FirebaseDatabase,
         @Named("suggestedQuestionsDatabase") suggestedQuestionsDatabase: FirebaseDatabase,
+        @Named("leaguesDatabase") leaguesDatabase: FirebaseDatabase,
         firebaseMessaging: FirebaseMessaging
     ): BaseRepository = BaseRepositoryImpl(
         googleAuthUiClient = googleAuthUiClient,
@@ -58,6 +59,7 @@ object AppModule {
         quizDatabase = quizDatabase,
         englishWords = englishWords,
         portugueseWords = portugueseWords,
+        leaguesDatabase = leaguesDatabase,
         suggestedQuestionsDatabase = suggestedQuestionsDatabase,
         firebaseMessaging = firebaseMessaging
     )
@@ -101,6 +103,11 @@ object AppModule {
     @Provides
     @Named("suggestedQuestionsDatabase")
     fun getSuggestedQuestionsDatabase() = FirebaseDatabase.getInstance("https://the-bible-quiz-suggested-questions.firebaseio.com/")
+
+    @Singleton
+    @Provides
+    @Named("leaguesDatabase")
+    fun getLeaguesDatabase() = FirebaseDatabase.getInstance("https://the-bible-quiz-leagues.firebaseio.com/")
 
     @Singleton
     @Provides

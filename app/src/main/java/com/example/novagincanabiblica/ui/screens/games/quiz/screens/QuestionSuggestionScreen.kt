@@ -211,7 +211,7 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
             BasicEditText(text = questionCreator) {
                 questionCreator = it
             }
-            SendButton {
+            ButtonWithHold(modifier = Modifier.fillMaxWidth(),holdAction = {
                 if (requiredEditTextAreNotEmpty(
                         questionText,
                         questionCorrectAnswer,
@@ -238,6 +238,18 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                 } else {
                     displayErrorMessageIfNecessary = true
                 }
+            }) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        painter = painterResource(id = R.drawable.baseline_send_24),
+                        contentDescription = null
+                    )
+                    BasicText(text = "Send question (Hold)", fontSize = 22)
+                }
             }
         }
         if (feedbackMessage != FeedbackMessage.NoMessage) {
@@ -263,7 +275,7 @@ fun requiredEditTextAreNotEmpty(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SendButton(sendQuestion: () -> Unit) {
+fun ButtonWithHold(modifier: Modifier = Modifier,holdAction: () -> Unit, content: @Composable BoxScope.() -> Unit) {
 
     val haptic = LocalHapticFeedback.current
 
@@ -281,13 +293,12 @@ fun SendButton(sendQuestion: () -> Unit) {
 
     LaunchedEffect(animateSendingQuestion) {
         if (animateSendingQuestion == 1f) {
-            sendQuestion()
+            holdAction()
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 
-    BasicContainer(modifier = Modifier
-        .fillMaxWidth()
+    BasicContainer(modifier = modifier
         .pointerInteropFilter {
             if (it.action == MotionEvent.ACTION_DOWN) {
                 tapStarted = true
@@ -311,23 +322,13 @@ fun SendButton(sendQuestion: () -> Unit) {
                 .fillMaxWidth(animateSendingQuestion)
                 .background(gray)
         )
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Image(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                painter = painterResource(id = R.drawable.baseline_send_24),
-                contentDescription = null
-            )
-            BasicText(text = "Send question (Hold)", fontSize = 22)
-        }
-
+        content()
     }
 }
 
 @Composable
 fun BasicRadioButton(
+    modifier: Modifier = Modifier,
     selected: Boolean,
     updateRadioButton: () -> Unit,
     content: @Composable BoxScope.() -> Unit
@@ -339,7 +340,7 @@ fun BasicRadioButton(
     )
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .border(
                 width = 2.dp, color = colorAnimation, shape = RoundedCornerShape(16.dp)
             )

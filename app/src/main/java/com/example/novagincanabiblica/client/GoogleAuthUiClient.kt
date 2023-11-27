@@ -43,22 +43,27 @@ class GoogleAuthUiClient(
         val googleCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
             val user = auth.signInWithCredential(googleCredential).await().user
-            Session(
-                userInfo = user?.run {
-                    UserData(
-                        userId = uid,
-                        userName = displayName,
-                        profilePictureUrl = photoUrl?.toString()
-                    )
-                }, errorMessage = null
-            )
+            if (user != null) {
+                Session(
+                    userInfo = user.run {
+                        if (displayName!=null && photoUrl!=null) {
+                            UserData(
+                                userId = uid,
+                                userName = displayName!!,
+                                profilePictureUrl = photoUrl!!.toString()
+                            )
+                        } else {
+                            UserData()
+                        }
+                    }
+                )
+            } else {
+                Session()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
-            Session(
-                userInfo = null,
-                errorMessage = e.message
-            )
+            Session()
         }
     }
 
@@ -71,13 +76,13 @@ class GoogleAuthUiClient(
         }
     }
 
-    fun getSignerUser(): UserData? = auth.currentUser?.run {
-        Log.i("Current user", displayName!!)
-        UserData(
-            userId = uid,
-            userName = displayName,
-            profilePictureUrl = photoUrl?.toString()
-        )
+    fun getSignerUserId(): String {
+        if (auth.currentUser != null) {
+            auth.currentUser?.run {
+                return uid
+            }
+        }
+        return ""
     }
 
     private fun buildSignInRequest(): BeginSignInRequest {

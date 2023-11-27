@@ -41,7 +41,7 @@ class BibleQuizViewModel @Inject constructor(
         initBibleQuiz()
     }
 
-    private fun initBibleQuiz() = backGroundScope.launch {
+    private fun initBibleQuiz() = mainScope.launch {
         day.collectLatest {
             if (it != -1) {
                 listenToQuestion(it)

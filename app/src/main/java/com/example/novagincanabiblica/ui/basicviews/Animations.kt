@@ -209,10 +209,11 @@ fun animateDp(
 fun generateSubSequentialAlphaAnimations(
     numberOfViews: Int,
     condition: Boolean,
-    duration: Int = 500
+    duration: Int = 500,
+    initialDelay: Int = 0
 ): List<State<Float>> {
     val list = mutableListOf<State<Float>>()
-    var delay = 0
+    var delay = initialDelay
     for (i in 0..numberOfViews) {
         delay += 200
         list.add(

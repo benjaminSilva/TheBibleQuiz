@@ -5,8 +5,10 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import com.example.novagincanabiblica.data.models.BibleVerse
+import com.example.novagincanabiblica.data.models.League
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.Session
+import com.example.novagincanabiblica.data.models.SessionInLeague
 import com.example.novagincanabiblica.data.models.UserData
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
 import com.example.novagincanabiblica.data.models.state.ResultOf
@@ -18,9 +20,10 @@ interface BaseRepository {
     suspend fun signOut()
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
     suspend fun getSession(result: Intent?): Flow<ResultOf<Session>>
-    suspend fun getSignedInUser(): UserData?
+    suspend fun getSignedInUserId(): String
     suspend fun updateHasPlayedBibleQuiz()
     suspend fun getSession(): Flow<ResultOf<Session>>
+    suspend fun getSession(userId: String): Flow<ResultOf<Session>>
     suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
@@ -38,4 +41,9 @@ interface BaseRepository {
     suspend fun removeFriend(session: Session, friendId: String): Flow<ResultOf<FeedbackMessage>>
     suspend fun loadToken()
     suspend fun sendQuestionSuggestion(question: Question): Flow<ResultOf<FeedbackMessage>>
+    suspend fun createNewLeague(session: Session): Flow<ResultOf<League>>
+    suspend fun loadLeagueUsers(league: League): Flow<ResultOf<League>>
+    suspend fun loadLeagues(session: Session): Flow<ResultOf<Pair<List<League>,List<League>>>>
+    suspend fun sendLeagueRequest(list: List<Session>, league: League): Flow<ResultOf<FeedbackMessage>>
+    suspend fun updateLeagueInvitation(hasAccepted: Boolean, session: Session, leagueId: String): Flow<ResultOf<FeedbackMessage>>
 }

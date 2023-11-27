@@ -33,6 +33,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.novagincanabiblica.R
 import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
+import com.example.novagincanabiblica.data.models.state.DialogType
 import com.example.novagincanabiblica.data.models.state.QuizDialogType
 import com.example.novagincanabiblica.ui.basicviews.BasicContainer
 import com.example.novagincanabiblica.ui.basicviews.BasicText
@@ -51,15 +52,21 @@ fun InitializePreSoloScreen(
     soloViewModel: BibleQuizViewModel
 ) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
-    val displayDialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
+    val dialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
 
-    val (dialogType, displayIt) = displayDialog
+    var displayDialog by remember {
+        mutableStateOf(false)
+    }
 
-    if (displayIt) {
+    LaunchedEffect(dialog) {
+        if (dialog != DialogType.EmptyValue) {
+            displayDialog = true
+        }
+    }
+
+    if (displayDialog) {
         Dialog(onDismissRequest = {
-            soloViewModel.displayDialog(
-                displayIt = false
-            )
+            soloViewModel.updateDialog()
         }) {
             HowToPlayQuizDialog()
         }
@@ -69,7 +76,7 @@ fun InitializePreSoloScreen(
         navController = navController,
         currentQuestionDifficulty = currentQuestion.difficulty,
         openHowToPlayQuestionDialog = {
-            soloViewModel.displayDialog(dialogType = QuizDialogType.HowToPlay, displayIt = true)
+            soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
         }
     ) {
         soloViewModel.updateGameAvailability()

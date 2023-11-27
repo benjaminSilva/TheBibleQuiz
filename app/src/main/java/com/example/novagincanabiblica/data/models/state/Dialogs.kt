@@ -14,3 +14,7 @@ sealed class ProfileDialogType: DialogType() {
 sealed class QuizDialogType: DialogType() {
     object HowToPlay: QuizDialogType()
 }
+
+sealed class LeagueDialog: DialogType() {
+    object FriendList: LeagueDialog()
+}

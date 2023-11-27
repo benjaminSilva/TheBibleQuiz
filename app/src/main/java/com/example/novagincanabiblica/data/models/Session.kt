@@ -2,17 +2,24 @@ package com.example.novagincanabiblica.data.models
 
 import com.example.novagincanabiblica.data.models.wordle.WordleAttempt
 import com.example.novagincanabiblica.data.models.wordle.generateStartWordleAttemptList
+import com.google.firebase.database.Exclude
 
 data class Session(
-    val userInfo: UserData? = UserData(),
-    val errorMessage: String? = "",
+    val userInfo: UserData = UserData(),
     val hasPlayedQuizGame: Boolean = false,
     val hasPlayerWordleGame: Boolean = false,
     val quizStats: QuestionStatsData = QuestionStatsData(),
     val wordle: WordleGame = WordleGame(),
+    @Exclude
     val localFriendList: List<String> = listOf(),
+    @Exclude
     val localFriendRequestList: List<String> = listOf(),
-    val fcmToken: String = ""
+    @Exclude
+    val localListLeagues: List<String> = listOf(),
+    @Exclude
+    val localLeagueRequestList: List<String> = listOf(),
+    val fcmToken: String = "",
+    val premium: Boolean = false
 )
 
 data class WordleGame(
@@ -21,9 +28,9 @@ data class WordleGame(
 )
 
 data class UserData(
-    val userId: String? = "",
-    val userName: String? = "guest",
-    val profilePictureUrl: String? = ""
+    val userId: String = "",
+    val userName: String = "guest",
+    val profilePictureUrl: String = ""
 )
 
 data class QuestionStatsData(
@@ -77,3 +84,18 @@ data class WordleDataCalculated(
     val sixthTryFloat: Float = 0f,
     val lostFloat: Float = 0f,
 )
+
+data class SessionInLeague(
+    val userId: String = "",
+    val profileImage: String = "",
+    val adminUser: Boolean = false,
+    val userName: String = "",
+    val pointsForQuiz: Int = 0,
+    val pointsForWordle: Int = 0,
+    val title: String = ""
+) {
+    val totalPoints: Int
+        get() {
+            return pointsForQuiz + pointsForWordle
+        }
+}

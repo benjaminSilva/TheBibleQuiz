@@ -9,8 +9,9 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.compose.ui.text.intl.Locale
 import com.example.novagincanabiblica.client.GoogleAuthUiClient
 import com.example.novagincanabiblica.data.models.BibleVerse
+import com.example.novagincanabiblica.data.models.League
 import com.example.novagincanabiblica.data.models.Session
-import com.example.novagincanabiblica.data.models.UserData
+import com.example.novagincanabiblica.data.models.SessionInLeague
 import com.example.novagincanabiblica.data.models.quiz.Question
 import com.example.novagincanabiblica.data.models.quiz.QuestionDifficulty
 import com.example.novagincanabiblica.data.models.state.FeedbackMessage
@@ -25,12 +26,15 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
 
@@ -46,6 +50,7 @@ class BaseRepositoryImpl @Inject constructor(
     englishWords: FirebaseDatabase,
     portugueseWords: FirebaseDatabase,
     suggestedQuestionsDatabase: FirebaseDatabase,
+    leaguesDatabase: FirebaseDatabase,
     val firebaseMessaging: FirebaseMessaging
 ) : BaseRepository {
 
@@ -57,7 +62,14 @@ class BaseRepositoryImpl @Inject constructor(
     private val englishWordsReference = englishWords.reference
     private val portugueseWordsReference = portugueseWords.reference
     private val suggestedQuestionsReference = suggestedQuestionsDatabase.reference
+    private val leaguesDatabaseReference = leaguesDatabase.reference
     private var globalToken = ""
+
+    private val leagueInvitation = "leagueInvitation"
+    private val leagues = "leagues"
+    private val leagueUsers = "leagueUsers"
+    private val pointsForQuiz = "pointsForQuiz"
+    private val pointsForWordle = "pointsForWordle"
 
     override suspend fun loadToken() {
         val token = firebaseMessaging.token.await()
@@ -89,40 +101,71 @@ class BaseRepositoryImpl @Inject constructor(
         session: Session
     ): Flow<FeedbackMessage> =
         channelFlow {
-            Log.i("Stats update", "Channel flow")
-            session.let { user ->
-                Log.i("Stats update", "User $user")
-                user.userInfo?.userId?.let { userId ->
-                    Log.i("Stats update", "User Id: $userId")
-                    val currentUserStats = user.quizStats.apply {
-                        Log.i("Stats update", "Question Stats $this")
-                        if (isCorrect) {
-                            streak += 1
-                            when (currentQuestion.difficulty) {
-                                QuestionDifficulty.EASY -> easyCorrect += 1
-                                QuestionDifficulty.MEDIUM -> mediumCorrect += 1
-                                QuestionDifficulty.HARD -> hardCorrect += 1
-                                QuestionDifficulty.IMPOSSIBLE -> impossibleCorrect += 1
-                            }
-                        } else {
-                            streak = 0
-                            when (currentQuestion.difficulty) {
-                                QuestionDifficulty.EASY -> easyWrong += 1
-                                QuestionDifficulty.MEDIUM -> mediumWrong += 1
-                                QuestionDifficulty.HARD -> hardWrong += 1
-                                QuestionDifficulty.IMPOSSIBLE -> impossibleWrong += 1
-                            }
+
+            var pointsToUpdateLeagues = 0
+
+            val currentUserStats = session.quizStats.apply {
+                if (isCorrect) {
+                    streak += 1
+                    when (currentQuestion.difficulty) {
+                        QuestionDifficulty.EASY -> {
+                            pointsToUpdateLeagues += 1
+                            easyCorrect += 1
+                        }
+
+                        QuestionDifficulty.MEDIUM -> {
+                            pointsToUpdateLeagues += 2
+                            mediumCorrect += 1
+                        }
+
+                        QuestionDifficulty.HARD -> {
+                            pointsToUpdateLeagues += 3
+                            hardCorrect += 1
+                        }
+
+                        QuestionDifficulty.IMPOSSIBLE -> {
+                            pointsToUpdateLeagues += 4
+                            impossibleCorrect += 1
                         }
                     }
-
-                    usersReference.child(userId).child("quizStats").setValue(currentUserStats)
-                        .addOnFailureListener {
-                            it.message?.apply {
-                                trySend(FeedbackMessage.InternetIssues)
-                            }
+                } else {
+                    streak = 0
+                    when (currentQuestion.difficulty) {
+                        QuestionDifficulty.EASY -> easyWrong += 1
+                        QuestionDifficulty.MEDIUM -> {
+                            pointsToUpdateLeagues -= 1
+                            mediumWrong += 1
                         }
+
+                        QuestionDifficulty.HARD -> {
+                            pointsToUpdateLeagues -= 2
+                            hardWrong += 1
+                        }
+
+                        QuestionDifficulty.IMPOSSIBLE -> {
+                            pointsToUpdateLeagues -= 3
+                            impossibleWrong += 1
+                        }
+                    }
                 }
             }
+
+            if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
+                session.localListLeagues.forEach {
+                    val pointsRef = leaguesDatabaseReference.child(it).child(leagueUsers)
+                        .child(session.userInfo.userId).child(pointsForQuiz)
+                    val oldPoints = pointsRef.get().await().value as Long
+                    pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
+                }
+            }
+
+            usersReference.child(session.userInfo.userId).child("quizStats")
+                .setValue(currentUserStats)
+                .addOnFailureListener {
+                    it.message?.apply {
+                        trySend(FeedbackMessage.InternetIssues)
+                    }
+                }
         }
 
     override fun updateGameModeValue(key: String, value: Boolean) {
@@ -159,57 +202,62 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     private fun handleSessionIfItExists(session: Session): Flow<ResultOf<Session>> = channelFlow {
-        session.userInfo?.userId?.apply {
-            val test = usersReference.child(this)
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        dataSnapshot.getValue<Session>()?.apply {
-                            trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
-                        }
-                    } else {
-                        val updatedSession = session.copy(fcmToken = globalToken)
-                        this@apply.apply {
-                            usersReference.child(this).setValue(updatedSession)
-                        }
-                        trySend(ResultOf.Success(updatedSession))
+        val test = usersReference.child(session.userInfo.userId)
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                Log.i("League Test", "Session Observed Function 1")
+                if (dataSnapshot.exists()) {
+                    dataSnapshot.getValue<Session>()?.apply {
+                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
                     }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                } else {
+                    val updatedSession = session.copy(fcmToken = globalToken)
+                    usersReference.child(session.userInfo.userId).setValue(updatedSession)
+                    trySend(ResultOf.Success(updatedSession))
                 }
             }
-            test.addValueEventListener(postListener)
-            awaitClose { test.removeEventListener(postListener) }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            }
         }
+        test.addValueEventListener(postListener)
+        awaitClose { test.removeEventListener(postListener) }
+
     }
 
-    override suspend fun getSignedInUser(): UserData? = googleAuthUiClient.getSignerUser()
+    override suspend fun getSignedInUserId(): String = googleAuthUiClient.getSignerUserId()
 
     override suspend fun updateHasPlayedBibleQuiz() {
-        getSignedInUser()?.userId?.apply {
-            usersReference.child(this).child("hasPlayedQuizGame").setValue(true)
-        }
+        usersReference.child(getSignedInUserId()).child("hasPlayedQuizGame").setValue(true)
         updateGameModeValue("hasPlayedQuizGame", true)
     }
 
     override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
-        getSignedInUser()?.userId?.let { userId ->
-            val test = usersReference.child(userId)
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    dataSnapshot.getValue<Session>()?.apply {
-                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
+        val test = usersReference.child(getSignedInUserId())
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                Log.i("League Test", "Session Observed Function 2")
+                dataSnapshot.getValue<Session>()?.apply {
+                    trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
                 }
             }
-            test.addValueEventListener(postListener)
-            awaitClose { test.removeEventListener(postListener) }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
+            }
+        }
+        test.addValueEventListener(postListener)
+        awaitClose { test.removeEventListener(postListener) }
+    }
+
+    override suspend fun getSession(userId: String): Flow<ResultOf<Session>> = flow {
+        val sessionRef = usersReference.child(userId)
+        val session = sessionRef.get().await().getValue<Session>()
+        if (session != null) {
+            emit(ResultOf.Success(session.withLoadedFriends(sessionRef.get().await())))
+        } else {
+            emit(ResultOf.Success(Session()))
         }
     }
 
@@ -218,7 +266,12 @@ class BaseRepositoryImpl @Inject constructor(
             it.key
         }, localFriendRequestList = dataSnapshot.child("friendRequests").children.mapNotNull {
             it.key
-        })
+        },
+            localListLeagues = dataSnapshot.child("leagues").children.mapNotNull {
+                it.key
+            }, localLeagueRequestList = dataSnapshot.child(leagueInvitation).children.mapNotNull {
+                it.key
+            })
 
 
     override suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>> = callbackFlow {
@@ -288,40 +341,66 @@ class BaseRepositoryImpl @Inject constructor(
         numberOfAttempt: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
         updateGameModeValue(key = "hasPlayedWordleGame", true)
-        session.let { user ->
-            user.userInfo?.userId?.let { userId ->
-                val getWhichTry =
-                    numberOfAttempt.indexOfLast { it.attemptState == WordleAttempState.USER_HAS_TRIED }
-                val currentUserStats = user.wordle.wordleStats.apply {
-                    if (userFoundTheWord) {
-                        when (getWhichTry) {
-                            0 -> winOnFirst += 1
-                            1 -> winOnSecond += 1
-                            2 -> winOnThird += 1
-                            3 -> winOnForth += 1
-                            4 -> winOnFirth += 1
-                            5 -> winOnSixth += 1
-                        }
-                        streak += 1
-                    } else {
-                        streak = 0
-                        lost += 1
-                    }
-                }
-                val thisUser = usersReference.child(userId)
-                thisUser.child("wordle").child("wordleStats")
-                    .setValue(currentUserStats)
-                    .addOnFailureListener {
-                        it.message?.apply {
-                            channel.trySend(FeedbackMessage.Error(this))
-                        }
+        var pointsToUpdateLeagues = 0
+        val getWhichTry =
+            numberOfAttempt.indexOfLast { it.attemptState == WordleAttempState.USER_HAS_TRIED }
+        val currentUserStats = session.wordle.wordleStats.apply {
+            if (userFoundTheWord) {
+                when (getWhichTry) {
+                    0 -> {
+                        pointsToUpdateLeagues = +6
+                        winOnFirst += 1
                     }
 
-                thisUser.child("hasPlayerWordleGame").setValue(true).addOnFailureListener {
-                    it.message?.apply {
-                        channel.trySend(FeedbackMessage.Error(this))
+                    1 -> {
+                        pointsToUpdateLeagues = +5
+                        winOnSecond += 1
+                    }
+                    2 -> {
+                        pointsToUpdateLeagues = +3
+                        winOnThird += 1
+                    }
+                    3 -> {
+                        pointsToUpdateLeagues = +2
+                        winOnForth += 1
+                    }
+                    4 -> {
+                        pointsToUpdateLeagues = +2
+                        winOnFirth += 1
+                    }
+                    5 -> {
+                        pointsToUpdateLeagues = +1
+                        winOnSixth += 1
                     }
                 }
+                streak += 1
+            } else {
+                pointsToUpdateLeagues = -3
+                streak = 0
+                lost += 1
+            }
+        }
+        val thisUser = usersReference.child(session.userInfo.userId)
+        thisUser.child("wordle").child("wordleStats")
+            .setValue(currentUserStats)
+            .addOnFailureListener {
+                it.message?.apply {
+                    channel.trySend(FeedbackMessage.Error(this))
+                }
+            }
+
+        if (session.localListLeagues.isNotEmpty()) {
+            session.localListLeagues.forEach {
+                val pointsRef = leaguesDatabaseReference.child(it).child(leagueUsers)
+                    .child(session.userInfo.userId).child(pointsForWordle)
+                val oldPoints = pointsRef.get().await().value as Long
+                pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
+            }
+        }
+
+        thisUser.child("hasPlayerWordleGame").setValue(true).addOnFailureListener {
+            it.message?.apply {
+                channel.trySend(FeedbackMessage.Error(this))
             }
         }
         awaitClose { channel.close() }
@@ -331,36 +410,34 @@ class BaseRepositoryImpl @Inject constructor(
         session: Session,
         attemptList: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
-        session.userInfo?.userId?.let { userId ->
-            usersReference.child(userId).child("wordle").child("listOfAttemps")
-                .setValue(attemptList)
-                .addOnFailureListener {
-                    it.message?.apply {
-                        channel.trySend(FeedbackMessage.Error(this))
-                    }
+        usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
+            .setValue(attemptList)
+            .addOnFailureListener {
+                it.message?.apply {
+                    channel.trySend(FeedbackMessage.Error(this))
                 }
-            awaitClose { channel.close() }
-        }
+            }
+        awaitClose { channel.close() }
+
     }
 
     override suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
         callbackFlow {
-            session.userInfo?.userId?.let { userId ->
-                val ref = usersReference.child(userId).child("wordle").child("listOfAttemps")
-                val postListener = object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        dataSnapshot.getValue<List<WordleAttempt>>()?.apply {
-                            trySend(ResultOf.Success(this))
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            val ref =
+                usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.getValue<List<WordleAttempt>>()?.apply {
+                        trySend(ResultOf.Success(this))
                     }
                 }
-                ref.addListenerForSingleValueEvent(postListener)
-                awaitClose { ref.removeEventListener(postListener) }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                }
             }
+            ref.addListenerForSingleValueEvent(postListener)
+            awaitClose { ref.removeEventListener(postListener) }
         }
 
     override suspend fun checkWord(word: String): Flow<ResultOf<String>> = callbackFlow {
@@ -395,45 +472,183 @@ class BaseRepositoryImpl @Inject constructor(
         friendId: String
     ): Flow<ResultOf<FeedbackMessage>> =
         callbackFlow {
-            session.userInfo?.userId?.let { userId ->
-                if (friendId.isEmpty()) {
-                    channel.trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
-                    return@let
-                }
-                if (userId == friendId) {
-                    channel.trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
-                    return@let
-                }
-                val postListener = object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        if (!dataSnapshot.exists()) {
-                            channel.trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
-                            return
-                        }
-                        val userInFriendsList = dataSnapshot.child("friendList").child(userId)
-                        if (userInFriendsList.exists()) {
-                            channel.trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
-                            return
-                        }
-                        if (dataSnapshot.child("friendRequests").hasChild(userId)) {
-                            channel.trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
-                            return
-                        } else {
-                            dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
-                        }
-                        channel.trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
+            val userId = session.userInfo.userId
+            if (friendId.isEmpty()) {
+                channel.trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
+                return@callbackFlow
+            }
+            if (userId == friendId) {
+                channel.trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
+                return@callbackFlow
+            }
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (!dataSnapshot.exists()) {
+                        channel.trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
+                        return
                     }
+                    val userInFriendsList = dataSnapshot.child("friendList").child(userId)
+                    if (userInFriendsList.exists()) {
+                        channel.trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
+                        return
+                    }
+                    if (dataSnapshot.child("friendRequests").hasChild(userId)) {
+                        channel.trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
+                        return
+                    } else {
+                        dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
+                    }
+                    channel.trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
+                }
 
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
-                    }
-                }
-                usersReference.child(friendId).addListenerForSingleValueEvent(postListener)
-                awaitClose {
-                    usersReference.removeEventListener(postListener)
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                 }
             }
+            usersReference.child(friendId).addListenerForSingleValueEvent(postListener)
+            awaitClose {
+                usersReference.removeEventListener(postListener)
+            }
         }
+
+    override suspend fun createNewLeague(session: Session): Flow<ResultOf<League>> =
+        channelFlow {
+            val leagueId = UUID.randomUUID().toString()
+            val userId = session.userInfo.userId
+            val newLeagueSession = SessionInLeague(
+                userId = userId,
+                profileImage = session.userInfo.profilePictureUrl,
+                userName = session.userInfo.userName,
+                title = "By the grace of God",
+                adminUser = true
+            )
+            val league = League(
+                leagueId = leagueId,
+                leagueName = "Your new League",
+                firstPlace = newLeagueSession,
+                startCycleDate = System.currentTimeMillis()
+            )
+            // TODO Make sure this we just accept success if they are all success
+            val ref = leaguesDatabaseReference.child(leagueId)
+            ref.setValue(league).addOnFailureListener {
+                it.message?.apply {
+                    channel.trySend(ResultOf.Failure(FeedbackMessage.Error(message = this)))
+                }
+            }.addOnSuccessListener {
+                usersReference.child(userId).child("leagues").child(leagueId).setValue(leagueId)
+                ref.child("leagueUsers").child(userId).setValue(newLeagueSession)
+                    .addOnFailureListener {
+                        it.message?.apply {
+                            channel.trySend(ResultOf.Failure(FeedbackMessage.Error(message = this)))
+                        }
+                    }
+                channel.trySend(ResultOf.Success(league))
+            }
+
+            awaitClose { channel.close() }
+        }
+
+    override suspend fun loadLeagueUsers(league: League): Flow<ResultOf<League>> = channelFlow {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                channel.trySend(ResultOf.Success(league.copy(
+                    listOfUsers = snapshot.child("leagueUsers").children.mapNotNull {
+                        it.getValue<SessionInLeague>()
+                    }
+                )))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        }
+        val ref = leaguesDatabaseReference.child(league.leagueId)
+        ref.addListenerForSingleValueEvent(listener)
+        awaitClose { ref.removeEventListener(listener) }
+    }
+
+    override suspend fun loadLeagues(session: Session): Flow<ResultOf<Pair<List<League>, List<League>>>> =
+        channelFlow {
+            val userId = session.userInfo.userId
+            val listOfLeagues =
+                usersReference.child(userId).child(leagues).get().await().children
+            val listOfInvitation =
+                usersReference.child(userId).child(leagueInvitation).get().await().children
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.i("League Test", "Data Snapshot listened: $listOfLeagues")
+                    channel.trySend(ResultOf.Success(Pair(listOfInvitation.mapNotNull {
+                        it.key?.run {
+                            snapshot.child(this).getValue<League>()?.run {
+                                copy(endCycleString = transforEndCycleToString())
+                            }
+                        }
+                    }, listOfLeagues.mapNotNull {
+                        it.key?.run {
+                            snapshot.child(this).getValue<League>()?.run {
+                                copy(endCycleString = transforEndCycleToString())
+                            }
+                        }
+                    })))
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+
+                }
+
+            }
+            val ref = leaguesDatabaseReference
+            ref.addListenerForSingleValueEvent(listener)
+            awaitClose {
+                ref.removeEventListener(listener)
+            }
+        }
+
+    fun League.transforEndCycleToString(): String = kotlin.run {
+        val formatter = SimpleDateFormat("dd/MMM/yyyy", java.util.Locale.ENGLISH)
+        // Create a calendar object that will convert the date and time value in milliseconds to date.
+        val calendar: Calendar = Calendar.getInstance()
+        calendar.timeInMillis = endCycleDate
+        formatter.format(calendar.time)
+    }
+
+    override suspend fun updateLeagueInvitation(
+        hasAccepted: Boolean,
+        session: Session,
+        leagueId: String
+    ): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+        val userId = session.userInfo.userId
+        val userRef = usersReference.child(userId)
+        userRef.child(leagueInvitation).removeValue()
+        if (hasAccepted) {
+            userRef.child(leagues).child(leagueId).setValue(leagueId)
+            leaguesDatabaseReference.child(leagueId).child(leagueUsers).child(userId).setValue(
+                SessionInLeague(
+                    userId = userId,
+                    profileImage = session.userInfo.profilePictureUrl,
+                    userName = session.userInfo.userName,
+                    title = "Bootie Magooties"
+                )
+            )
+        }
+        awaitClose { channel.close() }
+    }
+
+    override suspend fun sendLeagueRequest(
+        list: List<Session>,
+        league: League
+    ): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+
+        list.onEach {
+
+            usersReference.child(it.userInfo.userId).child(leagueInvitation).child(league.leagueId)
+                .setValue(league.leagueId).addOnSuccessListener {
+                    trySend(ResultOf.Success(FeedbackMessage.FriendInvited))
+                }
+        }
+
+        awaitClose { channel.close() }
+    }
 
     override suspend fun sendQuestionSuggestion(question: Question): Flow<ResultOf<FeedbackMessage>> =
         channelFlow {
@@ -486,29 +701,29 @@ class BaseRepositoryImpl @Inject constructor(
         hasAccepted: Boolean,
         friendId: String
     ): Flow<ResultOf<Nothing>> = callbackFlow {
-        session.userInfo?.userId?.let { userId ->
-            val ref = usersReference
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val friendsRef = dataSnapshot.child(userId).child("friendList")
-                    val friendRequest = dataSnapshot.child(userId).child("friendRequests")
-                    val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
+        val userId = session.userInfo.userId
+        val ref = usersReference
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val friendsRef = dataSnapshot.child(userId).child("friendList")
+                val friendRequest = dataSnapshot.child(userId).child("friendRequests")
+                val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
 
-                    // Remove from the requests
-                    friendRequest.child(friendId).ref.removeValue()
-                    if (hasAccepted) {
-                        friendsRef.child(friendId).ref.setValue(friendId)
-                        friendsListOfRequester.child(userId).ref.setValue(userId)
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                // Remove from the requests
+                friendRequest.child(friendId).ref.removeValue()
+                if (hasAccepted) {
+                    friendsRef.child(friendId).ref.setValue(friendId)
+                    friendsListOfRequester.child(userId).ref.setValue(userId)
                 }
             }
-            ref.addListenerForSingleValueEvent(postListener)
-            awaitClose { ref.removeEventListener(postListener) }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            }
         }
+        ref.addListenerForSingleValueEvent(postListener)
+        awaitClose { ref.removeEventListener(postListener) }
+
     }
 
     override suspend fun removeFriend(
@@ -516,22 +731,22 @@ class BaseRepositoryImpl @Inject constructor(
         friendId: String
     ): Flow<ResultOf<FeedbackMessage>> =
         callbackFlow {
-            session.userInfo?.userId?.let { userId ->
-                val postListener = object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        val usersList = dataSnapshot.child(userId).child("friendList")
-                        val friendsList = dataSnapshot.child(friendId).child("friendList")
-                        usersList.child(friendId).ref.removeValue()
-                        friendsList.child(userId).ref.removeValue()
-                        trySend(ResultOf.Success(FeedbackMessage.FriendRemoved))
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
-                    }
+            val userId = session.userInfo.userId
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val usersList = dataSnapshot.child(userId).child("friendList")
+                    val friendsList = dataSnapshot.child(friendId).child("friendList")
+                    usersList.child(friendId).ref.removeValue()
+                    friendsList.child(userId).ref.removeValue()
+                    trySend(ResultOf.Success(FeedbackMessage.FriendRemoved))
                 }
-                usersReference.addListenerForSingleValueEvent(postListener)
-                awaitClose { usersReference.removeEventListener(postListener) }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                }
             }
+            usersReference.addListenerForSingleValueEvent(postListener)
+            awaitClose { usersReference.removeEventListener(postListener) }
         }
+
 }

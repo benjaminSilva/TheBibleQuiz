@@ -332,7 +332,7 @@ fun HomeScreen(
                 shadowAlpha = animationLayoutList[4].value,
                 enabled = enabled,
                 onClick = {
-                    if (!localSession.userInfo?.userId.isNullOrBlank()) {
+                    if (localSession.userInfo.userId.isNotBlank()) {
                         navigate(Routes.Profile)
                     } else {
                         onClickSignIn()
@@ -343,12 +343,12 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    if (!localSession.userInfo?.userId.isNullOrBlank()) {
+                    if (localSession.userInfo.userId.isNotBlank()) {
                         AsyncImage(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape),
-                            model = localSession.userInfo?.profilePictureUrl,
+                            model = localSession.userInfo.profilePictureUrl,
                             contentDescription = null
                         )
                     } else {
@@ -364,7 +364,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = if (!localSession.userInfo?.userId.isNullOrBlank()) "Profile" else "Login with Google",
+                        text = if (localSession.userInfo.userId.isNotBlank()) "Profile" else "Login with Google",
                         fontSize = 24,
                         lineHeight = 22
                     )

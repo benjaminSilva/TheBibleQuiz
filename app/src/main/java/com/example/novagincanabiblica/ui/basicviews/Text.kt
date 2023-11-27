@@ -12,12 +12,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -201,6 +203,14 @@ fun AutoResizeText(
 ) {
     var fontSizeValue by remember { mutableFloatStateOf(fontSizeRange.max.value) }
     var readyToDraw by remember { mutableStateOf(false) }
+    var startAnimation by remember { mutableStateOf(true) }
+    val animateAlpha by animateAlpha(condition = startAnimation, delay = 0, duration = 300)
+
+    LaunchedEffect(readyToDraw) {
+        if (readyToDraw) {
+            startAnimation = false
+        }
+    }
 
     Text(
         text = text,
@@ -233,7 +243,7 @@ fun AutoResizeText(
                 readyToDraw = true
             }
         },
-        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() }
+        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() }.alpha(animateAlpha)
     )
 }
 

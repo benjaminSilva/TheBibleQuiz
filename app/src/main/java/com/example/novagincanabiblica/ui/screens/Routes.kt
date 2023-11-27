@@ -14,4 +14,6 @@ sealed class Routes(val value: String) {
     object WordleMode: Routes(value = "wordle_mode")
     object Wordle: Routes(value = "wordle")
     object WordleResults: Routes(value = "wordle_results")
+    object LeagueScreen: Routes(value = "leagues")
+    object EditLeague: Routes(value = "edit_league")
 }

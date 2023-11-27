@@ -62,7 +62,6 @@ import com.example.novagincanabiblica.ui.theme.closeToBlack
 import com.example.novagincanabiblica.ui.theme.lessWhite
 import com.example.novagincanabiblica.ui.theme.zillasFontFamily
 import com.example.novagincanabiblica.viewmodel.WordleViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleViewModel) {
