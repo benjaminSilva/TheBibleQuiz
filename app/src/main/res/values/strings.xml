@@ -23,12 +23,15 @@
     <string name="feedback_friend_removed">Friend Removed</string>
     <string name="feedback_question_suggestion_sent">Question Suggestion was sent successfully</string>
     <string name="feedback_friend_invitation">Friend(s) invited.</string>
+    <string name="feedback_league_updated">League Updated.</string>
+    <string name="feedback_no_change">There\'s no change.</string>
+    <string name="feedback_image_updated">Image Updated.</string>
     <string name="feedback_question_league_created">League Created Successfully</string>
     <string name="question_suggestion_bible_verse_details">If bible verse does not apply just write N/A. Eg: If you ask \'What is the last book of the bible\', that does not have an specific bible verse with the answer.</string>
     <string name="question_suggestion_created_by_details">We will credit you if your answer is selected.</string>
     <string name="weekly">Weekly</string>
     <string name="two_weeks">Two Weeks</string>
-    <string name="monthly">Three Months</string>
+    <string name="monthly">Monthly</string>
     <string name="three_months">Three Months</string>
     <string name="six_months">Six Months</string>
     <string name="yearly">Yearly</string>
@@ -36,4 +39,12 @@
     <string name="quiz_only">Quiz Only</string>
     <string name="wordle_only">Wordle Only</string>
     <string name="quiz_and_wordle">Quiz and Worlde</string>
+
+    <!-- Icons Strings -->
+    <string name="icon_shield_cross">Shield with cross</string>
+    <string name="icon_be_not_afraid">Be not afraid</string>
+    <string name="icon_christ_the_redeemer">Christ, the Redeemer</string>
+    <string name="icon_fish">Ichthys</string>
+    <string name="icon_church">Church</string>
+
 </resources>
