@@ -142,7 +142,6 @@ class WordleViewModel @Inject constructor(
     }
 
     private fun updateAttemps(validWord: String) = mainScope.launch {
-        _attempsString.emit("")
         _attemps.update {
             it.apply {
                 first { attempt ->
@@ -171,6 +170,7 @@ class WordleViewModel @Inject constructor(
                     }
             }
         }
+        _attempsString.emit("")
     }
 
     private fun generateLetterStates(word: String): List<LetterState> {

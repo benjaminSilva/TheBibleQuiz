@@ -44,9 +44,13 @@ data class QuestionStatsData(
     var impossibleWrong: Int = 0,
     var streak: Int = 0
 ) {
+    @Exclude
     fun getTotalEasy(): Int = easyWrong + easyCorrect
+    @Exclude
     fun getTotalMedium(): Int = mediumWrong + mediumCorrect
+    @Exclude
     fun getTotalHard(): Int = hardWrong + hardCorrect
+    @Exclude
     fun getTotalImpossible(): Int = impossibleWrong + impossibleCorrect
 }
 

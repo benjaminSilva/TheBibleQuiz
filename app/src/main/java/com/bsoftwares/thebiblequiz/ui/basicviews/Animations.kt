@@ -143,8 +143,8 @@ fun animateScaleBouncy(
     return animateFloatAsState(
         targetValue = if (condition) startValue else endValue,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessVeryLow
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium
         ),
         label = "scaleWithBoucyness"
     )

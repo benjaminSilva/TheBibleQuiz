@@ -27,12 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,7 +39,6 @@ import androidx.navigation.NavHostController
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.KeyboardLetter
-import com.bsoftwares.thebiblequiz.data.models.wordle.LetterState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
@@ -53,10 +49,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.FlipCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.FontSizeRange
 import com.bsoftwares.thebiblequiz.ui.basicviews.ShakeConfig
-import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateColor
-import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialColorAnimation
-import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialScaleAnimation
 import com.bsoftwares.thebiblequiz.ui.basicviews.rememberShakeController
 import com.bsoftwares.thebiblequiz.ui.basicviews.shake
 import com.bsoftwares.thebiblequiz.ui.navigation.navigateWithoutRemembering
@@ -64,15 +57,8 @@ import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.achivoFontFamily
 import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
-import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
-import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
-import com.bsoftwares.thebiblequiz.ui.theme.basicContainerShadow
-import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
-import com.bsoftwares.thebiblequiz.ui.theme.darkGray
-import com.bsoftwares.thebiblequiz.ui.theme.gray
-import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
 import com.bsoftwares.thebiblequiz.ui.theme.zillasFontFamily
 import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 

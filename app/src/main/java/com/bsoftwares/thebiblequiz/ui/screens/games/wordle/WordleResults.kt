@@ -32,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.WordleData
 import com.bsoftwares.thebiblequiz.data.models.WordleDataCalculated
+import com.bsoftwares.thebiblequiz.data.models.WordleGame
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.LetterState
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
@@ -62,7 +64,7 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
     WordleResultsScreen(
         navController = navController, wordle = wordle,
         listOfAttempts = listOfAttempts,
-        wordleData = session.wordle.wordleStats, calculatedWordleData = calculatedWordleData
+        session = session, calculatedWordleData = calculatedWordleData
     )
 }
 
@@ -72,7 +74,7 @@ fun WordleResultsScreen(
     navController: NavHostController,
     wordle: Wordle,
     listOfAttempts: List<WordleAttempt>,
-    wordleData: WordleData,
+    session: Session,
     calculatedWordleData: WordleDataCalculated
 ) {
 
@@ -156,13 +158,12 @@ fun WordleResultsScreen(
                 isFromResults = true
             )
             BasicText(text = "Found in this verse")
-            BasicContainer {
+            BasicContainer (onLongClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                context.startActivity(shareVerse)
+            }) {
                 Column(
                     modifier = Modifier
-                        .combinedClickable(onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            context.startActivity(shareVerse)
-                        }) {}
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {
@@ -174,7 +175,13 @@ fun WordleResultsScreen(
                 }
             }
             BasicText(text = "Stats")
-            WordleStats(wordleStats = wordleData, progresses = calculatedWordleData)
+            if (session.userInfo.userId.isNotEmpty()) {
+                WordleStats(wordleStats = session.wordle.wordleStats, progresses = calculatedWordleData)
+            } else {
+                BasicContainer {
+                    BasicText(modifier = Modifier.fillMaxWidth().padding(16.dp), text = "If you login, you will keep up your stats.")
+                }
+            }
             BasicText(text = "Attemps")
             WordleRows(
                 wordleWord = wordle.word,
@@ -229,7 +236,7 @@ fun PreviewWordleResults() {
             rememberNavController(),
             Wordle(),
             generateStartWordleAttemptList(),
-            generateWordleData(),
+            session = Session().copy(wordle = WordleGame().copy(wordleStats = generateWordleData())),
             generatedCalculatedData()
         )
     }

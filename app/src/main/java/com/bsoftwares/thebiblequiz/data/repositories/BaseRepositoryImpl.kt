@@ -96,70 +96,73 @@ class BaseRepositoryImpl @Inject constructor(
     ): Flow<FeedbackMessage> =
         channelFlow {
 
-            var pointsToUpdateLeagues = 0
+            if (session.userInfo.userId.isNotEmpty()) {
+                var pointsToUpdateLeagues = 0
 
-            val currentUserStats = session.quizStats.apply {
-                if (isCorrect) {
-                    streak += 1
-                    when (currentQuestion.difficulty) {
-                        QuestionDifficulty.EASY -> {
-                            pointsToUpdateLeagues += 1
-                            easyCorrect += 1
-                        }
+                val currentUserStats = session.quizStats.apply {
+                    if (isCorrect) {
+                        streak += 1
+                        when (currentQuestion.difficulty) {
+                            QuestionDifficulty.EASY -> {
+                                pointsToUpdateLeagues += 1
+                                easyCorrect += 1
+                            }
 
-                        QuestionDifficulty.MEDIUM -> {
-                            pointsToUpdateLeagues += 2
-                            mediumCorrect += 1
-                        }
+                            QuestionDifficulty.MEDIUM -> {
+                                pointsToUpdateLeagues += 2
+                                mediumCorrect += 1
+                            }
 
-                        QuestionDifficulty.HARD -> {
-                            pointsToUpdateLeagues += 3
-                            hardCorrect += 1
-                        }
+                            QuestionDifficulty.HARD -> {
+                                pointsToUpdateLeagues += 3
+                                hardCorrect += 1
+                            }
 
-                        QuestionDifficulty.IMPOSSIBLE -> {
-                            pointsToUpdateLeagues += 4
-                            impossibleCorrect += 1
+                            QuestionDifficulty.IMPOSSIBLE -> {
+                                pointsToUpdateLeagues += 4
+                                impossibleCorrect += 1
+                            }
                         }
-                    }
-                } else {
-                    streak = 0
-                    when (currentQuestion.difficulty) {
-                        QuestionDifficulty.EASY -> easyWrong += 1
-                        QuestionDifficulty.MEDIUM -> {
-                            pointsToUpdateLeagues -= 1
-                            mediumWrong += 1
-                        }
+                    } else {
+                        streak = 0
+                        when (currentQuestion.difficulty) {
+                            QuestionDifficulty.EASY -> easyWrong += 1
+                            QuestionDifficulty.MEDIUM -> {
+                                pointsToUpdateLeagues -= 1
+                                mediumWrong += 1
+                            }
 
-                        QuestionDifficulty.HARD -> {
-                            pointsToUpdateLeagues -= 2
-                            hardWrong += 1
-                        }
+                            QuestionDifficulty.HARD -> {
+                                pointsToUpdateLeagues -= 2
+                                hardWrong += 1
+                            }
 
-                        QuestionDifficulty.IMPOSSIBLE -> {
-                            pointsToUpdateLeagues -= 3
-                            impossibleWrong += 1
+                            QuestionDifficulty.IMPOSSIBLE -> {
+                                pointsToUpdateLeagues -= 3
+                                impossibleWrong += 1
+                            }
                         }
                     }
                 }
+
+
+                if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
+                    session.localListLeagues.forEach {
+                        val pointsRef = leaguesDatabaseReference.child(it).child(stringLeagueUsers)
+                            .child(session.userInfo.userId).child(stringPointsForQuiz)
+                        val oldPoints = pointsRef.get().await().value as Long
+                        pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
+                    }
+                }
+
+                usersReference.child(session.userInfo.userId).child("quizStats")
+                    .setValue(currentUserStats)
+                    .addOnFailureListener {
+                        it.message?.apply {
+                            trySend(FeedbackMessage.InternetIssues)
+                        }
+                    }
             }
-
-            if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
-                session.localListLeagues.forEach {
-                    val pointsRef = leaguesDatabaseReference.child(it).child(stringLeagueUsers)
-                        .child(session.userInfo.userId).child(stringPointsForQuiz)
-                    val oldPoints = pointsRef.get().await().value as Long
-                    pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
-                }
-            }
-
-            usersReference.child(session.userInfo.userId).child("quizStats")
-                .setValue(currentUserStats)
-                .addOnFailureListener {
-                    it.message?.apply {
-                        trySend(FeedbackMessage.InternetIssues)
-                    }
-                }
         }
 
     override fun updateGameModeValue(key: String, value: Boolean) {
@@ -206,7 +209,8 @@ class BaseRepositoryImpl @Inject constructor(
                         trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
                     }
                 } else {
-                    usersReference.child(session.userInfo.userId).setValue(session.copy(fcmToken = globalToken))
+                    usersReference.child(session.userInfo.userId)
+                        .setValue(session.copy(fcmToken = globalToken))
                     trySend(ResultOf.Success(session))
                 }
             }
@@ -412,15 +416,16 @@ class BaseRepositoryImpl @Inject constructor(
         session: Session,
         attemptList: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
-        usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
-            .setValue(attemptList)
-            .addOnFailureListener {
-                it.message?.apply {
-                    channel.trySend(FeedbackMessage.Error(this))
+        if (session.userInfo.userId.isNotEmpty()) {
+            usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
+                .setValue(attemptList)
+                .addOnFailureListener {
+                    it.message?.apply {
+                        channel.trySend(FeedbackMessage.Error(this))
+                    }
                 }
-            }
-        awaitClose { channel.close() }
-
+            awaitClose { channel.close() }
+        }
     }
 
     override suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
@@ -642,16 +647,20 @@ class BaseRepositoryImpl @Inject constructor(
 
         leaguesDatabaseReference.child(league.leagueId).updateChildren(update)
             .addOnSuccessListener {
-                channel.trySend(ResultOf.Success(if (justIcon) {
-                    FeedbackMessage.ImageUpdated
-                } else {
-                    FeedbackMessage.LeagueUpdated
-                }))
+                channel.trySend(
+                    ResultOf.Success(
+                        if (justIcon) {
+                            FeedbackMessage.ImageUpdated
+                        } else {
+                            FeedbackMessage.LeagueUpdated
+                        }
+                    )
+                )
             }.addOnFailureListener {
-            it.message?.apply {
-                channel.trySend(ResultOf.Failure(FeedbackMessage.Error(this)))
+                it.message?.apply {
+                    channel.trySend(ResultOf.Failure(FeedbackMessage.Error(this)))
+                }
             }
-        }
         awaitClose {
             channel.close()
         }

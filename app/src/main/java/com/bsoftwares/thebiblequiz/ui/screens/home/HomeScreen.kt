@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -202,14 +201,14 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth(),
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    context.startActivity(bibleVerseShareIntent)
+                }
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            context.startActivity(bibleVerseShareIntent)
-                        }) {}
                         .animateContentSize()
                 ) {
                     Column(
@@ -420,8 +419,6 @@ fun HomeScreen(
                 }
             }
         }
-
-
         PullRefreshIndicator(
             modifier = Modifier.align(Alignment.TopCenter),
             refreshing = isRefreshing,

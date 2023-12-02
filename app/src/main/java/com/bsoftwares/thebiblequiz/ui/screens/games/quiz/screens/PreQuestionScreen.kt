@@ -1,5 +1,6 @@
 package com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAngle
+import com.bsoftwares.thebiblequiz.ui.basicviews.animateDp
 import com.bsoftwares.thebiblequiz.ui.basicviews.animatePosition
 import com.bsoftwares.thebiblequiz.ui.navigation.navigateWithoutRemembering
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
@@ -115,6 +117,7 @@ fun PreSoloScreen(
         IntOffset(0, -70)
     )
     val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1000)
+    val animateShadow by animateDp(condition = startAnimation, delay = 1500, endValue = 20.dp)
 
     Box(
         modifier = Modifier
@@ -177,8 +180,9 @@ fun PreSoloScreen(
                         BasicContainer(modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .weight(1f),
-                            shadowAlpha = animateButtonsAlpha, onClick = {
+                            .weight(1f)
+                            .alpha(animateButtonsAlpha),
+                            shadow = animateShadow, onClick = {
                                 openHowToPlayQuestionDialog()
                             }) {
                             BasicText(
@@ -190,8 +194,10 @@ fun PreSoloScreen(
                         BasicContainer(modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .weight(1f),
-                            shadowAlpha = animateButtonsAlpha, onClick = {
+                            .weight(1f)
+                            .alpha(animateButtonsAlpha),
+                            shadow = animateShadow,
+                            onClick = {
                                 navController.navigate(Routes.SuggestQuestion.value)
                             }) {
                             BasicText(
@@ -204,8 +210,9 @@ fun PreSoloScreen(
                         BasicContainer(modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .weight(1f),
-                            shadowAlpha = animateButtonsAlpha, onClick = {
+                            .weight(1f)
+                            .alpha(animateButtonsAlpha),
+                            shadow = animateShadow, onClick = {
                                 navController.popBackStack()
                             }) {
                             BasicText(
@@ -220,15 +227,17 @@ fun PreSoloScreen(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth()
-                            .weight(0.7f),
-                        shadowAlpha = animateButtonsAlpha,
+                            .weight(0.7f)
+                            .alpha(animateButtonsAlpha),
+                        shadow = animateShadow,
                         onClick = {
                             startQuestionClick()
                         }
                     ) {
                         BasicText(
                             modifier = Modifier.align(Alignment.Center),
-                            text = stringResource(id = R.string.start_question)
+                            text = stringResource(id = R.string.start_question),
+                            fontSize = 42
                         )
                     }
                 }
