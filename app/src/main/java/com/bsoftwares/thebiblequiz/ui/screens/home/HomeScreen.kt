@@ -37,6 +37,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -107,7 +108,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
@@ -191,9 +192,18 @@ fun HomeScreen(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(start = 8.dp), text = when {
-                        (6..12).contains(hourOfTheDay) -> "Good morning ${localSession.userInfo?.userName}"
-                        (12..18).contains(hourOfTheDay) -> "Good afternoon ${localSession.userInfo?.userName}"
-                        else -> "Good evening ${localSession.userInfo?.userName}"
+                        (6..12).contains(hourOfTheDay) -> stringResource(
+                            R.string.good_morning_msg,
+                            localSession.userInfo.userName
+                        )
+                        (12..18).contains(hourOfTheDay) -> stringResource(
+                            R.string.good_afternoon,
+                            localSession.userInfo.userName
+                        )
+                        else -> stringResource(
+                            R.string.good_evening,
+                            localSession.userInfo.userName
+                        )
                     }
                 )
 
@@ -218,7 +228,7 @@ fun HomeScreen(
                     ) {
                         BasicText(
                             modifier = Modifier.align(Alignment.Start),
-                            text = "Verse of the day"
+                            text = stringResource(R.string.verse_of_the_day)
                         )
                         BasicText(
                             modifier = Modifier
@@ -265,7 +275,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = "Daily Bible\nQuiz",
+                        text = stringResource(R.string.daily_bible_quiz),
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -297,7 +307,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = "Biblical\nWordle",
+                        text = stringResource(R.string.biblical_wordle_home),
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -340,7 +350,9 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = if (localSession.userInfo.userId.isNotBlank()) "Profile" else "Login with Google",
+                        text = if (localSession.userInfo.userId.isNotBlank()) stringResource(R.string.profile) else stringResource(
+                            R.string.login_with_google
+                        ),
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -379,7 +391,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
                                 .padding(start = 8.dp),
-                            text = "Share",
+                            text = stringResource(R.string.share),
                             fontSize = 24,
                             lineHeight = 22
                         )
@@ -411,7 +423,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
                                 .padding(start = 8.dp),
-                            text = "Rate",
+                            text = stringResource(R.string.rate),
                             fontSize = 24,
                             lineHeight = 22
                         )

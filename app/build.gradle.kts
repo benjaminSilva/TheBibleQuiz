@@ -14,8 +14,8 @@ android {
         applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,12 +65,12 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.1.2")
+    implementation("androidx.compose.material3:material3:1.2.0-alpha12")
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.compose.material:material:1.6.0-beta01")
+    implementation("androidx.compose.material:material:1.6.0-beta02")
 
 
     //Hilt
@@ -78,7 +78,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.hilt:hilt-navigation-fragment:1.1.0")
     implementation("androidx.hilt:hilt-work:1.1.0")
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.test:runner:1.5.2")
     implementation("com.google.firebase:firebase-database:20.3.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
@@ -113,5 +113,10 @@ dependencies {
 
     //Moshi
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+
+    //Money
+    implementation("com.revenuecat.purchases:purchases:7.2.7")
+    implementation("com.revenuecat.purchases:purchases-ui:7.2.7")
+    implementation("com.android.billingclient:billing-ktx:6.1.0")
 
 }

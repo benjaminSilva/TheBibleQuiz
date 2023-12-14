@@ -8,6 +8,7 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
@@ -22,7 +23,7 @@ interface BaseRepository {
     suspend fun updateHasPlayedBibleQuiz()
     suspend fun getSession(): Flow<ResultOf<Session>>
     suspend fun getSession(userId: String): Flow<ResultOf<Session>>
-    suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>>
+    suspend fun getDay(): Flow<ResultOf<Int>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
     suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session): Flow<FeedbackMessage>
@@ -46,4 +47,7 @@ interface BaseRepository {
     suspend fun updateLeague(league: League, justIcon: Boolean, updateCycle: Boolean): Flow<ResultOf<FeedbackMessage>>
     suspend fun updateToken(token: String)
     suspend fun loadToken()
+    suspend fun getConnectivityStatus(): Flow<ConnectivityStatus>
+    suspend fun setUserPremium(session: Session): Flow<FeedbackMessage>
+    suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>>
 }

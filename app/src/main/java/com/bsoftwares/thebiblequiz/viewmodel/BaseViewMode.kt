@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bsoftwares.thebiblequiz.data.models.QuestionStatsDataCalculated
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.WordleDataCalculated
+import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
@@ -41,7 +42,9 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _displayDialog = MutableStateFlow<DialogType>(DialogType.EmptyValue)
     val displayDialog = _displayDialog.asStateFlow()
 
-    private val sessionFlow = collectSession()
+    private var sessionFlow: Job? = null
+
+    private var dayFlow: Job? = null
 
     private val viewModelJob by lazy {
         Job()
@@ -55,11 +58,26 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         CoroutineScope(Dispatchers.Default + viewModelJob)
     }
 
-
     init {
         backGroundScope.launch {
             repo.loadToken()
-            collectDay(onlyOnce = false)
+            collectConnectivityStatus()
+        }
+    }
+
+    private fun collectConnectivityStatus() = backGroundScope.launch {
+        repo.getConnectivityStatus().collectLatest {
+            when (it) {
+                ConnectivityStatus.AVAILABLE -> {
+                    dayFlow = collectDay()
+                }
+                ConnectivityStatus.LOST -> {
+                    dayFlow?.cancel()
+                }
+                ConnectivityStatus.UNAVAILABLE -> {
+                    dayFlow?.cancel()
+                }
+            }
         }
     }
 
@@ -68,11 +86,11 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
             _displayDialog.emit(dialogType)
         }
 
-    fun collectDay(onlyOnce: Boolean) = backGroundScope.launch {
-        repo.getDay(onlyOnce = onlyOnce).collectLatest {
+    private fun collectDay() = backGroundScope.launch {
+        repo.getDay().collectLatest {
             it.handleSuccessAndFailure { day ->
                 _day.emit(value = day)
-                sessionFlow
+                sessionFlow = collectSession()
             }
         }
     }
@@ -90,7 +108,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     }
 
     fun cancelCollectSession() {
-        sessionFlow.cancel()
+        sessionFlow?.cancel()
     }
 
     suspend fun <T> ResultOf<T>.handleSuccessAndFailure(action: suspend (value: T) -> Unit) =

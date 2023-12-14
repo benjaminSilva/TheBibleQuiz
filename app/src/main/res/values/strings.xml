@@ -1,12 +1,11 @@
 <resources>
     <string name="app_name">The Bible Quiz</string>
-    <string name="google_web_client_id">156955365205-3c54hi3ib8ee9qpap57ishogg9p4bl5v.apps.googleusercontent.com</string>
+    <string name="google_web_client_id" translatable="false">156955365205-3c54hi3ib8ee9qpap57ishogg9p4bl5v.apps.googleusercontent.com</string>
     <string name="the_quiz_mode">The Quiz</string>
     <string name="biblical_wordle">Biblical Wordle</string>
     <string name="go_back">Go Back</string>
     <string name="start_question">Start Question</string>
-    <string name="title_activity_splash_screen">The Bible Quiz</string>
-    <string name="reminder_channel">reminder_channel</string>
+    <string name="title_activity_splash_screen" translatable="false">The Bible Quiz</string>
 
 
     <string name="error_word_is_not_in_our_list">Word is not in our list.</string>
@@ -15,7 +14,7 @@
     <string name="error_wordle_repeated_word">You have tried this word before</string>
     <string name="error_profile_user_doesnt_exist">User doesn\'t exist</string>
     <string name="error_no_user_id">You have to add user ID</string>
-    <string name="no_error" />
+    <string name="no_error" translatable="false" />
     <string name="feedback_you_cant_add_yourself">You can\'t add yourself</string>
     <string name="feedback_you_are_already_friends_with_this_user">You are already friends with this user</string>
     <string name="feedback_you_have_already_sent_a_friend_request_to_this_user">You have already sent a friend request to this user</string>
@@ -23,12 +22,13 @@
     <string name="feedback_friend_removed">Friend Removed</string>
     <string name="feedback_question_suggestion_sent">Question Suggestion was sent successfully</string>
     <string name="feedback_friend_invitation">Friend(s) invited.</string>
-    <string name="feedback_league_updated">League Updated.</string>
+    <string name="feedback_league_updated">League Updated</string>
     <string name="feedback_no_change">There\'s no change.</string>
-    <string name="feedback_image_updated">Image Updated.</string>
+    <string name="feedback_image_updated">Image Updated</string>
+    <string name="feedback_user_premium">Image Updated</string>
     <string name="feedback_question_league_created">League Created Successfully</string>
     <string name="question_suggestion_bible_verse_details">If bible verse does not apply just write N/A. Eg: If you ask \'What is the last book of the bible\', that does not have an specific bible verse with the answer.</string>
-    <string name="question_suggestion_created_by_details">We will credit you if your answer is selected.</string>
+    <string name="question_suggestion_created_by_details">We will credit you if your question is approved.</string>
     <string name="weekly">Weekly</string>
     <string name="two_weeks">Two Weeks</string>
     <string name="monthly">Monthly</string>
@@ -44,7 +44,22 @@
     <string name="icon_shield_cross">Shield with cross</string>
     <string name="icon_be_not_afraid">Be not afraid</string>
     <string name="icon_christ_the_redeemer">Christ, the Redeemer</string>
-    <string name="icon_fish">Ichthys</string>
+    <string name="icon_fish" translatable="false">Ichthys</string>
     <string name="icon_church">Church</string>
+    <string name="good_morning_msg">Good morning %1$s</string>
+    <string name="good_afternoon">Good afternoon %1$s</string>
+    <string name="good_evening">Good evening %1$s</string>
+    <string name="verse_of_the_day">Verse of the day</string>
+    <string name="daily_bible_quiz">Daily Bible\nQuiz</string>
+    <string name="biblical_wordle_home">Biblical\nWordle</string>
+    <string name="profile">Profile</string>
+    <string name="login_with_google">Login with Google</string>
+    <string name="rate">Rate</string>
+    <string name="share">Share</string>
+    <string name="bible_verse">Bible Verse: </string>
+    <string name="correct_answer">Correct Answer: </string>
+    <string name="selected_answer">Selected Answer: </string>
+    <string name="suggest_a_question">Suggest a question</string>
+    <string name="how_to_play">Suggest a question</string>
 
 </resources>

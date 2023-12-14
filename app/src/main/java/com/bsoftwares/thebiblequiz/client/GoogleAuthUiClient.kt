@@ -12,6 +12,8 @@ import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.Firebase
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.logInWith
 import kotlinx.coroutines.tasks.await
 import java.lang.Exception
 import java.util.concurrent.CancellationException
@@ -43,9 +45,14 @@ class GoogleAuthUiClient(
         return try {
             val user = auth.signInWithCredential(googleCredential).await().user
             if (user != null) {
+                Purchases.sharedInstance.logInWith(
+                    appUserID = user.uid,
+                    onSuccess = { _, _ -> }
+                )
                 Session(
                     userInfo = user.run {
                         if (displayName!=null && photoUrl!=null) {
+
                             UserData(
                                 userId = uid,
                                 userName = displayName!!,

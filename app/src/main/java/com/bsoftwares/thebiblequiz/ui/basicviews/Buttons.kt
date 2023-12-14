@@ -19,6 +19,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -42,26 +43,15 @@ fun BasicContainer(
     backGroundColor: Color = colorResource(id = R.color.basic_container_color),
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
-    shadowAlpha: Float = 1f,
-    shadowOffset: IntOffset = IntOffset.Zero,
-    shadowScaleX: Float = 1f,
-    shadowScaleY: Float = 1f,
     enabled: Boolean = true,
     shadow: Dp = 20.dp,
+    allowAnimation: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
-
-
     Box(
         modifier = modifier
-            .bounceClick(onClick, onLongClick)
-            .shadowWithAnimation(
-                shadow,
-                alpha = shadowAlpha,
-                offset = shadowOffset,
-                scaleY = shadowScaleY,
-                scaleX = shadowScaleX
-            )
+            .shadow(shadow)
+            .bounceClick(onClick, onLongClick, allowAnimation)
             .clip(RoundedCornerShape(16.dp))
             .animateContentSize()
             .background(backGroundColor)
@@ -72,17 +62,14 @@ fun BasicContainer(
 
 enum class ButtonState { Pressed, Idle }
 @OptIn(ExperimentalFoundationApi::class)
-fun Modifier.bounceClick(onClick: (() -> Unit)?, onLongClick:(() -> Unit)?) = composed {
+fun Modifier.bounceClick(onClick: (() -> Unit)?, onLongClick:(() -> Unit)?, allowAnimation: Boolean) = composed {
     if (onClick != null || onLongClick != null) {
         var buttonState by remember { mutableStateOf(ButtonState.Idle) }
 
         val scale by animateScaleBouncy(buttonState != ButtonState.Pressed, startValue = 1f, endValue = 0.95f)
 
         this
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+            .clip(RoundedCornerShape(16.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -93,6 +80,12 @@ fun Modifier.bounceClick(onClick: (() -> Unit)?, onLongClick:(() -> Unit)?) = co
             }, onClick = {
                 onClick?.invoke()
             })
+            .graphicsLayer {
+                if (allowAnimation) {
+                    scaleX = scale
+                    scaleY = scale
+                }
+            }
             .pointerInput(buttonState) {
                 awaitPointerEventScope {
                     buttonState = if (buttonState == ButtonState.Pressed) {

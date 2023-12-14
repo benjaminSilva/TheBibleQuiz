@@ -63,7 +63,6 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.ButtonWithHold
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.WordleStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
-import com.bsoftwares.thebiblequiz.ui.theme.basicContainerShadow
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
 import com.bsoftwares.thebiblequiz.ui.theme.gray
@@ -88,6 +87,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
     val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
+    val isPremiumUser by homeViewModel.isCurrentUserPremium.collectAsStateWithLifecycle()
 
     BackHandler {
         if (isFromLeague) {
@@ -171,6 +171,14 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 }
             }
 
+            ProfileDialogType.StartPremium -> {
+                PaywallScreen(enablePremium = {
+                    homeViewModel.updateToPremium()
+                }) {
+                    homeViewModel.updateDialog()
+                }
+            }
+
             else -> Unit
         }
     }
@@ -236,7 +244,8 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 userData.userInfo.userId.apply {
                     homeViewModel.addFriend(this)
                 }
-            }
+            },
+            isPremiumUser = isPremiumUser,
         ) {
             homeViewModel.signOut()
             navController.popBackStack()
@@ -265,6 +274,7 @@ fun ProfileScreen(
     openLeague: (League) -> Unit,
     listOfLeagueInvitations: List<League>,
     updateLeagueInvitation: (Boolean, String) -> Unit,
+    isPremiumUser: Boolean,
     addUser: () -> Unit,
     signOut: () -> Unit
 ) {
@@ -353,45 +363,80 @@ fun ProfileScreen(
                     session.userInfo.userId.apply {
                         clipboardManager.setText(AnnotatedString(this))
                     }
-                }
+                },
+                allowAnimation = false
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        AsyncImage(
+                        Row(
+                            modifier = Modifier.padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AsyncImage(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape),
+                                model = session.userInfo.profilePictureUrl,
+                                contentDescription = null
+                            )
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                BasicText(text = session.userInfo.userName, fontSize = 22)
+                                BasicText(text = "id: ${session.userInfo.userId}", fontSize = 8)
+                                if (session.premium) {
+                                    BasicText(text = "Premium User", fontSize = 8)
+                                } else {
+                                    BasicText(text = "Non Premium User", fontSize = 8)
+                                }
+                            }
+                        }
+
+                        Image(
                             modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape),
-                            model = session.userInfo?.profilePictureUrl,
+                                .align(Alignment.CenterVertically)
+                                .padding(8.dp)
+                                .size(32.dp),
+                            painter = painterResource(id = R.drawable.baseline_content_copy_24),
                             contentDescription = null
                         )
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                    }
+                    if (isPremiumUser) {
+                        BasicContainer(
+                            backGroundColor = colorResource(id = R.color.background_color),
+                            onClick = {
+                                displayDialogFunction(ProfileDialogType.StartPremium)
+                            }
                         ) {
-                            BasicText(text = session.userInfo.userName, fontSize = 22)
-                            BasicText(text = "id: ${session.userInfo.userId}", fontSize = 8)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Image(
+                                    modifier = Modifier
+                                        .size(24.dp),
+                                    painter = painterResource(id = R.drawable.workspace_premium_fill0_wght400_grad0_opsz24),
+                                    contentDescription = null
+                                )
+                                BasicText(
+                                    modifier = Modifier.align(Alignment.CenterVertically),
+                                    text = "Get Premium"
+                                )
+                            }
                         }
                     }
-
-                    Image(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(8.dp)
-                            .size(32.dp),
-                        painter = painterResource(id = R.drawable.baseline_content_copy_24),
-                        contentDescription = null
-                    )
                 }
             }
-
             BasicText(text = "My stats", fontSize = 22)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -905,6 +950,7 @@ fun ProfilePreview() {
                 League(leagueName = "League test"),
                 League(leagueName = "League test")
             ),
+            isPremiumUser = true,
             listOfLeagueInvitations = listOf(),
             updateLeagueInvitation = { _, _ -> }
         )

@@ -36,8 +36,13 @@ class BibleQuizViewModel @Inject constructor(
     private val _startSecondAnimation = MutableStateFlow(false)
     val startSecondAnimation = _startSecondAnimation.asStateFlow()
 
+    private val _correctAnswer = MutableStateFlow(Answer())
+    val correctAnswer = _correctAnswer.asStateFlow()
+
+    private val _selectedAnswer = MutableStateFlow(Answer())
+    val selectedAnswer = _selectedAnswer.asStateFlow()
+
     init {
-        collectDay(onlyOnce = true)
         initBibleQuiz()
     }
 
@@ -52,8 +57,11 @@ class BibleQuizViewModel @Inject constructor(
     private fun listenToQuestion(day: Int) = backGroundScope.launch {
         autoCancellable {
             repo.loadDailyQuestion(day).collectLatestAndApplyOnMain { questionResult ->
-                questionResult.handleSuccessAndFailure {
-                    _currentQuestion.emit(it.copy(listOfAnswers = it.listOfAnswers.shuffled()))
+                questionResult.handleSuccessAndFailure { question ->
+                    question.listOfAnswers.find { it.correct }?.apply {
+                        _correctAnswer.emit(this)
+                    }
+                    _currentQuestion.emit(question.copy(listOfAnswers = question.listOfAnswers.shuffled()))
                 }
             }
         }
@@ -86,6 +94,7 @@ class BibleQuizViewModel @Inject constructor(
     fun verifyAnswer(selectedAnswer: Answer) = mainScope.launch {
         _screenClickable.emit(false)
         selectedAnswer.selected = true
+        _selectedAnswer.emit(selectedAnswer)
         handleAnswerEffects(selectedAnswer.correct)
     }
 

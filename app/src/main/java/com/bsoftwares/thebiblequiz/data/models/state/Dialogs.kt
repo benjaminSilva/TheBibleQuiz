@@ -33,6 +33,7 @@ sealed class ProfileDialogType : DialogType() {
     object Quiz : ProfileDialogType()
     object Wordle : ProfileDialogType()
     object AddFriend : ProfileDialogType()
+    object StartPremium : ProfileDialogType()
     object RemoveFriend : ProfileDialogType()
 }
 

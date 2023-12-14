@@ -2,6 +2,8 @@ package com.bsoftwares.thebiblequiz.data.repositories
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.Network
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
@@ -14,6 +16,7 @@ import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
+import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
@@ -25,12 +28,18 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
 import com.google.firebase.messaging.FirebaseMessaging
+import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.PurchasesError
+import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -51,7 +60,8 @@ class BaseRepositoryImpl @Inject constructor(
     portugueseWords: FirebaseDatabase,
     suggestedQuestionsDatabase: FirebaseDatabase,
     leaguesDatabase: FirebaseDatabase,
-    val firebaseMessaging: FirebaseMessaging
+    val firebaseMessaging: FirebaseMessaging,
+    val connectivityManager: ConnectivityManager
 ) : BaseRepository {
 
     private val firebaseRef = baseDatabase.reference
@@ -71,6 +81,9 @@ class BaseRepositoryImpl @Inject constructor(
     private val stringPointsForQuiz = "pointsForQuiz"
     private val stringPointsForWordle = "pointsForWordle"
     private val stringFcmToken = "fcmToken"
+    private val hasPlayedWordleGame = "hasPlayedWordleGame"
+    private val quizStats = "quizStats"
+    private val premium = "premium"
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
         val ref = quizReference.child(Locale.current.language).child("day$day")
@@ -155,7 +168,7 @@ class BaseRepositoryImpl @Inject constructor(
                     }
                 }
 
-                usersReference.child(session.userInfo.userId).child("quizStats")
+                usersReference.child(session.userInfo.userId).child(quizStats)
                     .setValue(currentUserStats)
                     .addOnFailureListener {
                         it.message?.apply {
@@ -199,6 +212,17 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setUserPremium(session: Session): Flow<FeedbackMessage> = channelFlow {
+        usersReference.child(session.userInfo.userId).child(premium).setValue(true).addOnSuccessListener {
+            trySend(FeedbackMessage.YouAreNowPremium)
+        }.addOnFailureListener {
+            it.message?.apply {
+                trySend(FeedbackMessage.Error(this))
+            }
+        }
+        awaitClose { channel.close() }
+    }
+
     private fun handleSessionIfItExists(session: Session): Flow<ResultOf<Session>> = channelFlow {
         val test = usersReference.child(session.userInfo.userId)
         val postListener = object : ValueEventListener {
@@ -232,21 +256,39 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
-        val test = usersReference.child(getSignedInUserId())
-        val postListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.i("League Test", "Session Observed Function 2")
-                dataSnapshot.getValue<Session>()?.apply {
-                    trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
+        if (getSignedInUserId().isNotEmpty()) {
+            val currentUserRef = usersReference.child(getSignedInUserId())
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.getValue<Session>()?.apply {
+                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
                 }
             }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
-            }
+            currentUserRef.addValueEventListener(postListener)
+            awaitClose { currentUserRef.removeEventListener(postListener) }
         }
-        test.addValueEventListener(postListener)
-        awaitClose { test.removeEventListener(postListener) }
+    }
+
+    override suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>> = callbackFlow {
+        Log.e("User Id", getSignedInUserId())
+        Purchases.sharedInstance.getCustomerInfo(
+            callback = object : ReceiveCustomerInfoCallback {
+                override fun onError(error: PurchasesError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.Error(error.message)))
+                }
+
+                override fun onReceived(customerInfo: CustomerInfo) {
+                    Log.e("Is user subscribed?", customerInfo.activeSubscriptions.isNotEmpty().toString())
+                    trySend(ResultOf.Success(customerInfo.activeSubscriptions.isNotEmpty()))
+                }
+            }
+        )
+        awaitClose { Purchases.sharedInstance.removeUpdatedCustomerInfoListener() }
     }
 
     override suspend fun getSession(userId: String): Flow<ResultOf<Session>> = flow {
@@ -274,7 +316,7 @@ class BaseRepositoryImpl @Inject constructor(
             })
 
 
-    override suspend fun getDay(onlyOnce: Boolean): Flow<ResultOf<Int>> = callbackFlow {
+    override suspend fun getDay(): Flow<ResultOf<Int>> = callbackFlow<ResultOf<Int>> {
         val ref = firebaseRef.child("day")
         val currentDay = sharedPreferences.getInt("day", 0)
         val postListener = object : ValueEventListener {
@@ -293,13 +335,9 @@ class BaseRepositoryImpl @Inject constructor(
                 trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        if (onlyOnce) {
-            ref.addListenerForSingleValueEvent(postListener)
-        } else {
-            ref.addValueEventListener(postListener)
-        }
+        ref.addValueEventListener(postListener)
         awaitClose { ref.removeEventListener(postListener) }
-    }
+    }.distinctUntilChanged()
 
     override suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>> = callbackFlow {
         val ref = bibleVerseReference.child(Locale.current.language).child("day$day")
@@ -340,7 +378,7 @@ class BaseRepositoryImpl @Inject constructor(
         session: Session,
         numberOfAttempt: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
-        updateGameModeValue(key = "hasPlayedWordleGame", true)
+        updateGameModeValue(key = hasPlayedWordleGame, true)
         if (session.userInfo.userId.isNotEmpty()) {
             var pointsToUpdateLeagues = 0
             val getWhichTry =
@@ -681,6 +719,31 @@ class BaseRepositoryImpl @Inject constructor(
             usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue(globalToken)
         }
     }
+
+    override suspend fun getConnectivityStatus(): Flow<ConnectivityStatus> = callbackFlow {
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
+                trySend(ConnectivityStatus.AVAILABLE)
+            }
+
+            override fun onLost(network: Network) {
+                super.onLost(network)
+                trySend(ConnectivityStatus.LOST)
+
+            }
+
+            override fun onUnavailable() {
+                super.onUnavailable()
+                trySend(ConnectivityStatus.UNAVAILABLE)
+            }
+        }
+
+        connectivityManager.registerDefaultNetworkCallback(callback)
+        awaitClose {
+            connectivityManager.unregisterNetworkCallback(callback)
+        }
+    }.distinctUntilChanged()
 
     override suspend fun updateLeagueInvitation(
         hasAccepted: Boolean,

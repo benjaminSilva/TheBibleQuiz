@@ -46,4 +46,5 @@ sealed class FeedbackMessage(
     object LeagueUpdated: FeedbackMessage(R.string.feedback_league_updated)
     object NoChange: FeedbackMessage(R.string.feedback_no_change)
     object ImageUpdated: FeedbackMessage(R.string.feedback_image_updated)
+    object YouAreNowPremium: FeedbackMessage(R.string.feedback_user_premium)
 }

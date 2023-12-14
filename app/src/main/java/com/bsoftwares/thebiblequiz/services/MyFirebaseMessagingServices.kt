@@ -31,9 +31,10 @@ class MyFirebaseMessagingServices : FirebaseMessagingService() {
     @Inject
     lateinit var repo: BaseRepository
 
-
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
+
+    val remindersChannel = "reminder_channel"
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -61,7 +62,7 @@ class MyFirebaseMessagingServices : FirebaseMessagingService() {
 
         val channelId = when (notificationType) {
             "Reminders" -> {
-                this.getString(R.string.reminder_channel)
+                remindersChannel
             }
 
             else -> {

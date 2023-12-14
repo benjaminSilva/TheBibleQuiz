@@ -1,6 +1,7 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -18,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -79,6 +81,9 @@ class HomeViewModel @Inject constructor(
     private val _sessionInLeague = MutableStateFlow(SessionInLeague())
     val sessionInLeague = _sessionInLeague.asStateFlow()
 
+    private val _isCurrentUserPremium = MutableStateFlow(false)
+    val isCurrentUserPremium = _isCurrentUserPremium.asStateFlow()
+
     private var loginSession: Job? = null
 
     init {
@@ -89,16 +94,32 @@ class HomeViewModel @Inject constructor(
         day.collectLatest {
             if (it != -1) {
                 listenToBibleVerseUpdate(it)
-                localSession.collectLatestAndApplyOnMain { session ->
-                    val currentUserId = visibleSession.value.userInfo.userId
-                    if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId) && session.userInfo.userId.isNotEmpty()) {
-                        _visibleSession.emit(session)
-                        _isFromLocalSession.emit(true)
-                        loadFriendRequests(session)
-                        loadLeagues()
+                loginSession = launch {
+                    localSession.collectLatest { session ->
+                        if (session.userInfo.userId.isNotEmpty()) {
+                            loadPremiumStatus()
+                            val currentUserId = visibleSession.value.userInfo.userId
+                            if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
+                                _visibleSession.emit(session)
+                                _isFromLocalSession.emit(true)
+                                loadFriendRequests(session)
+                                loadLeagues()
+                            }
+                        }
                     }
+                }.apply {
+                    start()
                 }
             }
+        }
+    }
+
+    private fun loadPremiumStatus() = backGroundScope.launch {
+        repo.getUserPremiumStatus().collectLatest { result ->
+            result.handleSuccessAndFailure { isSubscribed ->
+                _isCurrentUserPremium.emit(isSubscribed)
+            }
+            cancelSubscriptions()
         }
     }
 
@@ -148,7 +169,6 @@ class HomeViewModel @Inject constructor(
     fun refresh() = backGroundScope.launch {
         _isRefreshing.emit(true)
         checkGamesAvailability()
-        collectDay(onlyOnce = false)
         delay(1000)
         _isRefreshing.emit(false)
     }
@@ -187,6 +207,8 @@ class HomeViewModel @Inject constructor(
                     updateSession(session)
                 }
             }
+        }.apply {
+            start()
         }
     }
 
@@ -415,4 +437,10 @@ class HomeViewModel @Inject constructor(
                     }
             }
         }
+
+    fun updateToPremium() = backGroundScope.launch {
+        repo.setUserPremium(localSession.value).collectLatest {
+
+        }
+    }
 }

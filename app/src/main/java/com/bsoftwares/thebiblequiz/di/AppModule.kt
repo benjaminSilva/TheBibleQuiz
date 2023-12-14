@@ -3,6 +3,7 @@ package com.bsoftwares.thebiblequiz.di
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
 import com.bsoftwares.thebiblequiz.client.GoogleAuthUiClient
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepository
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepositoryImpl
@@ -34,6 +35,12 @@ object AppModule {
         return context.getSharedPreferences("session_prefs", MODE_PRIVATE)
     }
 
+    @Provides
+    @Singleton
+    fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager {
+        return context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+
     @Singleton
     @Provides
     fun getSoloModeRepo(
@@ -48,7 +55,8 @@ object AppModule {
         @Named("portugueseWordsDatabase") portugueseWords: FirebaseDatabase,
         @Named("suggestedQuestionsDatabase") suggestedQuestionsDatabase: FirebaseDatabase,
         @Named("leaguesDatabase") leaguesDatabase: FirebaseDatabase,
-        firebaseMessaging: FirebaseMessaging
+        firebaseMessaging: FirebaseMessaging,
+        connectivityManager: ConnectivityManager
     ): BaseRepository = BaseRepositoryImpl(
         googleAuthUiClient = googleAuthUiClient,
         sharedPreferences = sharedPreferences,
@@ -61,7 +69,8 @@ object AppModule {
         portugueseWords = portugueseWords,
         leaguesDatabase = leaguesDatabase,
         suggestedQuestionsDatabase = suggestedQuestionsDatabase,
-        firebaseMessaging = firebaseMessaging
+        firebaseMessaging = firebaseMessaging,
+        connectivityManager = connectivityManager
     )
 
     @Singleton

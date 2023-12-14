@@ -52,10 +52,7 @@ fun FeedbackMessageContainer(
     BasicContainer(
         modifier = modifier
             .alpha(alphaAnimation)
-            .scale(animateScale),
-        shadowAlpha = alphaAnimation,
-        shadowScaleX = animateScale,
-        shadowScaleY = animateScale
+            .scale(animateScale)
     ) {
         Row(
             modifier = Modifier
