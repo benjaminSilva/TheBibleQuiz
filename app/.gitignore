@@ -1,2 +1,8 @@
 /build
 /google-services.json
+/.gradle
+/.idea
+/.kotlin
+/users.json
+/wordle.json
+/bibleverses.json
