@@ -11,3 +11,4 @@ local.properties
 questions.json
 bibleverses.json
 /google-services.json
+/.idea/gradle.xml

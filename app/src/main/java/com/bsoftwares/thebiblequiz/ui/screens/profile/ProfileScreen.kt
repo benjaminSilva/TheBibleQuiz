@@ -409,7 +409,7 @@ fun ProfileScreen(
                             contentDescription = null
                         )
                     }
-                    if (isPremiumUser) {
+                    if (!isPremiumUser) {
                         BasicContainer(
                             backGroundColor = colorResource(id = R.color.background_color),
                             onClick = {

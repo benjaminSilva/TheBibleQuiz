@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +47,8 @@ import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.state.DialogType
+import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
@@ -102,6 +103,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         navigate = {
             navController.navigate(it.value)
             homeViewModel.updateClickable()
+        }, openDialog = { dialog ->
+            homeViewModel.updateDialog(dialogType = dialog)
         }
     ) {
         homeViewModel.signIn(launcher)
@@ -120,7 +123,8 @@ fun HomeScreen(
     isRefreshing: Boolean,
     enabled: Boolean,
     navigate: (Routes) -> Unit,
-    onClickSignIn: () -> Unit
+    openDialog: (DialogType) -> Unit,
+    onClickSignIn: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -359,6 +363,27 @@ fun HomeScreen(
                 }
             }
 
+            if (!localSession.premium) {
+                BasicContainer(modifier = Modifier
+                    .fillMaxWidth(),
+                    enabled = enabled,
+                    onClick = {
+                        openDialog(ProfileDialogType.StartPremium)
+                    }
+                ) {
+                    BasicText(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(start = 8.dp),
+                        text = if (localSession.userInfo.userId.isNotBlank()) stringResource(R.string.profile) else stringResource(
+                            R.string.login_with_google
+                        ),
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -456,6 +481,8 @@ fun HomePreview() {
             isRefreshing = true,
             enabled = true,
             navigate = {
+
+            }, {
 
             }
         ) {
