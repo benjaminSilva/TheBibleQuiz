@@ -5,7 +5,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.KeyboardLetter
 import com.bsoftwares.thebiblequiz.data.models.wordle.LetterState
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
-import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempState
+import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.bsoftwares.thebiblequiz.data.models.wordle.initiateKeyboardState
@@ -29,11 +29,11 @@ class WordleViewModel @Inject constructor(
     private val _wordle = MutableStateFlow(Wordle())
     val wordle = _wordle.asStateFlow()
 
-    private val _attemps = MutableStateFlow(generateStartWordleAttemptList())
-    val attemps = _attemps.asStateFlow()
+    private val _attempts = MutableStateFlow(generateStartWordleAttemptList())
+    val attempts = _attempts.asStateFlow()
 
-    private val _attempsString = MutableStateFlow("")
-    val attempsString = _attempsString.asStateFlow()
+    private val _attemptsString = MutableStateFlow("")
+    val attemptsString = _attemptsString.asStateFlow()
 
     private val _navigateToResults = MutableStateFlow(false)
     val navigateToResults = _navigateToResults.asStateFlow()
@@ -63,10 +63,10 @@ class WordleViewModel @Inject constructor(
     private fun getAttempts() = backGroundScope.launch {
         autoCancellable {
             localSession.collectLatest { session ->
-                repo.getAttemps(session).collectLatest {
+                repo.getAttempts(session).collectLatest {
                     withContext(Dispatchers.Main) {
                         it.handleSuccessAndFailure { attemps ->
-                            _attemps.emit(attemps)
+                            _attempts.emit(attemps)
                             attemps.updateKeyboard()
                         }
                     }
@@ -94,26 +94,26 @@ class WordleViewModel @Inject constructor(
     }
 
     fun checkWord() = mainScope.launch {
-        if (attempsString.value == wordle.value.word) {
+        if (attemptsString.value == wordle.value.word) {
             handleEndOfGame(userFoundTheWord = true)
-            updateAttemps(attempsString.value)
+            updateAttempts(attemptsString.value)
             return@launch
         }
 
-        if (attempsString.value.length != wordle.value.word.length) {
+        if (attemptsString.value.length != wordle.value.word.length) {
             emitFeedbackMessage(FeedbackMessage.WordNotLongEnough(length = wordle.value.word.length))
             return@launch
         }
-        if (attempsString.value.isRepeatedWord(attemps.value)) {
+        if (attemptsString.value.isRepeatedWord(attempts.value)) {
             emitFeedbackMessage(FeedbackMessage.RepeatedWord)
             return@launch
         }
 
         withContext(Dispatchers.IO) {
             autoCancellable {
-                repo.checkWord(attempsString.value).collectLatestAndApplyOnMain {
+                repo.checkWord(attemptsString.value).collectLatestAndApplyOnMain {
                     it.handleSuccessAndFailure { validWord ->
-                        updateAttemps(validWord)
+                        updateAttempts(validWord)
                     }
                 }
             }
@@ -132,7 +132,7 @@ class WordleViewModel @Inject constructor(
         _navigateToResults.emit(true)
         withContext(Dispatchers.IO) {
             autoCancellable {
-                repo.updateWordleStats(userFoundTheWord, localSession.value, attemps.value)
+                repo.updateWordleStats(userFoundTheWord, localSession.value, attempts.value)
                     .collectLatestAndApplyOnMain {
                         emitFeedbackMessage(it)
                     }
@@ -140,31 +140,32 @@ class WordleViewModel @Inject constructor(
         }
     }
 
-    private fun updateAttemps(validWord: String) = mainScope.launch {
-        _attempsString.emit("")
-        _attemps.update {
+    private fun updateAttempts(validWord: String) = mainScope.launch {
+        _attempts.update {
             it.apply {
-                first { attempt ->
-                    attempt.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
-                }.let { currentWordleAttempt ->
-                    currentWordleAttempt.word = validWord
-                    currentWordleAttempt.listOfLetterStates = generateLetterStates(validWord)
-                    currentWordleAttempt.attemptState = WordleAttempState.USER_HAS_TRIED
-                }
-                firstOrNull { attempt ->
-                    attempt.attemptState == WordleAttempState.USER_WILL_STILL_TRY
-                }.let { nextWordleAttemp ->
-                    if (nextWordleAttemp == null) {
-                        handleEndOfGame()
-                    } else {
-                        nextWordleAttemp.attemptState = WordleAttempState.USER_IS_CURRENTLY_HERE
+                for(i in indices) {
+                    val current = get(i)
+                    val hasNext = i + 1 < size
+                    if (current.attemptState == WordleAttemptState.USER_IS_CURRENTLY_HERE) {
+                        current.let { currentWordleAttempt ->
+                            currentWordleAttempt.word = validWord
+                            currentWordleAttempt.listOfLetterStates = generateLetterStates(validWord)
+                            currentWordleAttempt.attemptState = WordleAttemptState.USER_HAS_TRIED
+                        }
+                        if (hasNext) {
+                            get(i+1).attemptState = WordleAttemptState.USER_IS_CURRENTLY_HERE
+                        } else {
+                            handleEndOfGame()
+                        }
+                        break
                     }
                 }
             }
         }
+        _attemptsString.emit("")
         withContext(Dispatchers.IO) {
             autoCancellable {
-                repo.updateWordleList(session = localSession.value, attemptList = attemps.value)
+                repo.updateWordleList(session = localSession.value, attemptList = attempts.value)
                     .collectLatest {
                         emitFeedbackMessage(it)
                     }
@@ -225,7 +226,7 @@ class WordleViewModel @Inject constructor(
 
 
     fun updateAttemptString(updatedString: String) = mainScope.launch {
-        _attempsString.emit(updatedString)
+        _attemptsString.emit(updatedString)
     }
 
 }

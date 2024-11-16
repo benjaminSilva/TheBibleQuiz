@@ -23,7 +23,7 @@ data class Session(
 )
 
 data class WordleGame(
-    val listOfAttemps: List<WordleAttempt> = generateStartWordleAttemptList(),
+    val listOfAttempts: List<WordleAttempt> = generateStartWordleAttemptList(),
     val wordleStats: WordleData = WordleData()
 )
 

@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.KeyboardLetter
-import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempState
+import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.bsoftwares.thebiblequiz.data.models.wordle.initiateKeyboardState
@@ -66,8 +66,8 @@ import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleViewModel) {
     val wordle by viewModel.wordle.collectAsStateWithLifecycle()
     val navigate by viewModel.navigateToResults.collectAsStateWithLifecycle()
-    val attempts by viewModel.attemps.collectAsStateWithLifecycle()
-    val attempt by viewModel.attempsString.collectAsStateWithLifecycle()
+    val attempts by viewModel.attempts.collectAsStateWithLifecycle()
+    val attempt by viewModel.attemptsString.collectAsStateWithLifecycle()
     val listKeyBoardState = viewModel.keyboardState
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
 
@@ -454,14 +454,14 @@ fun WordleRows(
 ) {
     for (i in 0 until 6) {
         if (isFromResults) {
-            if (listWordleAttemps[i].attemptState == WordleAttempState.USER_HAS_TRIED) {
+            if (listWordleAttemps[i].attemptState == WordleAttemptState.USER_HAS_TRIED) {
                 RowLetterWordle(
                     wordleWord = wordleWord,
                     attempt = listWordleAttemps[i].run {
                         when (attemptState) {
-                            WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                            WordleAttempState.USER_HAS_TRIED -> word
-                            WordleAttempState.USER_WILL_STILL_TRY -> ""
+                            WordleAttemptState.USER_IS_CURRENTLY_HERE -> attempt
+                            WordleAttemptState.USER_HAS_TRIED -> word
+                            WordleAttemptState.USER_WILL_STILL_TRY -> ""
                         }
                     },
                     letterStates = listWordleAttemps[i],
@@ -475,9 +475,9 @@ fun WordleRows(
                 wordleWord = wordleWord,
                 attempt = listWordleAttemps[i].run {
                     when (attemptState) {
-                        WordleAttempState.USER_IS_CURRENTLY_HERE -> attempt
-                        WordleAttempState.USER_HAS_TRIED -> word
-                        WordleAttempState.USER_WILL_STILL_TRY -> ""
+                        WordleAttemptState.USER_IS_CURRENTLY_HERE -> attempt
+                        WordleAttemptState.USER_HAS_TRIED -> word
+                        WordleAttemptState.USER_WILL_STILL_TRY -> ""
                     }
                 },
                 letterStates = listWordleAttemps[i],
@@ -509,7 +509,7 @@ fun RowLetterWordle(
     }
 
     LaunchedEffect(errorMessage) {
-        if (errorMessage != FeedbackMessage.NoMessage && (errorMessage == FeedbackMessage.WordNotIntList || errorMessage == FeedbackMessage.RepeatedWord || attempt.length != wordleWord.length) && letterStates.attemptState == WordleAttempState.USER_IS_CURRENTLY_HERE
+        if (errorMessage != FeedbackMessage.NoMessage && (errorMessage == FeedbackMessage.WordNotIntList || errorMessage == FeedbackMessage.RepeatedWord || attempt.length != wordleWord.length) && letterStates.attemptState == WordleAttemptState.USER_IS_CURRENTLY_HERE
         ) {
             shakeController.shake(
                 ShakeConfig(
@@ -523,7 +523,7 @@ fun RowLetterWordle(
     }
 
     LaunchedEffect(letterStates.listOfLetterStates) {
-        if (wordleWord == attempt && !isFromResults && letterStates.attemptState == WordleAttempState.USER_HAS_TRIED) {
+        if (wordleWord == attempt && !isFromResults && letterStates.attemptState == WordleAttemptState.USER_HAS_TRIED) {
             shakeController.shake(
                 ShakeConfig(
                     iterations = 4,
@@ -564,24 +564,6 @@ fun RowLetterWordle(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun WordleLetter(
-    modifier: Modifier = Modifier,
-    color: Color,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .heightIn(max = 68.dp)
-            .aspectRatio(1f)
-            .background(
-                color
-            )
-    ) {
-        content()
     }
 }
 
