@@ -27,7 +27,7 @@ data class League(
 data class LeagueLog(
     val title: String = "",
     val message: String = "",
-    val icon: LeagueLogIcon = LeagueLogIcon.CONFIG_CHANGE
+    //val icon: LeagueLogIcon = LeagueLogIcon.CONFIG_CHANGE
 )
 
 enum class LeagueLogIcon {

@@ -2,7 +2,6 @@ package com.bsoftwares.thebiblequiz.ui.screens.games.wordle
 
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,13 +32,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bsoftwares.thebiblequiz.data.models.Session
-import com.bsoftwares.thebiblequiz.data.models.WordleData
 import com.bsoftwares.thebiblequiz.data.models.WordleDataCalculated
 import com.bsoftwares.thebiblequiz.data.models.WordleGame
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.LetterState
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
-import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempState
+import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
@@ -53,7 +51,7 @@ import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 @Composable
 fun InitializeWordleResult(navController: NavHostController, viewModel: WordleViewModel) {
     val wordle by viewModel.wordle.collectAsStateWithLifecycle()
-    val listOfAttempts by viewModel.attemps.collectAsStateWithLifecycle()
+    val listOfAttempts by viewModel.attempts.collectAsStateWithLifecycle()
     val session by viewModel.localSession.collectAsStateWithLifecycle()
     val calculatedWordleData by viewModel.calculatedWordleData.collectAsStateWithLifecycle()
 
@@ -110,7 +108,7 @@ fun WordleResultsScreen(
     }
 
     LaunchedEffect(key1 = listOfAttempts) {
-        if (listOfAttempts.first().attemptState != WordleAttempState.USER_IS_CURRENTLY_HERE)
+        if (listOfAttempts.first().attemptState != WordleAttemptState.USER_IS_CURRENTLY_HERE)
             emojiIntent = Intent.createChooser(Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(
@@ -142,7 +140,7 @@ fun WordleResultsScreen(
                 attempt = wordle.word,
                 letterStates = WordleAttempt(
                     wordle.word,
-                    attemptState = WordleAttempState.USER_HAS_TRIED,
+                    attemptState = WordleAttemptState.USER_HAS_TRIED,
                     listOfLetterStates = listOf(
                         LetterState.LETTER_CORRECT_PLACE,
                         LetterState.LETTER_CORRECT_PLACE,
@@ -182,7 +180,7 @@ fun WordleResultsScreen(
                     BasicText(modifier = Modifier.fillMaxWidth().padding(16.dp), text = "If you login, you will keep up your stats.")
                 }
             }
-            BasicText(text = "Attemps")
+            BasicText(text = "Attempts")
             WordleRows(
                 wordleWord = wordle.word,
                 attempt = "",
@@ -209,12 +207,12 @@ fun WordleResultsScreen(
 
 fun generateResultEmoteString(listOfAttempts: List<WordleAttempt>) = StringBuilder().apply {
     append("The Bible Wordle ")
-    append("${listOfAttempts.count { it.attemptState == WordleAttempState.USER_HAS_TRIED }}/6\n")
+    append("${listOfAttempts.count { it.attemptState == WordleAttemptState.USER_HAS_TRIED }}/6\n")
     val green = String(Character.toChars(0x1F7E9))
     val black = String(Character.toChars(0x2B1B))
     val yellow = String(Character.toChars(0x1F7E8))
     listOfAttempts.forEach {
-        if (it.attemptState == WordleAttempState.USER_HAS_TRIED) {
+        if (it.attemptState == WordleAttemptState.USER_HAS_TRIED) {
             append("\n")
             it.listOfLetterStates.forEach { letterState ->
                 when (letterState) {

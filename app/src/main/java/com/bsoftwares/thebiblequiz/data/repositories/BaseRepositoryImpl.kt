@@ -20,7 +20,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
-import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempState
+import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -32,7 +32,6 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -382,7 +381,7 @@ class BaseRepositoryImpl @Inject constructor(
         if (session.userInfo.userId.isNotEmpty()) {
             var pointsToUpdateLeagues = 0
             val getWhichTry =
-                numberOfAttempt.indexOfLast { it.attemptState == WordleAttempState.USER_HAS_TRIED }
+                numberOfAttempt.indexOfLast { it.attemptState == WordleAttemptState.USER_HAS_TRIED }
             val currentUserStats = session.wordle.wordleStats.apply {
                 if (userFoundTheWord) {
                     when (getWhichTry) {
@@ -455,7 +454,7 @@ class BaseRepositoryImpl @Inject constructor(
         attemptList: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
         if (session.userInfo.userId.isNotEmpty()) {
-            usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
+            usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttempts")
                 .setValue(attemptList)
                 .addOnFailureListener {
                     it.message?.apply {
@@ -466,10 +465,10 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
+    override suspend fun getAttempts(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
         callbackFlow {
             val ref =
-                usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttemps")
+                usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttempts")
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<List<WordleAttempt>>()?.apply {

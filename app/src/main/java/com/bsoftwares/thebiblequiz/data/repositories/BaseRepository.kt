@@ -31,7 +31,7 @@ interface BaseRepository {
     fun updateGameModeValue(key: String, value: Boolean)
     suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>>
     suspend fun updateWordleStats(userFoundTheWord: Boolean, session: Session, numberOfAttempt: List<WordleAttempt>): Flow<FeedbackMessage>
-    suspend fun getAttemps(session: Session): Flow<ResultOf<List<WordleAttempt>>>
+    suspend fun getAttempts(session: Session): Flow<ResultOf<List<WordleAttempt>>>
     suspend fun checkWord(word: String): Flow<ResultOf<String>>
     suspend fun updateWordleList(session: Session, attemptList: List<WordleAttempt>): Flow<FeedbackMessage>
     suspend fun sendFriendRequestV2(session: Session, friendId: String): Flow<ResultOf<FeedbackMessage>>
