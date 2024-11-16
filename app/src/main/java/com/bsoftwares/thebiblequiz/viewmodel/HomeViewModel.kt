@@ -167,9 +167,19 @@ class HomeViewModel @Inject constructor(
     fun refresh() = backGroundScope.launch {
         _isRefreshing.emit(true)
         checkGamesAvailability()
-        updateSession()
+        collectSession()
         delay(1000)
         _isRefreshing.emit(false)
+    }
+
+    //Function to quickly update the visible session
+    private fun collectSession() = backGroundScope.launch {
+        updateSession()
+        autoCancellable {
+            localSession.collectLatestAndApplyOnMain {
+                _visibleSession.emit(it)
+            }
+        }
     }
 
     private fun listenToBibleVerseUpdate(day: Int) = backGroundScope.launch {
@@ -442,7 +452,7 @@ class HomeViewModel @Inject constructor(
         repo.setUserPremium(localSession.value).collectLatest {
             emitFeedbackMessage(it)
             if (it == FeedbackMessage.YouAreNowPremium) {
-                updateSession()
+                collectSession()
             }
         }
     }

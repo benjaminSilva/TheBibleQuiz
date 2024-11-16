@@ -230,7 +230,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         viewModelJob.cancel()
     }
 
-    suspend fun CoroutineScope.autoCancellable(code: suspend () -> Unit) {
+    fun CoroutineScope.autoCancellable(code: suspend () -> Unit) {
         launch {
             withTimeout(jobTimeOut) {
                 code()
