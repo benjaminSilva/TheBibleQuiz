@@ -95,6 +95,10 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         }
     }
 
+    fun updateSession() = backGroundScope.launch {
+        collectSession()
+    }
+
     fun resetErrorMessage() = viewModelScope.launch {
         _feedbackMessage.emit(value = FeedbackMessage.NoMessage)
     }

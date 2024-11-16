@@ -50,6 +50,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
+import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
@@ -409,29 +410,31 @@ fun ProfileScreen(
                             contentDescription = null
                         )
                     }
-                    if (!isPremiumUser) {
-                        BasicContainer(
-                            backGroundColor = colorResource(id = R.color.background_color),
-                            onClick = {
-                                displayDialogFunction(ProfileDialogType.StartPremium)
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    if (!session.premium) {
+                        AnimatedBorderCard {
+                            BasicContainer(
+                                backGroundColor = colorResource(id = R.color.background_color),
+                                onClick = {
+                                    displayDialogFunction(ProfileDialogType.StartPremium)
+                                }
                             ) {
-                                Image(
+                                Row(
                                     modifier = Modifier
-                                        .size(24.dp),
-                                    painter = painterResource(id = R.drawable.workspace_premium_fill0_wght400_grad0_opsz24),
-                                    contentDescription = null
-                                )
-                                BasicText(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    text = "Get Premium"
-                                )
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Image(
+                                        modifier = Modifier
+                                            .size(24.dp),
+                                        painter = painterResource(id = R.drawable.crown_svgrepo_com),
+                                        contentDescription = null
+                                    )
+                                    BasicText(
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                        text = "Get Premium"
+                                    )
+                                }
                             }
                         }
                     }

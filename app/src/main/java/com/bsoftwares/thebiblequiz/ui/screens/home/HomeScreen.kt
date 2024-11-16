@@ -49,11 +49,13 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
+import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAnimations
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
+import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import java.util.Calendar
@@ -67,6 +69,17 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
     val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
+    val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+
+    var displayDialog by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(dialog) {
+        if (dialog != DialogType.EmptyValue) {
+            displayDialog = true
+        }
+    }
 
     val pullRefreshState =
         rememberPullRefreshState(isRefreshing, onRefresh = { homeViewModel.refresh() })
@@ -81,11 +94,23 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         homeViewModel.checkGamesAvailability()
     }
 
+    if (displayDialog) {
+        when (dialog) {
+            ProfileDialogType.StartPremium -> {
+                PaywallScreen(enablePremium = {
+                    homeViewModel.updateToPremium()
+                }) {
+                    homeViewModel.updateDialog()
+                }
+            }
+            else -> Unit
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
             if (result.resultCode == RESULT_OK) {
-
                 homeViewModel.signInSomething(result.data)
             }
         }
@@ -103,8 +128,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         navigate = {
             navController.navigate(it.value)
             homeViewModel.updateClickable()
-        }, openDialog = { dialog ->
-            homeViewModel.updateDialog(dialogType = dialog)
+        }, openDialog = { dialogToOpen ->
+            homeViewModel.updateDialog(dialogType = dialogToOpen)
         }
     ) {
         homeViewModel.signIn(launcher)
@@ -336,7 +361,7 @@ fun HomeScreen(
                     if (localSession.userInfo.userId.isNotBlank()) {
                         AsyncImage(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(48.dp)
                                 .clip(CircleShape),
                             model = localSession.userInfo.profilePictureUrl,
                             contentDescription = null
@@ -344,7 +369,7 @@ fun HomeScreen(
                     } else {
                         Image(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(48.dp)
                                 .align(Alignment.CenterVertically),
                             painter = painterResource(id = R.drawable.baseline_login_24),
                             contentDescription = null
@@ -363,24 +388,36 @@ fun HomeScreen(
                 }
             }
 
-            if (!localSession.premium) {
-                BasicContainer(modifier = Modifier
-                    .fillMaxWidth(),
-                    enabled = enabled,
-                    onClick = {
-                        openDialog(ProfileDialogType.StartPremium)
-                    }
-                ) {
-                    BasicText(
+            if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
+                AnimatedBorderCard {
+                    BasicContainer(
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 8.dp),
-                        text = if (localSession.userInfo.userId.isNotBlank()) stringResource(R.string.profile) else stringResource(
-                            R.string.login_with_google
-                        ),
-                        fontSize = 24,
-                        lineHeight = 22
-                    )
+                            .fillMaxWidth(),
+                        enabled = enabled,
+                        onClick = {
+                            openDialog(ProfileDialogType.StartPremium)
+                        }
+                    ) {
+
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                        ) {
+                            Image(
+                                modifier = Modifier.size(48.dp),
+                                painter = painterResource(id = R.drawable.crown_svgrepo_com),
+                                contentDescription = null
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 8.dp),
+                                text = stringResource(R.string.get_premium),
+                                fontSize = 24,
+                                lineHeight = 22
+                            )
+                        }
+                    }
                 }
             }
 

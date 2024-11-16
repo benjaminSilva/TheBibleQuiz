@@ -1,7 +1,6 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
 import android.content.Intent
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -19,7 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -169,6 +167,7 @@ class HomeViewModel @Inject constructor(
     fun refresh() = backGroundScope.launch {
         _isRefreshing.emit(true)
         checkGamesAvailability()
+        updateSession()
         delay(1000)
         _isRefreshing.emit(false)
     }
@@ -205,6 +204,7 @@ class HomeViewModel @Inject constructor(
             repo.getSession(intent).collectLatest {
                 it.handleSuccessAndFailure { session ->
                     updateSession(session)
+                    _visibleSession.emit(session)
                 }
             }
         }.apply {
@@ -440,7 +440,10 @@ class HomeViewModel @Inject constructor(
 
     fun updateToPremium() = backGroundScope.launch {
         repo.setUserPremium(localSession.value).collectLatest {
-
+            emitFeedbackMessage(it)
+            if (it == FeedbackMessage.YouAreNowPremium) {
+                updateSession()
+            }
         }
     }
 }
