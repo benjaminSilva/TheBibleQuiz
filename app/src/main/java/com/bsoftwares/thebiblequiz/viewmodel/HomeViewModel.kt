@@ -86,28 +86,28 @@ class HomeViewModel @Inject constructor(
 
     init {
         initHomeViewModel()
+        initLocalSessionListener()
+    }
+
+    private fun initLocalSessionListener() = backGroundScope.launch {
+        localSession.collectLatest { session ->
+            if (session.userInfo.userId.isNotEmpty()) {
+                loadPremiumStatus()
+                val currentUserId = visibleSession.value.userInfo.userId
+                if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
+                    _visibleSession.emit(session)
+                    _isFromLocalSession.emit(true)
+                    loadFriendRequests(session)
+                    loadLeagues()
+                }
+            }
+        }
     }
 
     private fun initHomeViewModel() = backGroundScope.launch {
         day.collectLatest {
             if (it != -1) {
                 listenToBibleVerseUpdate(it)
-                loginSession = launch {
-                    localSession.collectLatest { session ->
-                        if (session.userInfo.userId.isNotEmpty()) {
-                            loadPremiumStatus()
-                            val currentUserId = visibleSession.value.userInfo.userId
-                            if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
-                                _visibleSession.emit(session)
-                                _isFromLocalSession.emit(true)
-                                loadFriendRequests(session)
-                                loadLeagues()
-                            }
-                        }
-                    }
-                }.apply {
-                    start()
-                }
             }
         }
     }
@@ -117,7 +117,6 @@ class HomeViewModel @Inject constructor(
             result.handleSuccessAndFailure { isSubscribed ->
                 _isCurrentUserPremium.emit(isSubscribed)
             }
-            cancelSubscriptions()
         }
     }
 
@@ -167,7 +166,6 @@ class HomeViewModel @Inject constructor(
     fun refresh() = backGroundScope.launch {
         _isRefreshing.emit(true)
         checkGamesAvailability()
-        collectSession()
         delay(1000)
         _isRefreshing.emit(false)
     }
@@ -191,7 +189,6 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun resetState() = backGroundScope.launch {
-        cancelSubscriptions()
         _visibleSession.update {
             Session()
         }
@@ -202,11 +199,6 @@ class HomeViewModel @Inject constructor(
         _listOfFriends.update {
             listOf()
         }
-    }
-
-    private fun cancelSubscriptions() {
-        loginSession?.cancel()
-        cancelCollectSession()
     }
 
     fun signInSomething(intent: Intent?) {
@@ -451,9 +443,6 @@ class HomeViewModel @Inject constructor(
     fun updateToPremium() = backGroundScope.launch {
         repo.setUserPremium(localSession.value).collectLatest {
             emitFeedbackMessage(it)
-            if (it == FeedbackMessage.YouAreNowPremium) {
-                collectSession()
-            }
         }
     }
 }

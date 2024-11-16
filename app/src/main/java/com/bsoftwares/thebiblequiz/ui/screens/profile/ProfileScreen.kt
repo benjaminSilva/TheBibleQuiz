@@ -68,6 +68,8 @@ import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
+import com.bsoftwares.thebiblequiz.ui.theme.lighterGray
+import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 
@@ -830,8 +832,7 @@ fun LeaguesIcon(modifier: Modifier = Modifier) {
                 .width(22.dp)
                 .fillMaxHeight(animateHeight[0].value)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp))
-
-                .background(gray)
+                .background(lighterGray)
         ) {
             BasicText(
                 modifier = Modifier
@@ -861,7 +862,7 @@ fun LeaguesIcon(modifier: Modifier = Modifier) {
                 .fillMaxHeight(animateHeight[2].value)
                 .width(22.dp)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                .background(closeToBlack)
+                .background(prettyMuchBlack)
         ) {
             BasicText(
                 modifier = Modifier
