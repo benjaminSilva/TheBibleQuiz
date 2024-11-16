@@ -1,0 +1,62 @@
+<resources>
+    <string name="app_name">O Quiz Bíblico</string>
+    <string name="the_quiz_mode">O Quiz</string>
+    <string name="biblical_wordle">Biblical Wordle</string>
+    <string name="go_back">Voltar</string>
+    <string name="start_question">Começar a pergunta</string>
+    <string name="title_activity_splash_screen">The Bible Quiz</string>
+    <string name="bible_verse">"Verso Bíblico: "</string>
+    <string name="selected_answer">"Resposta Escolhida: "</string>
+    <string name="reminder_channel">reminder_channel</string>
+
+
+    <string name="error_word_is_not_in_our_list">A palavra não está em nossa lista</string>
+    <string name="error_network_issue">Parece que estamos tendo alguns poblemas com a internet, tente novamente mais tarde.</string>
+    <string name="error_word_not_long_enough">Tem que ter pelo menos %1$d letras</string>
+    <string name="error_wordle_repeated_word">Você já tentou essa palavra antes</string>
+    <string name="error_profile_user_doesnt_exist">Usuário não existe</string>
+    <string name="error_no_user_id">Você tem que adicionar o ID do usuário</string>
+    <string name="no_error" />
+    <string name="feedback_you_cant_add_yourself">Você não pode se adicionar</string>
+    <string name="feedback_you_are_already_friends_with_this_user">Você já é amigo desse usuário</string>
+    <string name="feedback_you_have_already_sent_a_friend_request_to_this_user">Você já enviou um pedido de amizade para este usuário</string>
+    <string name="feedback_you_have_sent_a_friend_request">Você enviou o pedido de amizade</string>
+    <string name="feedback_friend_removed">Amigo removido</string>
+    <string name="feedback_question_suggestion_sent">Sugestão de pergunta foi enviada com sucesso!</string>
+    <string name="feedback_friend_invitation">Amigos convidados</string>
+    <string name="feedback_league_updated">Liga atualizada</string>
+    <string name="feedback_no_change">Não há mudanças</string>
+    <string name="feedback_image_updated">Imagem atualizada</string>
+    <string name="feedback_question_league_created">Liga creada com sucesso</string>
+    <string name="question_suggestion_bible_verse_details">Se o verso da Bíblia não for aplicável, então apenas coloque \'N/A\'. Por exemplo, caso sua pergunta seja algo como \'Qual é o último livro da Bíblia?\' - A resposta dessa pergunta não está em um versículo específico.</string>
+    <string name="question_suggestion_created_by_details">Vamos te dar o crédito pela criação da pergunta.</string>
+    <string name="weekly">Semanalmente</string>
+    <string name="two_weeks">Duas semanas</string>
+    <string name="monthly">Mensalmente</string>
+    <string name="three_months">Três meses</string>
+    <string name="six_months">Seis meses</string>
+    <string name="yearly">Anualmente</string>
+    <string name="no_end">Sem fim</string>
+    <string name="quiz_only">Apenas Quiz</string>
+    <string name="wordle_only">Apenas Wordle</string>
+    <string name="quiz_and_wordle">Quiz e Wordle</string>
+
+    <!-- Icons Strings -->
+    <string name="icon_shield_cross">Escudo com uma cruz</string>
+    <string name="icon_be_not_afraid">Não temas</string>
+    <string name="icon_christ_the_redeemer">Cristo Redentor</string>
+    <string name="icon_fish">Ichthys</string>
+    <string name="icon_church">Igreja</string>
+    <string name="good_morning_msg">Bom dia %1$s</string>
+    <string name="good_afternoon">Boa noite %1$s</string>
+    <string name="good_evening">Boa tarde %1$s</string>
+    <string name="verse_of_the_day">Verso do dia</string>
+    <string name="daily_bible_quiz">Quiz Bíblico\nDiário</string>
+    <string name="biblical_wordle_home">Wordle\nBíblico</string>
+    <string name="profile">Profile</string>
+    <string name="login_with_google">Logar com Google</string>
+    <string name="rate">Avalie</string>
+    <string name="share">Compartilhe</string>
+    <string name="correct_answer">"Resposta Correta: "</string>
+
+</resources>

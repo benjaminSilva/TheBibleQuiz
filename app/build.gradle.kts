@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.novagincanabiblica"
+    namespace = "com.bsoftwares.thebiblequiz"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.novagincanabiblica"
+        applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -28,7 +28,6 @@ android {
             isDebuggable = true
         }
         release {
-            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -48,7 +47,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.4.5"
     }
     packaging {
         resources {
@@ -61,30 +60,30 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.activity:activity-compose:1.8.1")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.compose.material3:material3:1.2.0-alpha12")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.compose.material:material:1.6.0-alpha08")
+    implementation("androidx.compose.material:material:1.6.0-beta02")
 
 
     //Hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
-    implementation("androidx.hilt:hilt-work:1.0.0")
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation("com.google.dagger:hilt-android:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-fragment:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.1.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.test:runner:1.5.2")
     implementation("com.google.firebase:firebase-database:20.3.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    kapt("androidx.hilt:hilt-compiler:1.0.0")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    kapt("androidx.hilt:hilt-compiler:1.1.0")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     testImplementation("com.google.dagger:hilt-android-testing:2.44")
 
@@ -106,6 +105,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.4.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     //Koil
     implementation("io.coil-kt:coil-compose:2.4.0")
@@ -113,9 +114,9 @@ dependencies {
     //Moshi
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
-    //Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.4.0")
+    //Money
+    implementation("com.revenuecat.purchases:purchases:7.2.7")
+    implementation("com.revenuecat.purchases:purchases-ui:7.2.7")
+    implementation("com.android.billingclient:billing-ktx:6.1.0")
 
 }
