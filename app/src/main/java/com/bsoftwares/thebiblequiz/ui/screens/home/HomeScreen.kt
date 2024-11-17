@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -103,6 +105,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
                     homeViewModel.updateDialog()
                 }
             }
+
             else -> Unit
         }
     }
@@ -163,12 +166,12 @@ fun HomeScreen(
 
     val animationLayoutList =
         generateSubSequentialAlphaAnimations(
-            numberOfViews = 5,
+            numberOfViews = 6,
             condition = startAnimation,
-            duration = 500
+            duration = 1000
         )
     val animationPositionList = generateSubSequentialPositionAnimations(
-        numberOfViews = 5,
+        numberOfViews = 6,
         condition = startAnimation,
         offsetStart = IntOffset(-80, 0),
         duration = 500
@@ -225,10 +228,12 @@ fun HomeScreen(
                             R.string.good_morning_msg,
                             localSession.userInfo.userName
                         )
+
                         (12..18).contains(hourOfTheDay) -> stringResource(
                             R.string.good_afternoon,
                             localSession.userInfo.userName
                         )
+
                         else -> stringResource(
                             R.string.good_evening,
                             localSession.userInfo.userName
@@ -239,7 +244,11 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[0].value)
+                    .offset {
+                        animationPositionList[0].value
+                    },
                 onLongClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     context.startActivity(bibleVerseShareIntent)
@@ -280,7 +289,10 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[1].value).offset {
+                        animationPositionList[1].value
+                    },
                 enabled = enabled,
                 onClick = {
                     // Uncomment this before release
@@ -312,7 +324,10 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[2].value).offset {
+                        animationPositionList[2].value
+                    },
                 enabled = enabled,
                 onClick = {
                     //navController.navigate(Routes.WordleMode.value)
@@ -344,7 +359,11 @@ fun HomeScreen(
             }
 
             BasicContainer(modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .alpha(alpha = animationLayoutList[3].value)
+                .offset {
+                    animationPositionList[3].value
+                },
                 enabled = enabled,
                 onClick = {
                     if (localSession.userInfo.userId.isNotBlank()) {
@@ -388,8 +407,12 @@ fun HomeScreen(
                 }
             }
 
+            var forLastView = 4
+
             if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
-                AnimatedBorderCard {
+                AnimatedBorderCard(modifier = Modifier.alpha(alpha = animationLayoutList[4].value).offset {
+                    animationPositionList[4].value
+                }) {
                     BasicContainer(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -419,11 +442,16 @@ fun HomeScreen(
                         }
                     }
                 }
+                forLastView = 5
             }
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[forLastView].value)
+                    .offset {
+                        animationPositionList[forLastView].value
+                    },
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
@@ -432,7 +460,7 @@ fun HomeScreen(
                     .weight(1f),
                     enabled = enabled,
                     onClick = {
-
+                        context.startActivity(appShareIntent)
                     }
                 ) {
 
