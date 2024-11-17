@@ -15,9 +15,9 @@ import androidx.navigation.navigation
 import com.bsoftwares.thebiblequiz.ui.screens.profile.InitializeProfileScreen
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitSuggestQuestionScreen
-import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeSoloResultScreen
-import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializePreSoloScreen
-import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeSoloQuestionScreen
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizResultScreen
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializePreQuizScreen
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleResult
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleScreen
 import com.bsoftwares.thebiblequiz.ui.screens.home.InitializeHomeScreen
@@ -89,7 +89,7 @@ fun SetupNavGraph(navController: NavHostController) {
         ) {
             composable(route = Routes.PreQuiz.value) {
                 val soloViewModel = it.sharedViewModel<BibleQuizViewModel>(navController = navController)
-                InitializePreSoloScreen(
+                InitializePreQuizScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
                 )
@@ -97,7 +97,7 @@ fun SetupNavGraph(navController: NavHostController) {
             composable(route = Routes.Quiz.value) {
                 val soloViewModel =
                     it.sharedViewModel<BibleQuizViewModel>(navController = navController)
-                InitializeSoloQuestionScreen(
+                InitializeQuizScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
                 )
@@ -105,7 +105,7 @@ fun SetupNavGraph(navController: NavHostController) {
             composable(route = Routes.QuizResults.value) {
                 val soloViewModel =
                     it.sharedViewModel<BibleQuizViewModel>(navController = navController)
-                InitializeSoloResultScreen(
+                InitializeQuizResultScreen(
                     navController = navController,
                     soloViewModel = soloViewModel
                 )

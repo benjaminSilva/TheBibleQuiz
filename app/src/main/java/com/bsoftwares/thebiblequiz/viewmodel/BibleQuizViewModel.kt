@@ -109,7 +109,7 @@ class BibleQuizViewModel @Inject constructor(
     }
 
     fun updateQuestionResult(isCorrect: Boolean) = backGroundScope.launch {
-        repo.updateStats(currentQuestion.value, isCorrect, localSession.value)
+        repo.updateStats(currentQuestion.value, isCorrect, localSession.value, selectedAnswer.value.answerText)
             .collectLatestAndApplyOnMain {
                 emitFeedbackMessage(it)
             }

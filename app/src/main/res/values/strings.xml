@@ -56,9 +56,9 @@
     <string name="login_with_google">Login with Google</string>
     <string name="rate">Rate</string>
     <string name="share">Share</string>
-    <string name="bible_verse">Bible Verse: </string>
-    <string name="correct_answer">Correct Answer: </string>
-    <string name="selected_answer">Selected Answer: </string>
+    <string name="bible_verse">Bible Verse:</string>
+    <string name="correct_answer">Correct Answer:</string>
+    <string name="selected_answer">Selected Answer:</string>
     <string name="suggest_a_question">Suggest a question</string>
     <string name="how_to_play">How to play</string>
     <string name="get_premium">Get Premium</string>

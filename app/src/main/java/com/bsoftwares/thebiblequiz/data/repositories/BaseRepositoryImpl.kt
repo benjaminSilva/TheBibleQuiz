@@ -104,7 +104,8 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun updateStats(
         currentQuestion: Question,
         isCorrect: Boolean,
-        session: Session
+        session: Session,
+        answerSelectedByTheUser: String
     ): Flow<FeedbackMessage> =
         channelFlow {
 
@@ -112,6 +113,7 @@ class BaseRepositoryImpl @Inject constructor(
                 var pointsToUpdateLeagues = 0
 
                 val currentUserStats = session.quizStats.apply {
+                    answerSelected = answerSelectedByTheUser
                     if (isCorrect) {
                         streak += 1
                         when (currentQuestion.difficulty) {
