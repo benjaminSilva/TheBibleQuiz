@@ -121,20 +121,18 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadLeagues(currentLeagueId: String = "") = backGroundScope.launch {
-        autoCancellable {
-            repo.loadLeagues(localSession.value).collectLatestAndApplyOnMain {
-                it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
-                    _listOfLeagueInvitation.emit(listOfLeagueInvitation)
-                    _listOfLeagues.emit(listOfLeagues)
-                    if (currentLeagueId.isNotEmpty()) {
-                        val league = listOfLeagues.find { league ->
-                            league.leagueId == currentLeagueId
-                        }
-                        league?.apply {
-                            updateDialog()
-                            _currentLeague.emit(this)
-                            loadLeagueUsers(this)
-                        }
+        repo.loadLeagues(localSession.value).collectLatestAndApplyOnMain {
+            it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
+                _listOfLeagueInvitation.emit(listOfLeagueInvitation)
+                _listOfLeagues.emit(listOfLeagues)
+                if (currentLeagueId.isNotEmpty()) {
+                    val league = listOfLeagues.find { league ->
+                        league.leagueId == currentLeagueId
+                    }
+                    league?.apply {
+                        updateDialog()
+                        _currentLeague.emit(this)
+                        loadLeagueUsers(this)
                     }
                 }
             }
@@ -381,9 +379,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentLeague(it: League) = backGroundScope.launch {
-        _currentLeague.emit(it)
-        loadLeagueUsers(it)
+    fun setCurrentLeague(league: League) = backGroundScope.launch {
+        repo.observeThisLeague(league).collectLatest {
+            it.handleSuccessAndFailure { league ->
+                _currentLeague.emit(league)
+                loadLeagueUsers(league)
+            }
+        }
     }
 
     private fun getSessionOfCurrentUser(league: League): SessionInLeague = try {

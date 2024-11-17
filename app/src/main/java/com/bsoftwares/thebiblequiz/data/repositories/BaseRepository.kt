@@ -50,4 +50,5 @@ interface BaseRepository {
     suspend fun getConnectivityStatus(): Flow<ConnectivityStatus>
     suspend fun setUserPremium(session: Session): Flow<FeedbackMessage>
     suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>>
+    suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>>
 }
