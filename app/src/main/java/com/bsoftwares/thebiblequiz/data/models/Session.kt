@@ -42,7 +42,8 @@ data class QuestionStatsData(
     var hardWrong: Int = 0,
     var impossibleCorrect: Int = 0,
     var impossibleWrong: Int = 0,
-    var streak: Int = 0
+    var streak: Int = 0,
+    var answerSelected: String = ""
 ) {
     @Exclude
     fun getTotalEasy(): Int = easyWrong + easyCorrect

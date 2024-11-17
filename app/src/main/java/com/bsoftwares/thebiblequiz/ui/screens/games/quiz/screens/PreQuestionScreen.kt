@@ -49,7 +49,7 @@ import com.bsoftwares.thebiblequiz.ui.theme.achivoFontFamily
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
 @Composable
-fun InitializePreSoloScreen(
+fun InitializePreQuizScreen(
     navController: NavHostController,
     soloViewModel: BibleQuizViewModel
 ) {

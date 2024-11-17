@@ -26,7 +26,7 @@ interface BaseRepository {
     suspend fun getDay(): Flow<ResultOf<Int>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
-    suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session): Flow<FeedbackMessage>
+    suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session, answerSelectedByTheUser: String = "You did not select an answer"): Flow<FeedbackMessage>
     suspend fun isThisGameModeAvailable(key: String): Flow<Boolean>
     fun updateGameModeValue(key: String, value: Boolean)
     suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>>

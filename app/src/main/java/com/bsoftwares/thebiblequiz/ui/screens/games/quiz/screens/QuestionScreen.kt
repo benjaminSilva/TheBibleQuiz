@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -58,13 +57,12 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.ClockTimer
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.achivoFontFamily
 import com.bsoftwares.thebiblequiz.ui.theme.correctAnswer
-import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
 import com.bsoftwares.thebiblequiz.ui.theme.wrongAnswer
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
 
 @Composable
-fun InitializeSoloQuestionScreen(
+fun InitializeQuizScreen(
     navController: NavHostController,
     soloViewModel: BibleQuizViewModel
 ) {

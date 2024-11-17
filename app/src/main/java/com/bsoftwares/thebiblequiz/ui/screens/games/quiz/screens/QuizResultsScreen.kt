@@ -36,7 +36,7 @@ import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
 @Composable
-fun InitializeSoloResultScreen(
+fun InitializeQuizResultScreen(
     navController: NavHostController,
     soloViewModel: BibleQuizViewModel
 ) {
@@ -99,7 +99,7 @@ fun ResultsScreen(
 
                     QuestionGridResultView(
                         question = question,
-                        selectedAnswer = selectedAnswer,
+                        selectedAnswer = session.quizStats.answerSelected,
                         correctAnswer = correctAnswer
                     )
                 }
@@ -170,24 +170,24 @@ fun BackAndShare(modifier: Modifier, goBackClick: () -> Unit, shareClick: () -> 
 }
 
 @Composable
-fun QuestionGridResultView(question: Question, correctAnswer: Answer, selectedAnswer: Answer) {
+fun QuestionGridResultView(question: Question, correctAnswer: Answer, selectedAnswer: String) {
     Box {
         Column (verticalArrangement = Arrangement.spacedBy(4.dp)) {
             BasicText(text = question.question, fontSize = 22)
             Row {
                 BasicText(text = stringResource(id = R.string.correct_answer))
-                BasicText(text = correctAnswer.answerText)
+                BasicText(modifier = Modifier.padding(start = 8.dp), text = correctAnswer.answerText)
             }
-            if (!selectedAnswer.correct) {
+            if (selectedAnswer != correctAnswer.answerText) {
                 Row {
                     BasicText(text = stringResource(id = R.string.selected_answer))
-                    BasicText(text = selectedAnswer.answerText)
+                    BasicText(modifier = Modifier.padding(start = 8.dp), text = selectedAnswer)
                 }
             }
             if (question.bibleVerse.isNotEmpty()) {
                 Row {
                     BasicText(text = stringResource(id = R.string.bible_verse))
-                    BasicText(text = question.bibleVerse)
+                    BasicText(modifier = Modifier.padding(start = 8.dp), text = question.bibleVerse)
                 }
             }
         }
