@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -48,11 +49,15 @@ import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.state.DialogType
+import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
+import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAnimations
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
+import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import java.util.Calendar
@@ -66,6 +71,17 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
     val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
+    val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+
+    var displayDialog by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(dialog) {
+        if (dialog != DialogType.EmptyValue) {
+            displayDialog = true
+        }
+    }
 
     val pullRefreshState =
         rememberPullRefreshState(isRefreshing, onRefresh = { homeViewModel.refresh() })
@@ -80,11 +96,24 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         homeViewModel.checkGamesAvailability()
     }
 
+    if (displayDialog) {
+        when (dialog) {
+            ProfileDialogType.StartPremium -> {
+                PaywallScreen(enablePremium = {
+                    homeViewModel.updateToPremium()
+                }) {
+                    homeViewModel.updateDialog()
+                }
+            }
+
+            else -> Unit
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
             if (result.resultCode == RESULT_OK) {
-
                 homeViewModel.signInSomething(result.data)
             }
         }
@@ -102,6 +131,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         navigate = {
             navController.navigate(it.value)
             homeViewModel.updateClickable()
+        }, openDialog = { dialogToOpen ->
+            homeViewModel.updateDialog(dialogType = dialogToOpen)
         }
     ) {
         homeViewModel.signIn(launcher)
@@ -120,7 +151,8 @@ fun HomeScreen(
     isRefreshing: Boolean,
     enabled: Boolean,
     navigate: (Routes) -> Unit,
-    onClickSignIn: () -> Unit
+    openDialog: (DialogType) -> Unit,
+    onClickSignIn: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -134,12 +166,12 @@ fun HomeScreen(
 
     val animationLayoutList =
         generateSubSequentialAlphaAnimations(
-            numberOfViews = 5,
+            numberOfViews = 6,
             condition = startAnimation,
-            duration = 500
+            duration = 1000
         )
     val animationPositionList = generateSubSequentialPositionAnimations(
-        numberOfViews = 5,
+        numberOfViews = 6,
         condition = startAnimation,
         offsetStart = IntOffset(-80, 0),
         duration = 500
@@ -196,10 +228,12 @@ fun HomeScreen(
                             R.string.good_morning_msg,
                             localSession.userInfo.userName
                         )
+
                         (12..18).contains(hourOfTheDay) -> stringResource(
                             R.string.good_afternoon,
                             localSession.userInfo.userName
                         )
+
                         else -> stringResource(
                             R.string.good_evening,
                             localSession.userInfo.userName
@@ -210,7 +244,11 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[0].value)
+                    .offset {
+                        animationPositionList[0].value
+                    },
                 onLongClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     context.startActivity(bibleVerseShareIntent)
@@ -251,7 +289,10 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[1].value).offset {
+                        animationPositionList[1].value
+                    },
                 enabled = enabled,
                 onClick = {
                     // Uncomment this before release
@@ -283,7 +324,10 @@ fun HomeScreen(
             }
             BasicContainer(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[2].value).offset {
+                        animationPositionList[2].value
+                    },
                 enabled = enabled,
                 onClick = {
                     //navController.navigate(Routes.WordleMode.value)
@@ -315,7 +359,11 @@ fun HomeScreen(
             }
 
             BasicContainer(modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .alpha(alpha = animationLayoutList[3].value)
+                .offset {
+                    animationPositionList[3].value
+                },
                 enabled = enabled,
                 onClick = {
                     if (localSession.userInfo.userId.isNotBlank()) {
@@ -332,7 +380,7 @@ fun HomeScreen(
                     if (localSession.userInfo.userId.isNotBlank()) {
                         AsyncImage(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(48.dp)
                                 .clip(CircleShape),
                             model = localSession.userInfo.profilePictureUrl,
                             contentDescription = null
@@ -340,7 +388,7 @@ fun HomeScreen(
                     } else {
                         Image(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(48.dp)
                                 .align(Alignment.CenterVertically),
                             painter = painterResource(id = R.drawable.baseline_login_24),
                             contentDescription = null
@@ -359,9 +407,51 @@ fun HomeScreen(
                 }
             }
 
+            var forLastView = 4
+
+            if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
+                AnimatedBorderCard(modifier = Modifier.alpha(alpha = animationLayoutList[4].value).offset {
+                    animationPositionList[4].value
+                }) {
+                    BasicContainer(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        enabled = enabled,
+                        onClick = {
+                            openDialog(ProfileDialogType.StartPremium)
+                        }
+                    ) {
+
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                        ) {
+                            Image(
+                                modifier = Modifier.size(48.dp),
+                                painter = painterResource(id = R.drawable.crown_svgrepo_com),
+                                contentDescription = null
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 8.dp),
+                                text = stringResource(R.string.get_premium),
+                                fontSize = 24,
+                                lineHeight = 22
+                            )
+                        }
+                    }
+                }
+                forLastView = 5
+            }
+
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha = animationLayoutList[forLastView].value)
+                    .offset {
+                        animationPositionList[forLastView].value
+                    },
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
@@ -370,7 +460,7 @@ fun HomeScreen(
                     .weight(1f),
                     enabled = enabled,
                     onClick = {
-
+                        context.startActivity(appShareIntent)
                     }
                 ) {
 
@@ -456,6 +546,8 @@ fun HomePreview() {
             isRefreshing = true,
             enabled = true,
             navigate = {
+
+            }, {
 
             }
         ) {

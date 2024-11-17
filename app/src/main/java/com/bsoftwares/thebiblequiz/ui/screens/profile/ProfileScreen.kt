@@ -50,6 +50,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
+import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
@@ -67,6 +68,8 @@ import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
+import com.bsoftwares.thebiblequiz.ui.theme.lighterGray
+import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 
@@ -409,29 +412,31 @@ fun ProfileScreen(
                             contentDescription = null
                         )
                     }
-                    if (isPremiumUser) {
-                        BasicContainer(
-                            backGroundColor = colorResource(id = R.color.background_color),
-                            onClick = {
-                                displayDialogFunction(ProfileDialogType.StartPremium)
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    if (!session.premium) {
+                        AnimatedBorderCard {
+                            BasicContainer(
+                                backGroundColor = colorResource(id = R.color.background_color),
+                                onClick = {
+                                    displayDialogFunction(ProfileDialogType.StartPremium)
+                                }
                             ) {
-                                Image(
+                                Row(
                                     modifier = Modifier
-                                        .size(24.dp),
-                                    painter = painterResource(id = R.drawable.workspace_premium_fill0_wght400_grad0_opsz24),
-                                    contentDescription = null
-                                )
-                                BasicText(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    text = "Get Premium"
-                                )
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Image(
+                                        modifier = Modifier
+                                            .size(24.dp),
+                                        painter = painterResource(id = R.drawable.crown_svgrepo_com),
+                                        contentDescription = null
+                                    )
+                                    BasicText(
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                        text = "Get Premium"
+                                    )
+                                }
                             }
                         }
                     }
@@ -827,8 +832,7 @@ fun LeaguesIcon(modifier: Modifier = Modifier) {
                 .width(22.dp)
                 .fillMaxHeight(animateHeight[0].value)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 8.dp))
-
-                .background(gray)
+                .background(lighterGray)
         ) {
             BasicText(
                 modifier = Modifier
@@ -858,7 +862,7 @@ fun LeaguesIcon(modifier: Modifier = Modifier) {
                 .fillMaxHeight(animateHeight[2].value)
                 .width(22.dp)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                .background(closeToBlack)
+                .background(prettyMuchBlack)
         ) {
             BasicText(
                 modifier = Modifier

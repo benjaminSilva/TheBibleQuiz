@@ -2,10 +2,6 @@ package com.bsoftwares.thebiblequiz.ui.screens.profile
 
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Package
 import com.revenuecat.purchases.PurchasesError

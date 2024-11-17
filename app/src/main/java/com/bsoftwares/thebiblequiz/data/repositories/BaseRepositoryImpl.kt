@@ -273,6 +273,23 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>> = callbackFlow {
+        val ref = leaguesDatabaseReference.child(currentLeague.leagueId)
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                dataSnapshot.getValue<League>()?.apply {
+                    trySend(ResultOf.Success(this))
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            }
+        }
+        ref.addValueEventListener(postListener)
+        awaitClose { ref.removeEventListener(postListener) }
+    }
+
     override suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>> = callbackFlow {
         Log.e("User Id", getSignedInUserId())
         Purchases.sharedInstance.getCustomerInfo(

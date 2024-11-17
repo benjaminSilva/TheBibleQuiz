@@ -1,7 +1,6 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
 import android.content.Intent
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -19,7 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -88,28 +86,28 @@ class HomeViewModel @Inject constructor(
 
     init {
         initHomeViewModel()
+        initLocalSessionListener()
+    }
+
+    private fun initLocalSessionListener() = backGroundScope.launch {
+        localSession.collectLatest { session ->
+            if (session.userInfo.userId.isNotEmpty()) {
+                loadPremiumStatus()
+                val currentUserId = visibleSession.value.userInfo.userId
+                if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
+                    _visibleSession.emit(session)
+                    _isFromLocalSession.emit(true)
+                    loadFriendRequests(session)
+                    loadLeagues()
+                }
+            }
+        }
     }
 
     private fun initHomeViewModel() = backGroundScope.launch {
         day.collectLatest {
             if (it != -1) {
                 listenToBibleVerseUpdate(it)
-                loginSession = launch {
-                    localSession.collectLatest { session ->
-                        if (session.userInfo.userId.isNotEmpty()) {
-                            loadPremiumStatus()
-                            val currentUserId = visibleSession.value.userInfo.userId
-                            if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
-                                _visibleSession.emit(session)
-                                _isFromLocalSession.emit(true)
-                                loadFriendRequests(session)
-                                loadLeagues()
-                            }
-                        }
-                    }
-                }.apply {
-                    start()
-                }
             }
         }
     }
@@ -119,25 +117,22 @@ class HomeViewModel @Inject constructor(
             result.handleSuccessAndFailure { isSubscribed ->
                 _isCurrentUserPremium.emit(isSubscribed)
             }
-            cancelSubscriptions()
         }
     }
 
     private fun loadLeagues(currentLeagueId: String = "") = backGroundScope.launch {
-        autoCancellable {
-            repo.loadLeagues(localSession.value).collectLatestAndApplyOnMain {
-                it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
-                    _listOfLeagueInvitation.emit(listOfLeagueInvitation)
-                    _listOfLeagues.emit(listOfLeagues)
-                    if (currentLeagueId.isNotEmpty()) {
-                        val league = listOfLeagues.find { league ->
-                            league.leagueId == currentLeagueId
-                        }
-                        league?.apply {
-                            updateDialog()
-                            _currentLeague.emit(this)
-                            loadLeagueUsers(this)
-                        }
+        repo.loadLeagues(localSession.value).collectLatestAndApplyOnMain {
+            it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
+                _listOfLeagueInvitation.emit(listOfLeagueInvitation)
+                _listOfLeagues.emit(listOfLeagues)
+                if (currentLeagueId.isNotEmpty()) {
+                    val league = listOfLeagues.find { league ->
+                        league.leagueId == currentLeagueId
+                    }
+                    league?.apply {
+                        updateDialog()
+                        _currentLeague.emit(this)
+                        loadLeagueUsers(this)
                     }
                 }
             }
@@ -173,6 +168,16 @@ class HomeViewModel @Inject constructor(
         _isRefreshing.emit(false)
     }
 
+    //Function to quickly update the visible session
+    private fun collectSession() = backGroundScope.launch {
+        updateSession()
+        autoCancellable {
+            localSession.collectLatestAndApplyOnMain {
+                _visibleSession.emit(it)
+            }
+        }
+    }
+
     private fun listenToBibleVerseUpdate(day: Int) = backGroundScope.launch {
         repo.getDailyBibleVerse(day).collectLatest {
             it.handleSuccessAndFailure { bibleVerse ->
@@ -182,7 +187,6 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun resetState() = backGroundScope.launch {
-        cancelSubscriptions()
         _visibleSession.update {
             Session()
         }
@@ -195,16 +199,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun cancelSubscriptions() {
-        loginSession?.cancel()
-        cancelCollectSession()
-    }
-
     fun signInSomething(intent: Intent?) {
         loginSession = backGroundScope.launch {
             repo.getSession(intent).collectLatest {
                 it.handleSuccessAndFailure { session ->
                     updateSession(session)
+                    _visibleSession.emit(session)
                 }
             }
         }.apply {
@@ -379,9 +379,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentLeague(it: League) = backGroundScope.launch {
-        _currentLeague.emit(it)
-        loadLeagueUsers(it)
+    fun setCurrentLeague(league: League) = backGroundScope.launch {
+        repo.observeThisLeague(league).collectLatest {
+            it.handleSuccessAndFailure { league ->
+                _currentLeague.emit(league)
+                loadLeagueUsers(league)
+            }
+        }
     }
 
     private fun getSessionOfCurrentUser(league: League): SessionInLeague = try {
@@ -440,7 +444,7 @@ class HomeViewModel @Inject constructor(
 
     fun updateToPremium() = backGroundScope.launch {
         repo.setUserPremium(localSession.value).collectLatest {
-
+            emitFeedbackMessage(it)
         }
     }
 }

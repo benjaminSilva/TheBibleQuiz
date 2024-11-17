@@ -25,7 +25,7 @@
     <string name="feedback_league_updated">League Updated</string>
     <string name="feedback_no_change">There\'s no change.</string>
     <string name="feedback_image_updated">Image Updated</string>
-    <string name="feedback_user_premium">Image Updated</string>
+    <string name="feedback_user_premium">You are now a Premium member</string>
     <string name="feedback_question_league_created">League Created Successfully</string>
     <string name="question_suggestion_bible_verse_details">If bible verse does not apply just write N/A. Eg: If you ask \'What is the last book of the bible\', that does not have an specific bible verse with the answer.</string>
     <string name="question_suggestion_created_by_details">We will credit you if your question is approved.</string>
@@ -60,6 +60,7 @@
     <string name="correct_answer">Correct Answer: </string>
     <string name="selected_answer">Selected Answer: </string>
     <string name="suggest_a_question">Suggest a question</string>
-    <string name="how_to_play">Suggest a question</string>
+    <string name="how_to_play">How to play</string>
+    <string name="get_premium">Get Premium</string>
 
 </resources>
