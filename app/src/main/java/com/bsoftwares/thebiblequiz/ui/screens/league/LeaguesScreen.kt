@@ -50,6 +50,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.LeagueDialog
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
@@ -103,14 +104,17 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
         }
     }
 
-    LeagueScreen(league = league, sessionInLeague = currentSessionInLeague, navigateEditScreen = {
-        navController.navigate(Routes.EditLeague.value)
-    }, openUserProfile = {
-        viewModel.updateVisibleSession(userId = it)
-        navController.popBackStack()
-    }) {
-        viewModel.updateDialog(it)
+    BasicScreenBox {
+        LeagueScreen(league = league, sessionInLeague = currentSessionInLeague, navigateEditScreen = {
+            navController.navigate(Routes.EditLeague.value)
+        }, openUserProfile = {
+            viewModel.updateVisibleSession(userId = it)
+            navController.popBackStack()
+        }) {
+            viewModel.updateDialog(it)
+        }
     }
+
 }
 
 @Composable
