@@ -66,38 +66,45 @@ fun WordleStats(
                     WordleProgress(
                         attemptNumber = "1",
                         wins = wordleStats.winOnFirst,
-                        progress = progresses.firstTryFloat
+                        progress = progresses.firstTryFloat,
+                        total = wordleStats.getMax()
                     )
                     WordleProgress(
                         attemptNumber = "2",
                         wins = wordleStats.winOnSecond,
-                        progress = progresses.secondTryFloat
+                        progress = progresses.secondTryFloat,
+                        total = wordleStats.getTotal()
                     )
                     WordleProgress(
                         attemptNumber = "3",
                         wins = wordleStats.winOnThird,
-                        progress = progresses.thirdTryFloat
+                        progress = progresses.thirdTryFloat,
+                        total = wordleStats.getTotal()
                     )
                     WordleProgress(
                         attemptNumber = "4",
                         wins = wordleStats.winOnForth,
-                        progress = progresses.forthTryFloat
+                        progress = progresses.forthTryFloat,
+                        total = wordleStats.getTotal()
                     )
                     WordleProgress(
                         attemptNumber = "5",
                         wins = wordleStats.winOnFirth,
-                        progress = progresses.firthTryFloat
+                        progress = progresses.firthTryFloat,
+                        total = wordleStats.getTotal()
                     )
                     WordleProgress(
                         attemptNumber = "6",
                         wins = wordleStats.winOnSixth,
-                        progress = progresses.sixthTryFloat
+                        progress = progresses.sixthTryFloat,
+                        total = wordleStats.getTotal()
                     )
                     WordleProgress(
                         attemptNumber = "L",
                         wins = wordleStats.lost,
                         progress = progresses.lostFloat,
-                        isLose = true
+                        isLose = true,
+                        total = wordleStats.getTotal()
                     )
                 }
             }
@@ -120,9 +127,24 @@ fun WordleProgress(
     modifier: Modifier = Modifier,
     attemptNumber: String,
     wins: Int,
+    total: Int,
     progress: Float,
     isLose: Boolean = false
 ) {
+
+    var startAnimation by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(wins) {
+        if (wins > 0) {
+            startAnimation = false
+        }
+    }
+
+    val animatedProgress by animateAlpha(condition = startAnimation, endValue = progress)
+    val animateWin by animateInt(startAnimation = startAnimation, endValue = wins)
+    val animatePercentage by animateInt(startAnimation = startAnimation, endValue = ((wins.toFloat()/total.toFloat()) * 100).toInt())
 
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
@@ -142,28 +164,31 @@ fun WordleProgress(
         MyWordleProgress(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.9f), progress = progress, wins = wins, isLose = isLose
+                .weight(0.9f), animatedProgress = animatedProgress, animateWin = animateWin, isLose = isLose
         )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .height(30.dp)
+                .fillMaxWidth()
+                .weight(0.2f)
+        ) {
+            BasicText(
+                modifier = Modifier.align(Alignment.CenterStart),
+                text = if (animatePercentage >= 10) "${animatePercentage}%" else "0${animatePercentage}%",
+                fontSize = 22,
+                fontColor = closeToBlack
+            )
+        }
+
     }
 }
 
 @Composable
-fun MyWordleProgress(modifier: Modifier, progress: Float, wins: Int, isLose: Boolean = false) {
-
-    var startAnimation by remember {
-        mutableStateOf(true)
-    }
-
-    LaunchedEffect(wins) {
-        if (wins > 0) {
-            startAnimation = false
-        }
-    }
+fun MyWordleProgress(modifier: Modifier, animatedProgress: Float, animateWin: Int, isLose: Boolean = false) {
 
     val barColor = if (isLose) wrongAnswer else correctAnswer
-
-    val animatedProgress by animateAlpha(condition = startAnimation, endValue = progress)
-    val animateWin by animateInt(startAnimation = startAnimation, endValue = wins)
 
     Box(modifier = modifier) {
         Box(
@@ -173,32 +198,23 @@ fun MyWordleProgress(modifier: Modifier, progress: Float, wins: Int, isLose: Boo
                 .height(40.dp)
                 .background(closeToBlack)
         )
-        Box {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(animatedProgress)
-                    .clip(RoundedCornerShape(16.dp))
-                    .height(40.dp)
-                    .border(2.dp, closeToBlack, RoundedCornerShape(16.dp))
-                    .background(barColor)
-            )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .width(40.dp)
-                    .padding(2.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .height(36.dp)
-                    .background(barColor)
-            )
-            BasicText(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.CenterEnd), text = animateWin.toString(),
-                fontColor = lessWhite,
-                fontSize = 22
-            )
-        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(animatedProgress)
+                .clip(RoundedCornerShape(16.dp))
+                .height(40.dp)
+                .border(2.dp, closeToBlack, RoundedCornerShape(16.dp))
+                .background(barColor)
+        )
+
+        BasicText(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterEnd), text = animateWin.toString(),
+            fontColor = lessWhite,
+            fontSize = 22
+        )
 
     }
 }

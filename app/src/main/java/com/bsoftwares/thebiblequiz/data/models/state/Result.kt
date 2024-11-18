@@ -5,4 +5,8 @@ sealed class ResultOf<out T> {
     data class Failure(
         val errorMessage: FeedbackMessage
     ): ResultOf<Nothing>()
+    data class LogMessage(
+        val reference: LogTypes,
+        val errorMessage: String
+    ): ResultOf<Nothing>()
 }

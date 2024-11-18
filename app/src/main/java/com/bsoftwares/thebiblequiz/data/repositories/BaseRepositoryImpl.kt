@@ -18,10 +18,12 @@ import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
+import com.bsoftwares.thebiblequiz.data.models.state.LogTypes
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -657,7 +659,7 @@ class BaseRepositoryImpl @Inject constructor(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-
+                    trySend(ResultOf.LogMessage(reference = LogTypes.PERMISSION, errorMessage = error.message))
                 }
 
             }
