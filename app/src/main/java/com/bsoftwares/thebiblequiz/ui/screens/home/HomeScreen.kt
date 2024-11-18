@@ -53,6 +53,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAnimations
@@ -119,23 +120,25 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     )
 
-    HomeScreen(
-        navController = navController,
-        hourOfTheDay = hourOfTheDay,
-        localSession = localSession,
-        dailyBibleVerse = dailyBibleVerse,
-        pullRefreshState = pullRefreshState,
-        hasUserPlayedLocally = hasUserPlayedLocally,
-        isRefreshing = isRefreshing,
-        enabled = enabled,
-        navigate = {
-            navController.navigate(it.value)
-            homeViewModel.updateClickable()
-        }, openDialog = { dialogToOpen ->
-            homeViewModel.updateDialog(dialogType = dialogToOpen)
+    BasicScreenBox {
+        HomeScreen(
+            navController = navController,
+            hourOfTheDay = hourOfTheDay,
+            localSession = localSession,
+            dailyBibleVerse = dailyBibleVerse,
+            pullRefreshState = pullRefreshState,
+            hasUserPlayedLocally = hasUserPlayedLocally,
+            isRefreshing = isRefreshing,
+            enabled = enabled,
+            navigate = {
+                navController.navigate(it.value)
+                homeViewModel.updateClickable()
+            }, openDialog = { dialogToOpen ->
+                homeViewModel.updateDialog(dialogType = dialogToOpen)
+            }
+        ) {
+            homeViewModel.signIn(launcher)
         }
-    ) {
-        homeViewModel.signIn(launcher)
     }
 }
 

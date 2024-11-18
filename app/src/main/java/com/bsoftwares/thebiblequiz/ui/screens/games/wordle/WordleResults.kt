@@ -184,7 +184,7 @@ fun WordleResultsScreen(
             WordleRows(
                 wordleWord = wordle.word,
                 attempt = "",
-                listWordleAttemps = listOfAttempts,
+                listWordleAttempts = listOfAttempts,
                 errorMessage = FeedbackMessage.NoMessage,
                 isFromResults = true
             )

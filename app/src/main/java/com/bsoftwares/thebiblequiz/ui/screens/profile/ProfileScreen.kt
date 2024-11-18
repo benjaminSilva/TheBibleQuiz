@@ -203,7 +203,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        condition = feedbackMessage == FeedbackMessage.FriendRequestSent || feedbackMessage == FeedbackMessage.FriendRemoved || feedbackMessage == FeedbackMessage.YouHaveAlreadySent
+        condition = profileScreenFeedbackMessages.contains(feedbackMessage)
     ) {
         ProfileScreen(
             modifier = Modifier.alpha(alphaAnimation),
@@ -962,3 +962,9 @@ fun ProfilePreview() {
 fun PreviewIcon() {
     LeaguesIcon()
 }
+
+val profileScreenFeedbackMessages = listOf(
+    FeedbackMessage.FriendRequestSent,
+    FeedbackMessage.FriendRemoved,
+    FeedbackMessage.YouHaveAlreadySent
+)

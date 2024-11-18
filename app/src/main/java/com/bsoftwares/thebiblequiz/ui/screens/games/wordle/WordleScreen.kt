@@ -6,15 +6,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,8 +35,8 @@ import androidx.navigation.NavHostController
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.wordle.KeyboardLetter
-import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
+import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.bsoftwares.thebiblequiz.data.models.wordle.initiateKeyboardState
 import com.bsoftwares.thebiblequiz.ui.basicviews.AutoResizeText
@@ -130,7 +126,7 @@ fun WordleScreen(
                 WordleRows(
                     wordleWord = wordleWord,
                     attempt = attempt,
-                    listWordleAttemps = listWordleAttemps,
+                    listWordleAttempts = listWordleAttemps,
                     errorMessage = errorMessage
                 )
             }
@@ -448,23 +444,23 @@ fun WordleScreen(
 fun WordleRows(
     wordleWord: String,
     attempt: String,
-    listWordleAttemps: List<WordleAttempt>,
+    listWordleAttempts: List<WordleAttempt>,
     errorMessage: FeedbackMessage,
     isFromResults: Boolean = false
 ) {
     for (i in 0 until 6) {
         if (isFromResults) {
-            if (listWordleAttemps[i].attemptState == WordleAttemptState.USER_HAS_TRIED) {
+            if (listWordleAttempts[i].attemptState == WordleAttemptState.USER_HAS_TRIED) {
                 RowLetterWordle(
                     wordleWord = wordleWord,
-                    attempt = listWordleAttemps[i].run {
+                    attempt = listWordleAttempts[i].run {
                         when (attemptState) {
                             WordleAttemptState.USER_IS_CURRENTLY_HERE -> attempt
                             WordleAttemptState.USER_HAS_TRIED -> word
                             WordleAttemptState.USER_WILL_STILL_TRY -> ""
                         }
                     },
-                    letterStates = listWordleAttemps[i],
+                    letterStates = listWordleAttempts[i],
                     errorMessage = errorMessage,
                     isFromResults = isFromResults
                 )
@@ -473,14 +469,14 @@ fun WordleRows(
         } else {
             RowLetterWordle(
                 wordleWord = wordleWord,
-                attempt = listWordleAttemps[i].run {
+                attempt = listWordleAttempts[i].run {
                     when (attemptState) {
                         WordleAttemptState.USER_IS_CURRENTLY_HERE -> attempt
                         WordleAttemptState.USER_HAS_TRIED -> word
                         WordleAttemptState.USER_WILL_STILL_TRY -> ""
                     }
                 },
-                letterStates = listWordleAttemps[i],
+                letterStates = listWordleAttempts[i],
                 errorMessage = errorMessage,
                 isFromResults = isFromResults
             )
