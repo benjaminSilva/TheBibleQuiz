@@ -294,12 +294,12 @@ fun ProfileScreen(
                 when {
                     !isFromLocalSession && possibleToAdd -> {
                         BasicContainer(modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(horizontal = 16.dp, vertical = 8.dp), onClick = {
+                            .align(Alignment.CenterStart), onClick = {
                             addUser()
                         }) {
                             Image(
                                 modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
                                     .size(24.dp)
                                     .align(Alignment.Center),
                                 painter = painterResource(id = R.drawable.baseline_person_add_24),
@@ -310,13 +310,12 @@ fun ProfileScreen(
 
                     !isFromLocalSession && notFriendRequest -> {
                         BasicContainer(modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(horizontal = 16.dp, vertical = 8.dp), onClick = {
+                            .align(Alignment.CenterStart), onClick = {
                             removeFriend()
-
                         }) {
                             Image(
                                 modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
                                     .size(24.dp)
                                     .align(Alignment.Center),
                                 painter = painterResource(id = R.drawable.baseline_delete_24),
@@ -938,11 +937,11 @@ fun ProfilePreview() {
             listOfFriendRequests = listOf(),
             listOfFriends = listOf(),
             updateFriendRequest = { _, _ -> },
-            isFromLocalSession = true,
+            isFromLocalSession = false,
             updateVisibleSession = { _ -> },
             removeFriend = {},
             possibleToAdd = false,
-            notFriendRequest = false,
+            notFriendRequest = true,
             createNewLeague = {},
             addUser = {},
             signOut = {},
