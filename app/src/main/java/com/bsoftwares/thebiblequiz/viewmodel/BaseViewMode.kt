@@ -1,5 +1,6 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bsoftwares.thebiblequiz.data.models.QuestionStatsDataCalculated
@@ -120,6 +121,10 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
             is ResultOf.Success -> action(value)
             is ResultOf.Failure -> {
                 emitFeedbackMessage(errorMessage)
+                Unit
+            }
+            is ResultOf.LogMessage -> {
+                Log.i("Bible Quiz App ~ ${reference.message}", errorMessage)
                 Unit
             }
         }

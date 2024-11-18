@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import com.bsoftwares.thebiblequiz.R
 
 sealed class FeedbackMessage(
-    val messageId: Int = 0,
+    private val messageId: Int = 0,
     val messageText: String = "",
     val extraData: Array<out Any> = arrayOf()
 ) {
@@ -47,4 +47,8 @@ sealed class FeedbackMessage(
     object NoChange: FeedbackMessage(R.string.feedback_no_change)
     object ImageUpdated: FeedbackMessage(R.string.feedback_image_updated)
     object YouAreNowPremium: FeedbackMessage(R.string.feedback_user_premium)
+}
+
+enum class LogTypes(val message: String) {
+    PERMISSION("Permission Issue")
 }

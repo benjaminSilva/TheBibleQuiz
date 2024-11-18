@@ -78,6 +78,7 @@ data class WordleData(
 ) {
     fun getMax() =
         maxOf(winOnFirst, winOnSecond, winOnThird, winOnForth, winOnFirth, winOnSixth, lost)
+    fun getTotal() = winOnFirst + winOnSecond + winOnThird + winOnForth + winOnFirth + winOnSixth + lost
 }
 
 data class WordleDataCalculated(
