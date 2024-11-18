@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -79,10 +80,9 @@ class HomeViewModel @Inject constructor(
     private val _sessionInLeague = MutableStateFlow(SessionInLeague())
     val sessionInLeague = _sessionInLeague.asStateFlow()
 
-    private val _isCurrentUserPremium = MutableStateFlow(false)
-    val isCurrentUserPremium = _isCurrentUserPremium.asStateFlow()
-
     private var loginSession: Job? = null
+
+    var onlyWhenItOpens = true
 
     init {
         initHomeViewModel()
@@ -115,7 +115,11 @@ class HomeViewModel @Inject constructor(
     private fun loadPremiumStatus() = backGroundScope.launch {
         repo.getUserPremiumStatus().collectLatest { result ->
             result.handleSuccessAndFailure { isSubscribed ->
-                _isCurrentUserPremium.emit(isSubscribed)
+                if (isSubscribed != localSession.value.premium) {
+                    repo.updateUserPremiumStatus(session = localSession.value, isSubscribed).collectLatest {
+                        emitFeedbackMessage(it)
+                    }
+                }
             }
         }
     }
@@ -443,7 +447,7 @@ class HomeViewModel @Inject constructor(
         }
 
     fun updateToPremium() = backGroundScope.launch {
-        repo.setUserPremium(localSession.value).collectLatest {
+        repo.updateUserPremiumStatus(localSession.value, true).collectLatest {
             emitFeedbackMessage(it)
         }
     }

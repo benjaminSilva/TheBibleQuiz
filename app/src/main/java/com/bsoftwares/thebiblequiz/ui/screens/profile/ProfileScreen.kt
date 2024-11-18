@@ -90,7 +90,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
     val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
-    val isPremiumUser by homeViewModel.isCurrentUserPremium.collectAsStateWithLifecycle()
 
     BackHandler {
         if (isFromLeague) {
@@ -247,8 +246,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 userData.userInfo.userId.apply {
                     homeViewModel.addFriend(this)
                 }
-            },
-            isPremiumUser = isPremiumUser,
+            }
         ) {
             homeViewModel.signOut()
             navController.popBackStack()
@@ -277,7 +275,6 @@ fun ProfileScreen(
     openLeague: (League) -> Unit,
     listOfLeagueInvitations: List<League>,
     updateLeagueInvitation: (Boolean, String) -> Unit,
-    isPremiumUser: Boolean,
     addUser: () -> Unit,
     signOut: () -> Unit
 ) {
@@ -412,7 +409,7 @@ fun ProfileScreen(
                             contentDescription = null
                         )
                     }
-                    if (!session.premium) {
+                    if (!session.premium && isFromLocalSession) {
                         AnimatedBorderCard {
                             BasicContainer(
                                 backGroundColor = colorResource(id = R.color.background_color),
@@ -954,7 +951,6 @@ fun ProfilePreview() {
                 League(leagueName = "League test"),
                 League(leagueName = "League test")
             ),
-            isPremiumUser = true,
             listOfLeagueInvitations = listOf(),
             updateLeagueInvitation = { _, _ -> }
         )
