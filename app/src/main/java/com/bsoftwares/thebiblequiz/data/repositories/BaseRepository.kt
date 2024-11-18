@@ -48,7 +48,7 @@ interface BaseRepository {
     suspend fun updateToken(token: String)
     suspend fun loadToken()
     suspend fun getConnectivityStatus(): Flow<ConnectivityStatus>
-    suspend fun setUserPremium(session: Session): Flow<FeedbackMessage>
+    suspend fun updateUserPremiumStatus(session: Session, newValue: Boolean): Flow<FeedbackMessage>
     suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>>
     suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>>
 }

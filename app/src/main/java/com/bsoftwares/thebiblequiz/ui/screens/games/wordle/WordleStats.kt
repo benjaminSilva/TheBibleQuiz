@@ -127,6 +127,7 @@ fun WordleProgress(
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
             modifier = Modifier
+                .align(Alignment.CenterVertically)
                 .height(30.dp)
                 .fillMaxWidth()
                 .weight(0.1f)
@@ -194,7 +195,7 @@ fun MyWordleProgress(modifier: Modifier, progress: Float, wins: Int, isLose: Boo
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .align(Alignment.CenterEnd), text = animateWin.toString(),
-                fontColor = closeToBlack,
+                fontColor = lessWhite,
                 fontSize = 22
             )
         }

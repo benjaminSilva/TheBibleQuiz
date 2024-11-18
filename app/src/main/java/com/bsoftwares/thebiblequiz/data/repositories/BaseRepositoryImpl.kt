@@ -213,9 +213,11 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setUserPremium(session: Session): Flow<FeedbackMessage> = channelFlow {
-        usersReference.child(session.userInfo.userId).child(premium).setValue(true).addOnSuccessListener {
-            trySend(FeedbackMessage.YouAreNowPremium)
+    override suspend fun updateUserPremiumStatus(session: Session, newValue: Boolean): Flow<FeedbackMessage> = channelFlow {
+        usersReference.child(session.userInfo.userId).child(premium).setValue(newValue).addOnSuccessListener {
+            if (newValue) {
+                trySend(FeedbackMessage.YouAreNowPremium)
+            }
         }.addOnFailureListener {
             it.message?.apply {
                 trySend(FeedbackMessage.Error(this))
@@ -302,7 +304,7 @@ class BaseRepositoryImpl @Inject constructor(
 
                 override fun onReceived(customerInfo: CustomerInfo) {
                     Log.e("Is user subscribed?", customerInfo.activeSubscriptions.isNotEmpty().toString())
-                    trySend(ResultOf.Success(customerInfo.activeSubscriptions.isNotEmpty()))
+                    trySend(ResultOf.Success(customerInfo.entitlements["Premium"]?.isActive ?: false))
                 }
             }
         )
