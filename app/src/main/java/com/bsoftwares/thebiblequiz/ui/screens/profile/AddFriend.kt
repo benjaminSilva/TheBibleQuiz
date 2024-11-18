@@ -2,7 +2,6 @@ package com.bsoftwares.thebiblequiz.ui.screens.profile
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +27,6 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicEditText
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
-import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 
 @Composable
 fun AddFriendDialog(
@@ -121,76 +118,65 @@ fun AddFriendDialog(
 
         Box(modifier = modifier) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(almostWhite)
-                        .animateContentSize()
-                        .padding(horizontal = 16.dp, vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    BasicText(
+                BasicContainer {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start),
-                        text = "Friend Removal",
-                        fontSize = 24
-                    )
-                    BasicText(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start),
-                        text = "Are you sure you want to remove this friend?"
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(.5f)
-                            .shadow(20.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .clickable {
-                                goBackClick()
-                            }
-                            .background(almostWhite)
+                            .animateContentSize()
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Image(
+                        BasicText(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                            contentDescription = null
+                                .fillMaxWidth()
+                                .align(Alignment.Start),
+                            text = "Friend Removal",
+                            fontSize = 24
                         )
                         BasicText(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "No",
-                            fontSize = 16
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start),
+                            text = "Are you sure you want to remove this friend?"
                         )
                     }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(.5f)
-                            .shadow(20.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable {
-                                removeUser()
-                            }
-                            .background(almostWhite)
-                    ) {
-                        Image(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_delete_24),
-                            contentDescription = null
-                        )
-                        BasicText(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "Yes",
-                            fontSize = 16
-                        )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BasicContainer(modifier = Modifier.weight(0.5f).clickable {
+                        goBackClick()
+                    }) {
+                        Row {
+                            Image(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(24.dp),
+                                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                                contentDescription = null
+                            )
+                            BasicText(
+                                modifier = Modifier.align(Alignment.CenterVertically),
+                                text = "No",
+                                fontSize = 16
+                            )
+                        }
+                    }
+                    BasicContainer(modifier = Modifier.weight(0.5f).clickable {
+                        removeUser()
+                    }) {
+                        Row {
+                            Image(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(24.dp),
+                                painter = painterResource(id = R.drawable.baseline_delete_24),
+                                contentDescription = null
+                            )
+                            BasicText(
+                                modifier = Modifier.align(Alignment.CenterVertically),
+                                text = "Yes",
+                                fontSize = 16
+                            )
+                        }
                     }
                 }
             }
