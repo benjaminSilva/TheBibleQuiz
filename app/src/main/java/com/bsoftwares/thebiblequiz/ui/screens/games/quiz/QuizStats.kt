@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -66,13 +67,15 @@ fun QuizStats(
                         painter = painterResource(id = R.drawable.baseline_check_24),
                         contentDescription = null
                     )
-                    //BasicText(modifier = Modifier.align(Alignment.BottomStart), text = "Correct")
                     BasicText(
                         modifier = Modifier.align(Alignment.Center),
                         text = "The Bible Quiz",
                         fontSize = 18
                     )
-                    BasicText(modifier = Modifier.align(Alignment.CenterEnd), text = "Total")
+                    BasicText(modifier = Modifier.align(Alignment.CenterEnd), text = stringResource(
+                        R.string.total
+                    )
+                    )
                 }
                 Column(
                     modifier = Modifier
@@ -84,7 +87,7 @@ fun QuizStats(
                         correctPoints = data.easyCorrect,
                         progress = calculatedData.easyFloat,
                         totalPoints = data.getTotalEasy().toString(),
-                        difficulty = "EASY/",
+                        difficulty = stringResource(R.string.easy),
                         progressInt = calculatedData.easyInt
                     )
 
@@ -92,7 +95,7 @@ fun QuizStats(
                         correctPoints = data.mediumCorrect,
                         progress = calculatedData.mediumFloat,
                         totalPoints = data.getTotalMedium().toString(),
-                        difficulty = "MEDIUM/",
+                        difficulty = stringResource(R.string.medium),
                         progressInt = calculatedData.mediumInt
                     )
 
@@ -100,7 +103,7 @@ fun QuizStats(
                         correctPoints = data.hardCorrect,
                         progress = calculatedData.hardFLoat,
                         totalPoints = data.getTotalHard().toString(),
-                        difficulty = "HARD/",
+                        difficulty = stringResource(R.string.hard),
                         progressInt = calculatedData.hardInt
                     )
 
@@ -108,7 +111,7 @@ fun QuizStats(
                         correctPoints = data.impossibleCorrect,
                         progress = calculatedData.impossibleFloat,
                         totalPoints = data.getTotalImpossible().toString(),
-                        difficulty = "IMPOSSIBLE/",
+                        difficulty = stringResource(R.string.impossible),
                         progressInt = calculatedData.impossibleInt
                     )
                 }
@@ -175,7 +178,7 @@ fun DaysStreak(streakDays: Int) {
                         animateDaysPosition
                     }
                     .alpha(animateDaysAlpha),
-                text = "Days in streak", fontSize = 22
+                text = stringResource(R.string.days_in_streak), fontSize = 22
             )
         }
     }
@@ -209,7 +212,7 @@ fun PointsProgressRow(
         endValue = correctPoints
     )
 
-    val progressInt by animateInt(
+    val progressInteger by animateInt(
         startAnimation = startAnimation,
         endValue = progressInt
     )
@@ -238,7 +241,7 @@ fun PointsProgressRow(
                 .weight(.8f)
                 .align(Alignment.CenterVertically),
             progress = animateProgress,
-            text = "$difficulty($progressInt%)"
+            text = "$difficulty($progressInteger%)"
         )
 
         Box(

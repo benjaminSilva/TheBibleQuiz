@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 
 @Composable
 fun AnimatedCounter(
@@ -42,10 +43,10 @@ fun AnimatedCounter(
                 targetState = char,
                 transitionSpec = {
                     slideInVertically { it } togetherWith slideOutVertically { -it }
-                }, label = ""
-            ) { char ->
+                }, label = emptyString
+            ) { thisChar ->
                 BasicText(
-                    text = char.toString(),
+                    text = thisChar.toString(),
                     fontSize = fontSize,
                     fontColor = colorResource(id = R.color.basic_container_color)
                 )

@@ -8,10 +8,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.bsoftwares.thebiblequiz.R
 
-val antonFontFamily = FontFamily(
-    Font(R.font.anton_regular, FontWeight.Normal)
-)
-
 val achivoFontFamily = FontFamily(
     Font(R.font.archivoblack_regular, FontWeight.Normal)
 )

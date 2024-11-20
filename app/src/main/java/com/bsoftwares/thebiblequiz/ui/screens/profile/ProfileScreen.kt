@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.getPainter
 import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicPositiveNegativeDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
@@ -66,6 +68,7 @@ import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
 import com.bsoftwares.thebiblequiz.ui.theme.lighterGray
@@ -161,16 +164,18 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             }
 
             ProfileDialogType.RemoveFriend -> {
-                BasicDialog(onDismissRequest = {
-                    homeViewModel.updateDialog()
-                }) {
-                    RemoveFriendDialog(
-                        goBackClick = {
-                            homeViewModel.updateDialog()
-                        }) {
+                BasicPositiveNegativeDialog(
+                    dialogIcon = null,
+                    title = stringResource(R.string.friend_removal),
+                    description = stringResource(R.string.are_you_sure_you_want_to_remove_this_friend),
+                    onDismissRequest = {
+                        homeViewModel.updateDialog()
+                    },
+                    positiveFunction = {
                         homeViewModel.removeFriend()
-                    }
-                }
+                    },
+                    positiveIcon = painterResource(R.drawable.baseline_delete_24)
+                )
             }
 
             ProfileDialogType.StartPremium -> {
@@ -196,7 +201,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage == FeedbackMessage.LeagueCreated) {
-            Log.i("League Test", "Navigate to League Screen")
             navController.navigate(Routes.LeagueScreen.value)
         }
     }
@@ -349,7 +353,9 @@ fun ProfileScreen(
                             )
                             BasicText(
                                 modifier = Modifier.align(Alignment.CenterVertically),
-                                text = if (isFromLocalSession) "Logout" else "Go back to your Profile",
+                                text = if (isFromLocalSession) stringResource(R.string.logout) else stringResource(
+                                    R.string.go_back_to_your_profile
+                                ),
                                 fontSize = 16
                             )
                         }
@@ -390,11 +396,14 @@ fun ProfileScreen(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 BasicText(text = session.userInfo.userName, fontSize = 22)
-                                BasicText(text = "id: ${session.userInfo.userId}", fontSize = 8)
+                                BasicText(text = stringResource(
+                                    R.string.id,
+                                    session.userInfo.userId
+                                ), fontSize = 8)
                                 if (session.premium) {
-                                    BasicText(text = "Premium User", fontSize = 8)
+                                    BasicText(text = stringResource(R.string.premium_user), fontSize = 8)
                                 } else {
-                                    BasicText(text = "Non Premium User", fontSize = 8)
+                                    BasicText(text = stringResource(R.string.non_premium_user), fontSize = 8)
                                 }
                             }
                         }
@@ -430,7 +439,7 @@ fun ProfileScreen(
                                     )
                                     BasicText(
                                         modifier = Modifier.align(Alignment.CenterVertically),
-                                        text = "Get Premium"
+                                        text = stringResource(R.string.get_premium)
                                     )
                                 }
                             }
@@ -459,7 +468,7 @@ fun ProfileScreen(
                         )
                         BasicText(
                             modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "Quiz"
+                            text = stringResource(R.string.quiz)
                         )
                     }
                 }
@@ -479,7 +488,7 @@ fun ProfileScreen(
                         )
                         BasicText(
                             modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "Wordle",
+                            text = stringResource(R.string.wordle),
                             fontSize = 16
                         )
                     }
@@ -487,7 +496,7 @@ fun ProfileScreen(
             }
 
             if (isFromLocalSession) {
-                BasicText(text = "Leagues", fontSize = 22)
+                BasicText(text = stringResource(R.string.leagues), fontSize = 22)
                 BasicContainer {
                     Column(
                         modifier = Modifier.padding(8.dp),
@@ -507,14 +516,14 @@ fun ProfileScreen(
                                     LeaguesIcon()
                                     BasicText(
                                         modifier = Modifier.align(Alignment.CenterVertically),
-                                        text = "Create a New League (Hold)",
+                                        text = stringResource(R.string.create_a_new_league_hold),
                                         fontSize = 22
                                     )
                                 }
                             }
                         }
                         if (listOfLeagueInvitations.isNotEmpty()) {
-                            BasicText(text = "Leagues Invitations")
+                            BasicText(text = stringResource(R.string.leagues_invitations))
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOfLeagueInvitations.onEach {
                                     Box(
@@ -564,7 +573,7 @@ fun ProfileScreen(
                                                         updateLeagueInvitation(false, it.leagueId)
                                                     },
                                                 painter = painterResource(id = R.drawable.baseline_close_24),
-                                                contentDescription = ""
+                                                contentDescription = emptyString
                                             )
                                             Image(
                                                 modifier = Modifier
@@ -574,7 +583,7 @@ fun ProfileScreen(
                                                         updateLeagueInvitation(true, it.leagueId)
                                                     },
                                                 painter = painterResource(id = R.drawable.baseline_check_24),
-                                                contentDescription = ""
+                                                contentDescription = emptyString
                                             )
                                         }
                                     }
@@ -582,7 +591,7 @@ fun ProfileScreen(
                             }
                         }
                         if (listOfLeagues.isNotEmpty()) {
-                            BasicText(text = "Your Leagues")
+                            BasicText(text = stringResource(R.string.your_leagues))
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOfLeagues.onEach {
                                     Row(
@@ -649,7 +658,7 @@ fun ProfileScreen(
                         ) {
                             if (listOfFriendRequests.isNotEmpty() && isFromLocalSession) {
                                 BasicText(
-                                    text = "Friend Requests",
+                                    text = stringResource(R.string.friend_requests),
                                     fontColor = closeToBlack
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -671,7 +680,7 @@ fun ProfileScreen(
                             }
                             if (listOfFriends.isNotEmpty()) {
                                 BasicText(
-                                    text = "Friends",
+                                    text = stringResource(R.string.friends),
                                     fontColor = closeToBlack
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -717,7 +726,7 @@ fun AddFriendButton(displayDialogFunction: (ProfileDialogType) -> Unit) {
                 modifier = Modifier
                     .padding(8.dp)
                     .align(Alignment.CenterVertically),
-                text = "Add new friend",
+                text = stringResource(R.string.add_new_friend),
                 fontSize = 18
             )
         }
@@ -781,7 +790,7 @@ fun FriendRequest(
                             updateFriendStatus(false)
                         },
                     painter = painterResource(id = R.drawable.baseline_close_24),
-                    contentDescription = ""
+                    contentDescription = emptyString
                 )
                 Image(
                     modifier = Modifier
@@ -791,7 +800,7 @@ fun FriendRequest(
                             updateFriendStatus(true)
                         },
                     painter = painterResource(id = R.drawable.baseline_check_24),
-                    contentDescription = ""
+                    contentDescription = emptyString
                 )
             }
         }
@@ -926,9 +935,11 @@ fun FriendItem(
                 backGroundColor = animateColorCheckBox
             ) {
                 Image(
-                    modifier = Modifier.align(Alignment.Center).size(28.dp),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(28.dp),
                     painter = painterResource(R.drawable.baseline_check_24),
-                    contentDescription = "Check",
+                    contentDescription = emptyString,
                     colorFilter = ColorFilter.tint(almostWhite)
                 )
             }

@@ -1,7 +1,6 @@
 package com.bsoftwares.thebiblequiz
 
 import android.app.Application
-import com.android.billingclient.api.Purchase
 import com.google.firebase.database.FirebaseDatabase
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases

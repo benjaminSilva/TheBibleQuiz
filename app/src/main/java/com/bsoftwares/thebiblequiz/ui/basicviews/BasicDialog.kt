@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -31,11 +32,11 @@ fun BasicDialog(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
 
 @Composable
 fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
-                                title: String = "Warning",
+                                title: String = stringResource(R.string.warning),
                                 dialogIcon: Painter? = painterResource(id = R.drawable.warning_24dp),
-                                description: String = "",
-                                positiveString: String = "Yes",
-                                negativeString: String = "No",
+                                description: String = stringResource(R.string.emptyString),
+                                positiveString: String = stringResource(R.string.yes),
+                                negativeString: String = stringResource(R.string.no),
                                 positiveIcon: Painter = painterResource(id = R.drawable.baseline_check_24_bw),
                                 negativeIcon: Painter = painterResource(id = R.drawable.baseline_close_24_bw),
                                 positiveFunction: () -> Unit = {},
