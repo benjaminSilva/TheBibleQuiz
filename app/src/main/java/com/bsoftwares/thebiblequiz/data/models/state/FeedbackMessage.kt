@@ -48,6 +48,7 @@ sealed class FeedbackMessage(
     object NoChange: FeedbackMessage(R.string.feedback_no_change)
     object ImageUpdated: FeedbackMessage(R.string.feedback_image_updated)
     object YouAreNowPremium: FeedbackMessage(R.string.feedback_user_premium)
+    object YouAreNotPremium: FeedbackMessage(R.string.feedback_user_not_premium)
 }
 
 enum class LogTypes(val message: String) {

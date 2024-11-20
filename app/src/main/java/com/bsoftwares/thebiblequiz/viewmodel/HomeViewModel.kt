@@ -92,6 +92,8 @@ class HomeViewModel @Inject constructor(
 
     private var loginSession: Job? = null
 
+    private var leagueJob: Job? = null
+
     init {
         initHomeViewModel()
         initLocalSessionListener()
@@ -124,9 +126,10 @@ class HomeViewModel @Inject constructor(
         repo.getUserPremiumStatus().collectLatest { result ->
             result.handleSuccessAndFailure { isSubscribed ->
                 if (isSubscribed != localSession.value.premium) {
-                    repo.updateUserPremiumStatus(session = localSession.value, isSubscribed).collectLatest {
-                        emitFeedbackMessage(it)
-                    }
+                    repo.updateUserPremiumStatus(session = localSession.value, isSubscribed)
+                        .collectLatest {
+                            emitFeedbackMessage(it)
+                        }
                 }
             }
         }
@@ -351,16 +354,17 @@ class HomeViewModel @Inject constructor(
     }
 
     fun createNewLeague() = backGroundScope.launch {
-        autoCancellable {
-            repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
-                it.handleSuccessAndFailure { league ->
-                    emitFeedbackMessage(
-                        feedbackMessage = FeedbackMessage.LeagueCreated,
-                        isFastDelete = true
-                    )
-                    _currentLeague.emit(league)
-                    loadLeagueUsers(league)
-                }
+        if (!localSession.value.premium && localSession.value.localListLeagues.isNotEmpty()) {
+            emitFeedbackMessage(FeedbackMessage.YouAreNotPremium)
+            return@launch
+        }
+        repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
+            it.handleSuccessAndFailure { league ->
+                emitFeedbackMessage(
+                    feedbackMessage = FeedbackMessage.LeagueCreated,
+                    isFastDelete = true
+                )
+                setCurrentLeague(league)
             }
         }
     }
@@ -384,12 +388,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setCurrentLeague(league: League) = backGroundScope.launch {
-        repo.observeThisLeague(league).collectLatest {
-            it.handleSuccessAndFailure { league ->
-                _currentLeague.emit(league)
-                visibleLeagueId = league.leagueId
-                loadLeagueUsers(league)
+    fun setCurrentLeague(league: League) {
+        leagueJob?.cancel()
+        leagueJob = backGroundScope.launch {
+            repo.observeThisLeague(league).collectLatest {
+                it.handleSuccessAndFailure { league ->
+                    _currentLeague.emit(league)
+                    visibleLeagueId = league.leagueId
+                    loadLeagueUsers(league)
+                }
             }
         }
     }
@@ -414,15 +421,18 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateLeagueInvitation(hasAccepted: Boolean, leagueId: String) =
-        backGroundScope.launch {
-            autoCancellable {
-                repo.updateLeagueInvitation(hasAccepted, session = localSession.value, leagueId)
-                    .collectLatestAndApplyOnMain {
-
-                    }
-            }
+    fun updateLeagueInvitation(hasAccepted: Boolean, leagueId: String) = backGroundScope.launch {
+        if (hasAccepted && !localSession.value.premium && localSession.value.localListLeagues.isNotEmpty()) {
+            emitFeedbackMessage(FeedbackMessage.YouAreNotPremium)
+            return@launch
         }
+        autoCancellable {
+            repo.updateLeagueInvitation(hasAccepted, session = localSession.value, leagueId)
+                .collectLatestAndApplyOnMain {
+
+                }
+        }
+    }
 
     fun updateIsFromLeague() = backGroundScope.launch {
         _isFromLeague.emit(false)
