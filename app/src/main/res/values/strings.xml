@@ -62,5 +62,6 @@
     <string name="suggest_a_question">Suggest a question</string>
     <string name="how_to_play">How to play</string>
     <string name="get_premium">Get Premium</string>
+    <string name="league_was_deleted">League was deleted</string>
 
 </resources>

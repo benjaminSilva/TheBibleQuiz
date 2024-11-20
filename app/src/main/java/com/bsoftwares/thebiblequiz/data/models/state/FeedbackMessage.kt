@@ -42,6 +42,7 @@ sealed class FeedbackMessage(
     object FriendRemoved : FeedbackMessage(R.string.feedback_friend_removed)
     object QuestionSuggestionSent: FeedbackMessage(R.string.feedback_question_suggestion_sent)
     object LeagueCreated: FeedbackMessage(R.string.feedback_question_suggestion_sent)
+    object LeagueDeleted: FeedbackMessage(R.string.league_was_deleted)
     object FriendInvited: FeedbackMessage(R.string.feedback_friend_invitation)
     object LeagueUpdated: FeedbackMessage(R.string.feedback_league_updated)
     object NoChange: FeedbackMessage(R.string.feedback_no_change)

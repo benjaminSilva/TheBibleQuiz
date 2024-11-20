@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -35,7 +36,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -52,15 +52,15 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
+import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
-import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.gray
-import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
+import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.ui.theme.wrongPlace
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
@@ -125,6 +125,23 @@ fun LeagueScreen(
     openUserProfile: (String) -> Unit,
     updateDialog: (DialogType) -> Unit
 ) {
+
+    var startAnimation by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(league) {
+        if (league.leagueId.isNotEmpty())
+        startAnimation = false
+    }
+
+    val animateAlpha = animateAlpha(
+        condition = startAnimation,
+        startValue = 0f,
+        endValue = 1f,
+        duration = 400
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -164,6 +181,7 @@ fun LeagueScreen(
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
+                        .alpha(animateAlpha.value)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -210,7 +228,7 @@ fun LeagueScreen(
                     .align(Alignment.BottomEnd)
                     .padding(32.dp), onClick = {
                     updateDialog(LeagueDialog.FriendList)
-                }, containerColor = almostWhite
+                }, containerColor = prettyMuchBlack
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_add_24),
@@ -241,7 +259,6 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                             FriendItem(
                                 profilePicture = it.userInfo.profilePictureUrl,
                                 userName = it.userInfo.userName,
-                                backgroundColor = lessWhite,
                                 selectable = true
                             ) {
                                 if (listOfSelected.contains(it)) {
@@ -253,7 +270,7 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                         }
                     }
                 } else {
-                    BasicText(text = "You don't have any friends that could be added. (Kinda sad)")
+                    BasicText(text = "You don't have any friends that could be added.")
                 }
             }
         }

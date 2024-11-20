@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
@@ -19,15 +20,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repo: BaseRepository
+    private val repo: BaseRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(repo) {
+
+    private var visibleLeagueId: String
+        get() = savedStateHandle["league"] ?: ""
+        set(value) {
+            savedStateHandle["league"] = value
+        }
 
     private val _dailyBibleVerse by lazy { MutableStateFlow(BibleVerse()) }
     val dailyBibleVerse = _dailyBibleVerse.asStateFlow()
@@ -37,6 +44,9 @@ class HomeViewModel @Inject constructor(
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     private var _listOfFriendRequests = MutableStateFlow(listOf<Session>())
     val listOfFriendRequests = _listOfFriendRequests.asStateFlow()
@@ -81,8 +91,6 @@ class HomeViewModel @Inject constructor(
     val sessionInLeague = _sessionInLeague.asStateFlow()
 
     private var loginSession: Job? = null
-
-    var onlyWhenItOpens = true
 
     init {
         initHomeViewModel()
@@ -129,6 +137,9 @@ class HomeViewModel @Inject constructor(
             it.handleSuccessAndFailure { (listOfLeagueInvitation, listOfLeagues) ->
                 _listOfLeagueInvitation.emit(listOfLeagueInvitation)
                 _listOfLeagues.emit(listOfLeagues)
+                listOfLeagues.firstOrNull { league -> league.leagueId == visibleLeagueId }?.apply {
+                    setCurrentLeague(this)
+                }
                 if (currentLeagueId.isNotEmpty()) {
                     val league = listOfLeagues.find { league ->
                         league.leagueId == currentLeagueId
@@ -170,16 +181,6 @@ class HomeViewModel @Inject constructor(
         checkGamesAvailability()
         delay(1000)
         _isRefreshing.emit(false)
-    }
-
-    //Function to quickly update the visible session
-    private fun collectSession() = backGroundScope.launch {
-        updateSession()
-        autoCancellable {
-            localSession.collectLatestAndApplyOnMain {
-                _visibleSession.emit(it)
-            }
-        }
     }
 
     private fun listenToBibleVerseUpdate(day: Int) = backGroundScope.launch {
@@ -387,6 +388,7 @@ class HomeViewModel @Inject constructor(
         repo.observeThisLeague(league).collectLatest {
             it.handleSuccessAndFailure { league ->
                 _currentLeague.emit(league)
+                visibleLeagueId = league.leagueId
                 loadLeagueUsers(league)
             }
         }
@@ -449,6 +451,17 @@ class HomeViewModel @Inject constructor(
     fun updateToPremium() = backGroundScope.launch {
         repo.updateUserPremiumStatus(localSession.value, true).collectLatest {
             emitFeedbackMessage(it)
+        }
+    }
+
+    fun deleteLeague(league: League) = backGroundScope.launch {
+        repo.deleteLeague(leagueId = league.leagueId).collectLatest {
+            it.handleSuccessAndFailure { fbm ->
+                _isLoading.emit(true)
+                delay(10000)
+                _isLoading.emit(false)
+                emitFeedbackMessage(fbm)
+            }
         }
     }
 }

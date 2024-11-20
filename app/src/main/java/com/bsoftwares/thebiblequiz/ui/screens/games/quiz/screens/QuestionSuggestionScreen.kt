@@ -33,7 +33,6 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,7 +49,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateColor
-import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
+import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
@@ -330,7 +329,7 @@ fun BasicRadioButton(
 ) {
     val colorAnimation by animateColor(
         condition = !selected,
-        startValue = colorResource(id = R.color.basic_container_color),
+        startValue = appBackground(),
         endValue = gray
     )
 
