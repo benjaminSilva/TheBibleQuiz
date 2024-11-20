@@ -2,7 +2,6 @@ package com.bsoftwares.thebiblequiz.ui.screens.league
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.bsoftwares.thebiblequiz.R
@@ -43,18 +40,21 @@ import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.getString
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.EditLeagueDialog
+import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.LeagueImages
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
 import com.bsoftwares.thebiblequiz.data.models.state.getString
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicEditText
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicPositiveNegativeDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
+import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButton
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
-import com.bsoftwares.thebiblequiz.ui.theme.gray
-import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
+import com.bsoftwares.thebiblequiz.ui.theme.appBackground
+import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
 @Composable
@@ -63,6 +63,7 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
     val sessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -71,6 +72,12 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
     LaunchedEffect(dialog) {
         if (dialog != DialogType.EmptyValue) {
             displayDialog = true
+        }
+    }
+
+    LaunchedEffect(feedbackMessage) {
+        if (feedbackMessage == FeedbackMessage.LeagueDeleted) {
+            navController.navigate(Routes.Profile.value)
         }
     }
 
@@ -105,13 +112,28 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
                 }
             }
 
+            is EditLeagueDialog.DeleteLeague -> {
+                BasicPositiveNegativeDialog(
+                    onDismissRequest = {
+                        viewModel.updateDialog()
+                    },
+                    dialogIcon = league.leagueIcon.getPainter(),
+                    title = "Delete League",
+                    description = "Are you sure you want to delete this League?",
+                    positiveFunction = {
+                        viewModel.deleteLeague(league)
+                    })
+            }
+
             else -> Unit
         }
     }
 
-    BasicScreenBox(feedbackMessage = feedbackMessage) {
+    BasicScreenBox(feedbackMessage = feedbackMessage, isLoading = isLoading) {
         EditLeagueScreen(league = league, sessionInLeague = sessionInLeague, createDialog = {
             viewModel.updateDialog(it)
+        }, deleteLeague = {
+            viewModel.updateDialog(EditLeagueDialog.DeleteLeague)
         }) { updatedLeague, updateCycle ->
             viewModel.updateLeague(league = updatedLeague, updateTime = updateCycle)
         }
@@ -123,6 +145,7 @@ fun EditLeagueScreen(
     league: League,
     sessionInLeague: SessionInLeague,
     createDialog: (DialogType) -> Unit,
+    deleteLeague: () -> Unit,
     updateLeague: (League, Boolean) -> Unit
 ) {
 
@@ -158,7 +181,8 @@ fun EditLeagueScreen(
                     Box(modifier = Modifier.align(Alignment.CenterVertically)) {
                         BasicContainer(
                             modifier = Modifier
-                                .padding(8.dp),onClick = {
+                                .padding(8.dp),
+                            backGroundColor = appBackground(), onClick = {
                                 if (sessionInLeague.adminUser) {
                                     createDialog(EditLeagueDialog.SelectNewIcon)
                                 }
@@ -178,7 +202,7 @@ fun EditLeagueScreen(
                                     .align(Alignment.BottomEnd)
                                     .size(22.dp)
                                     .clip(CircleShape)
-                                    .background(gray)
+                                    .background(basicContainerClean())
                                     .padding(2.dp),
                                 painter = painterResource(id = R.drawable.baseline_edit_24),
                                 contentDescription = null
@@ -242,7 +266,9 @@ fun EditLeagueScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (sessionInLeague.adminUser) {
-                BasicContainer {
+                BasicContainer(onClick = {
+                    deleteLeague()
+                }) {
                     Image(
                         modifier = Modifier.padding(16.dp),
                         painter = painterResource(id = R.drawable.baseline_delete_24),
@@ -250,6 +276,7 @@ fun EditLeagueScreen(
                     )
                 }
             }
+            /* To Be implemented after release
             BasicContainer {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -261,7 +288,7 @@ fun EditLeagueScreen(
                     )
                     BasicText(modifier = Modifier.align(Alignment.CenterVertically), text = "Logs")
                 }
-            }
+            }*/
             if (sessionInLeague.adminUser) {
                 BasicContainer(onClick = {
                     if (league.leagueRule != leagueRule || league.leagueDuration != leagueDuration) {
@@ -472,7 +499,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
         )
     }
 
-    Column (verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         BasicContainer {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -494,7 +521,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .align(Alignment.Center)
-                                    .background(gray)
+                                    .background(basicContainerClean())
                                     .padding(8.dp)
                             ) {
                                 Image(
@@ -508,7 +535,11 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
                         }
                     }
                 }
-                BasicText(modifier = Modifier.align(Alignment.CenterHorizontally), text = selectedOption.getString(), fontSize = 22)
+                BasicText(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = selectedOption.getString(),
+                    fontSize = 22
+                )
             }
         }
         BasicContainer(modifier = Modifier
@@ -547,7 +578,10 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
 @Composable
 fun PreviewLeagueEdit() {
     NovaGincanaBiblicaTheme {
-        EditLeagueScreen(League(), SessionInLeague(adminUser = true), {}) { _, _ ->
+        EditLeagueScreen(
+            League(endCycleString = "11/08/2024"),
+            SessionInLeague(adminUser = true),
+            {}, {}) { _, _ ->
 
         }
     }
@@ -557,7 +591,7 @@ fun PreviewLeagueEdit() {
 @Composable
 fun PreviewLeagueEditNonAdmin() {
     NovaGincanaBiblicaTheme {
-        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}) { _, _ ->
+        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}, {}) { _, _ ->
 
         }
     }

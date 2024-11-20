@@ -71,6 +71,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.material:material:1.6.0-beta02")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.0")
 
 
     //Hilt

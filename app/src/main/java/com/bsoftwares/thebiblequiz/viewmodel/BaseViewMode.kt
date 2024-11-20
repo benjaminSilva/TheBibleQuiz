@@ -43,8 +43,6 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _displayDialog = MutableStateFlow<DialogType>(DialogType.EmptyValue)
     val displayDialog = _displayDialog.asStateFlow()
 
-    private var sessionFlow: Job? = null
-
     private var dayFlow: Job? = null
 
     private val viewModelJob by lazy {
@@ -58,6 +56,8 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     protected val mainScope by lazy {
         CoroutineScope(Dispatchers.Default + viewModelJob)
     }
+
+    private var localSessionJob: Job? = null
 
     init {
         backGroundScope.launch {
@@ -91,13 +91,9 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         repo.getDay().collectLatest {
             it.handleSuccessAndFailure { day ->
                 _day.emit(value = day)
-                sessionFlow = collectSession()
+                localSessionJob = collectSession()
             }
         }
-    }
-
-    fun updateSession() = backGroundScope.launch {
-        collectSession()
     }
 
     fun resetErrorMessage() = viewModelScope.launch {
@@ -110,10 +106,6 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
                 _localSession.emit(value = session)
             }
         }
-    }
-
-    fun cancelCollectSession() {
-        sessionFlow?.cancel()
     }
 
     suspend fun <T> ResultOf<T>.handleSuccessAndFailure(action: suspend (value: T) -> Unit) =
@@ -250,7 +242,12 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     }
 
     fun updateSession(session: Session) = backGroundScope.launch {
-        _localSession.emit(session)
+        if (session.userInfo.userId.isEmpty()) {
+            localSessionJob?.cancel()
+            _localSession.emit(session)
+        } else {
+            collectSession()
+        }
     }
 
 }

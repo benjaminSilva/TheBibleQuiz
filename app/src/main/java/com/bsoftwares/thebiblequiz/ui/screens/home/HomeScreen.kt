@@ -333,7 +333,6 @@ fun HomeScreen(
                     },
                 enabled = enabled,
                 onClick = {
-                    //navController.navigate(Routes.WordleMode.value)
                     if (localSession.hasPlayerWordleGame/* || hasUserPlayedLocally*/)
                         navigate(Routes.WordleResults)
                     else

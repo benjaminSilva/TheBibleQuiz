@@ -279,12 +279,23 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+        leaguesDatabaseReference.child(leagueId).ref.removeValue().addOnSuccessListener {
+            trySend(ResultOf.Success(FeedbackMessage.LeagueDeleted))
+        }.addOnFailureListener { message ->
+            trySend(ResultOf.LogMessage(LogTypes.PERMISSION, message.message.toString()))
+        }
+        awaitClose { channel.close() }
+    }
+
     override suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>> = callbackFlow {
         val ref = leaguesDatabaseReference.child(currentLeague.leagueId)
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<League>()?.apply {
-                    trySend(ResultOf.Success(this))
+                    trySend(ResultOf.Success(this.run {
+                        copy(endCycleString = transformEndCycleToString())
+                    }))
                 }
             }
 

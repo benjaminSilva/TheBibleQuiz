@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -739,7 +739,7 @@ fun FriendRequest(
             .clickable {
                 updateVisibleSession()
             }
-            .background(almostWhite)
+            .background(colorResource(id = R.color.basic_container_color))
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -875,7 +875,6 @@ fun FriendItem(
     profilePicture: String?,
     userName: String?,
     selectable: Boolean = false,
-    backgroundColor: Color = almostWhite,
     updateVisibleSession: () -> Unit
 ) {
 
@@ -883,17 +882,18 @@ fun FriendItem(
         mutableStateOf(false)
     }
 
-    val animateColor by animateColor(
+    val animateColorCheckBox by animateColor(
         condition = isSelected,
-        startValue = gray,
-        endValue = backgroundColor
+        startValue = prettyMuchBlack,
+        endValue = almostWhite,
+        duration = 200
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(colorResource(id = R.color.basic_container_color))
+            .background(prettyMuchBlack)
             .clickable {
                 updateVisibleSession()
                 if (selectable) {
@@ -919,6 +919,20 @@ fun FriendItem(
             text = userName,
             fontSize = 18
         )
+        Spacer(Modifier.weight(1f)) // height and background only for demonstration
+        if (selectable) {
+            BasicContainer(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                backGroundColor = animateColorCheckBox
+            ) {
+                Image(
+                    modifier = Modifier.align(Alignment.Center).size(28.dp),
+                    painter = painterResource(R.drawable.baseline_check_24),
+                    contentDescription = "Check",
+                    colorFilter = ColorFilter.tint(almostWhite)
+                )
+            }
+        }
     }
 
 }
@@ -965,5 +979,6 @@ fun PreviewIcon() {
 val profileScreenFeedbackMessages = listOf(
     FeedbackMessage.FriendRequestSent,
     FeedbackMessage.FriendRemoved,
-    FeedbackMessage.YouHaveAlreadySent
+    FeedbackMessage.YouHaveAlreadySent,
+    FeedbackMessage.LeagueDeleted
 )
