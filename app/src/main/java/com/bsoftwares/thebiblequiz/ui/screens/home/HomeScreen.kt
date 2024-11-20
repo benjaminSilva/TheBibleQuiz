@@ -122,7 +122,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 
     BasicScreenBox {
         HomeScreen(
-            navController = navController,
             hourOfTheDay = hourOfTheDay,
             localSession = localSession,
             dailyBibleVerse = dailyBibleVerse,
@@ -145,7 +144,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
-    navController: NavHostController,
     hourOfTheDay: Int,
     localSession: Session,
     dailyBibleVerse: BibleVerse,
@@ -184,10 +182,15 @@ fun HomeScreen(
         action = Intent.ACTION_SEND
         putExtra(
             Intent.EXTRA_TEXT,
-            "I want to share this verse with you:\n\n${dailyBibleVerse.verse}\n\n${dailyBibleVerse.reference}"
+            stringResource(
+                R.string.i_want_to_share_this_verse_with_you,
+                dailyBibleVerse.verse,
+                dailyBibleVerse.reference
+            )
         )
         type = "text/plain"
     }
+
     val appIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(
@@ -198,7 +201,8 @@ fun HomeScreen(
     }
 
     val bibleVerseShareIntent = Intent.createChooser(bibleVerseIntent, null)
-    val appShareIntent = Intent.createChooser(appIntent, "Choose where you're sharing this")
+    val appShareIntent = Intent.createChooser(appIntent,
+        stringResource(R.string.choose_where_you_re_sharing_this))
     val haptic = LocalHapticFeedback.current
 
     Box(
@@ -293,7 +297,8 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[1].value).offset {
+                    .alpha(alpha = animationLayoutList[1].value)
+                    .offset {
                         animationPositionList[1].value
                     },
                 enabled = enabled,
@@ -328,7 +333,8 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[2].value).offset {
+                    .alpha(alpha = animationLayoutList[2].value)
+                    .offset {
                         animationPositionList[2].value
                     },
                 enabled = enabled,
@@ -412,9 +418,11 @@ fun HomeScreen(
             var forLastView = 4
 
             if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
-                AnimatedBorderCard(modifier = Modifier.alpha(alpha = animationLayoutList[4].value).offset {
-                    animationPositionList[4].value
-                }) {
+                AnimatedBorderCard(modifier = Modifier
+                    .alpha(alpha = animationLayoutList[4].value)
+                    .offset {
+                        animationPositionList[4].value
+                    }) {
                     BasicContainer(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -537,7 +545,6 @@ fun HomeScreen(
 fun HomePreview() {
     NovaGincanaBiblicaTheme {
         HomeScreen(
-            navController = rememberNavController(),
             hourOfTheDay = 22,
             localSession = Session(),
             dailyBibleVerse = BibleVerse(),

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -252,7 +253,7 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                BasicText(text = "Friends you can add to this League", fontSize = 22)
+                BasicText(text = stringResource(R.string.friends_you_can_add_to_this_league), fontSize = 22)
                 if (friendsList.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         friendsList.onEach {
@@ -270,7 +271,7 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                         }
                     }
                 } else {
-                    BasicText(text = "You don't have any friends that could be added.")
+                    BasicText(text = stringResource(R.string.you_don_t_have_any_friends_that_could_be_added))
                 }
             }
         }
@@ -288,7 +289,7 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                 )
                 BasicText(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    text = "Send Invitation"
+                    text = stringResource(R.string.send_invitation)
                 )
             }
         }
@@ -298,7 +299,7 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
 @Composable
 fun FirstPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicText(text = "First place", fontSize = 26)
+        BasicText(text = stringResource(R.string.first_place), fontSize = 26)
         BasicContainer(backGroundColor = wrongPlace, onClick = { openUserProfile() }) {
             Column(
                 modifier = Modifier
@@ -336,13 +337,13 @@ fun FirstPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: (
                     BasicText(
                         modifier = Modifier
                             .align(Alignment.Center),
-                        text = "${
-                            when (rule) {
+                        text = stringResource(
+                            R.string.points, when (rule) {
                                 LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
                                 LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
                                 LeagueRule.WORDLE_ONLY -> session.pointsForWordle
                             }
-                        } Points",
+                        ),
                         fontSize = 48
                     )
                 }
@@ -355,7 +356,7 @@ fun FirstPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: (
 @Composable
 fun SecondPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicText(text = "Second Place", fontSize = 22)
+        BasicText(text = stringResource(R.string.second_place), fontSize = 22)
         BasicContainer(backGroundColor = gray, onClick = { openUserProfile() }) {
             Column(
                 modifier = Modifier
@@ -384,13 +385,13 @@ fun SecondPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: 
                     BasicText(
                         modifier = Modifier
                             .align(Alignment.Center),
-                        text = "${
-                            when (rule) {
+                        text = stringResource(
+                            R.string.points, when (rule) {
                                 LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
                                 LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
                                 LeagueRule.WORDLE_ONLY -> session.pointsForWordle
                             }
-                        } Points",
+                        ),
                         fontSize = 36
                     )
                 }
@@ -409,7 +410,9 @@ fun OthersPositions(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(
-            text = if (backGroundColor == lightBrown) "Third Place" else "$index° Place",
+            text = if (backGroundColor == lightBrown) stringResource(R.string.third_place) else stringResource(
+                R.string.place, index
+            ),
             fontSize = 18
         )
         BasicContainer(backGroundColor = backGroundColor, onClick = {
@@ -444,13 +447,13 @@ fun OthersPositions(
                         .align(Alignment.CenterVertically)
                         .fillMaxWidth()
                         .weight(0.3f),
-                    text = "${
-                        when (rule) {
+                    text = stringResource(
+                        R.string.p, when (rule) {
                             LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
                             LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
                             LeagueRule.WORDLE_ONLY -> session.pointsForWordle
                         }
-                    }P",
+                    ),
                     fontSize = 22,
                     textAlign = TextAlign.End,
                     fontColor = closeToBlack

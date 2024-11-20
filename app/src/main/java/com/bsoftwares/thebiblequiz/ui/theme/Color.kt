@@ -23,11 +23,8 @@ val black = Color(0xFF000000)
 val prettyMuchBlack = Color(0xFF151515)
 val darkGray = Color(0xFF5A5A5A)
 val lighterGray = Color(0xFF888888)
-val wrongAnswerSelected = Color(0xffef9a9a)
 val wrongAnswer = Color(0xFFB93939)
-val wrongAnswerDark = Color(0xffc62828)
 val correctAnswer = Color(0xFF7FA44E)
-val correctAnswerDark = Color(0xff558b2f)
 val lightBrown = Color(0xFFDBB99F)
 
 @Composable
@@ -35,9 +32,6 @@ fun contrastColor() = colorResource(id = R.color.contrast_color)
 
 @Composable
 fun basicContainerClean() = colorResource(id = R.color.basic_container_without_shadow)
-
-@Composable
-fun basicContainerShadow() = colorResource(id = R.color.basic_container_color)
 
 @Composable
 fun appBackground() = colorResource(id = R.color.background_color)

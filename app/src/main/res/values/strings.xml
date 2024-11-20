@@ -63,5 +63,57 @@
     <string name="how_to_play">How to play</string>
     <string name="get_premium">Get Premium</string>
     <string name="league_was_deleted">League was deleted</string>
+    <string name="change_it">Change it</string>
+    <string name="select_your_icon">Select your icon</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="warning">Warning</string>
+    <string name="emptyString" />
+    <string name="league_changes">League Changes</string>
+    <string name="are_you_sure">Are you sure you want to make these changes? If you continue, all the points will be reset to zero</string>
+    <string name="delete_league">Delete League</string>
+    <string name="are_you_sure_you_want_to_delete_this_league">Are you sure you want to delete this League?</string>
+    <string name="league_resetting_cycle">League Resetting Cycle:</string>
+    <string name="league_settings">League Settings:</string>
+    <string name="league_points">League Points:</string>
+    <string name="date_for_recycle">Date for Recycle: %1$s</string>
+    <string name="save">Save</string>
+    <string name="friends_you_can_add_to_this_league">Friends you can add to this League</string>
+    <string name="you_don_t_have_any_friends_that_could_be_added">You don\'t have any friends that could be added.</string>
+    <string name="send_invitation">Send Invitation</string>
+    <string name="first_place">First place</string>
+    <string name="second_place">Second Place</string>
+    <string name="points">%1$s Point(s)</string>
+    <string name="third_place">Third Place</string>
+    <string name="place">%1$s° Place</string>
+    <string name="p">%1$sP</string>
+    <string name="add_a_friend">Add a friend</string>
+    <string name="add_user">Add User</string>
+    <string name="friend_removal">Friend Removal</string>
+    <string name="are_you_sure_you_want_to_remove_this_friend">Are you sure you want to remove this friend?</string>
+    <string name="logout">Logout</string>
+    <string name="go_back_to_your_profile">Go back to your Profile</string>
+    <string name="premium_user">Premium User</string>
+    <string name="non_premium_user">Non Premium User</string>
+    <string name="id" translatable="false">id: %1$s</string>
+    <string name="quiz" translatable="false">Quiz</string>
+    <string name="wordle" translatable="false">Wordle</string>
+    <string name="leagues">Leagues</string>
+    <string name="create_a_new_league_hold">Create a New League (Hold)</string>
+    <string name="leagues_invitations">Leagues Invitations</string>
+    <string name="your_leagues">Your Leagues</string>
+    <string name="friend_requests">Friend Requests</string>
+    <string name="friends">Friends</string>
+    <string name="add_new_friend">Add new friend</string>
+    <string name="i_want_to_share_this_verse_with_you">I want to share this verse with you:\n\n%1$s\n\n%2$s</string>
+    <string name="choose_where_you_re_sharing_this">Choose where you\'re sharing this</string>
+    <string name="total">Total</string>
+    <string name="easy">EASY/</string>
+    <string name="medium">MEDIUM/</string>
+    <string name="hard">HARD/</string>
+    <string name="impossible">IMPOSSIBLE/</string>
+    <string name="days_in_streak">Days in streak</string>
+    <string name="how_to_play_the_bible_quiz">How to play The Bible Quiz?</string>
+    <string name="bible_quiz_description">In this game, you have 30 seconds to answer one question. You can choose 1 out of 4 answers. There are 4 difficulties in this game. They are:\n\n- Easy\n- Medium\n- Hard\n- Impossible\n\nIt is only one questions per day and you only have one try. Answer it wisely.</string>
 
 </resources>

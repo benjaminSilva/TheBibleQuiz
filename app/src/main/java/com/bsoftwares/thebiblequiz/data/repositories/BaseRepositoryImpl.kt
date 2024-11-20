@@ -135,7 +135,7 @@ class BaseRepositoryImpl @Inject constructor(
                             }
 
                             QuestionDifficulty.IMPOSSIBLE -> {
-                                pointsToUpdateLeagues += 4
+                                pointsToUpdateLeagues += 5
                                 impossibleCorrect += 1
                             }
                         }
@@ -420,32 +420,32 @@ class BaseRepositoryImpl @Inject constructor(
                 if (userFoundTheWord) {
                     when (getWhichTry) {
                         0 -> {
-                            pointsToUpdateLeagues = +6
+                            pointsToUpdateLeagues = 6
                             winOnFirst += 1
                         }
 
                         1 -> {
-                            pointsToUpdateLeagues = +5
+                            pointsToUpdateLeagues = 5
                             winOnSecond += 1
                         }
 
                         2 -> {
-                            pointsToUpdateLeagues = +3
+                            pointsToUpdateLeagues = 3
                             winOnThird += 1
                         }
 
                         3 -> {
-                            pointsToUpdateLeagues = +2
+                            pointsToUpdateLeagues = 2
                             winOnForth += 1
                         }
 
                         4 -> {
-                            pointsToUpdateLeagues = +2
+                            pointsToUpdateLeagues = 2
                             winOnFirth += 1
                         }
 
                         5 -> {
-                            pointsToUpdateLeagues = +1
+                            pointsToUpdateLeagues = 1
                             winOnSixth += 1
                         }
                     }

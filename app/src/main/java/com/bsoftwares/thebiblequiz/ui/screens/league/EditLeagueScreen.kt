@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -88,18 +89,18 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
             }
 
             is EditLeagueDialog.ConfirmSave -> {
-                BasicDialog(onDismissRequest = {
+
+                BasicPositiveNegativeDialog(onDismissRequest = {
                     viewModel.updateDialog()
-                }) {
-                    ConfirmSave(deny = {
-                        viewModel.updateDialog()
-                    }) {
-                        viewModel.updateLeague(
-                            league = (dialog as EditLeagueDialog.ConfirmSave).getLeague(),
-                            updateTime = true
-                        )
-                    }
-                }
+                }, positiveFunction = {
+                    viewModel.updateLeague(
+                        league = (dialog as EditLeagueDialog.ConfirmSave).getLeague(),
+                        updateTime = true
+                    )
+                },
+                    title = stringResource(R.string.league_changes),
+                    description = stringResource(R.string.are_you_sure)
+                )
             }
 
             is EditLeagueDialog.SelectNewIcon -> {
@@ -118,8 +119,8 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
                         viewModel.updateDialog()
                     },
                     dialogIcon = league.leagueIcon.getPainter(),
-                    title = "Delete League",
-                    description = "Are you sure you want to delete this League?",
+                    title = stringResource(R.string.delete_league),
+                    description = stringResource(R.string.are_you_sure_you_want_to_delete_this_league),
                     positiveFunction = {
                         viewModel.deleteLeague(league)
                     })
@@ -169,7 +170,7 @@ fun EditLeagueScreen(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BasicText(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = "League Settings:",
+                text = stringResource(R.string.league_settings),
                 fontSize = 32
             )
             BasicContainer(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -225,7 +226,7 @@ fun EditLeagueScreen(
             }
             BasicText(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = "League Resetting Cycle:",
+                text = stringResource(R.string.league_resetting_cycle),
                 fontSize = 22
             )
             if (sessionInLeague.adminUser) {
@@ -240,7 +241,7 @@ fun EditLeagueScreen(
             }
             BasicText(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = "League Points:",
+                text = stringResource(R.string.league_points),
                 fontSize = 22
             )
             if (sessionInLeague.adminUser) {
@@ -255,7 +256,7 @@ fun EditLeagueScreen(
             }
             BasicText(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = "Date for Recycle: ${league.endCycleString}",
+                text = stringResource(R.string.date_for_recycle, league.endCycleString),
                 fontSize = 22
             )
         }
@@ -321,7 +322,7 @@ fun EditLeagueScreen(
                         )
                         BasicText(
                             modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "Save"
+                            text = stringResource(R.string.save)
                         )
                     }
                 }
@@ -404,85 +405,6 @@ fun LeaguePoints(league: League, updateRule: (LeagueRule) -> Unit) {
 }
 
 @Composable
-fun ConfirmSave(deny: () -> Unit, confirm: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        BasicContainer {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                BasicText(text = "Are you sure you want this change?", fontSize = 22)
-                BasicText(text = "This will reset the points of all the participants of this League and a new end cycle data will be set.")
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            BasicContainer(modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-                onClick = {
-                    deny()
-                }
-            ) {
-
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-
-                    Image(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.CenterVertically),
-                        painter = painterResource(id = R.drawable.baseline_close_24),
-                        contentDescription = null
-                    )
-
-                    BasicText(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(start = 8.dp),
-                        text = "Better Not",
-                    )
-                }
-            }
-
-            BasicContainer(modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-                onClick = {
-                    confirm()
-                }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-
-                    Image(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.CenterVertically),
-                        painter = painterResource(id = R.drawable.baseline_check_24),
-                        contentDescription = null
-                    )
-
-                    BasicText(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(start = 8.dp),
-                        text = "Yes",
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
 
     val listOfIcons = listOf(
@@ -505,7 +427,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                BasicText(text = "Select your icon", fontSize = 22)
+                BasicText(text = stringResource(R.string.select_your_icon), fontSize = 22)
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 56.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -566,7 +488,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(start = 8.dp),
-                    text = "Change it",
+                    text = stringResource(R.string.change_it),
                 )
             }
         }
