@@ -27,6 +27,7 @@
     <string name="feedback_no_change">Não há mudanças</string>
     <string name="feedback_image_updated">Imagem atualizada</string>
     <string name="feedback_user_premium">Agora você é um membro Premium</string>
+    <string name="feedback_user_not_premium">Apenas contas premium podem jogar mais de uma Liga</string>
     <string name="feedback_question_league_created">Liga creada com sucesso</string>
     <string name="question_suggestion_bible_verse_details">Se o verso da Bíblia não for aplicável, então apenas coloque \'N/A\'. Por exemplo, caso sua pergunta seja algo como \'Qual é o último livro da Bíblia?\' - A resposta dessa pergunta não está em um versículo específico.</string>
     <string name="question_suggestion_created_by_details">Vamos te dar o crédito pela criação da pergunta.</string>

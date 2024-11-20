@@ -26,6 +26,7 @@
     <string name="feedback_no_change">There\'s no change.</string>
     <string name="feedback_image_updated">Image Updated</string>
     <string name="feedback_user_premium">You are now a Premium member</string>
+    <string name="feedback_user_not_premium">Only premium users can join more than one League</string>
     <string name="feedback_question_league_created">League Created Successfully</string>
     <string name="question_suggestion_bible_verse_details">If bible verse does not apply just write N/A. Eg: If you ask \'What is the last book of the bible\', that does not have an specific bible verse with the answer.</string>
     <string name="question_suggestion_created_by_details">We will credit you if your question is approved.</string>

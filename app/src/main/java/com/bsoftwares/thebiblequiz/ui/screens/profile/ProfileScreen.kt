@@ -235,7 +235,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             notFriendRequest = notFriendRequest,
             createNewLeague = {
                 homeViewModel.createNewLeague()
-                //navController.navigate()
             },
             listOfLeagues = listOfLeagues,
             openLeague = {
@@ -991,5 +990,6 @@ val profileScreenFeedbackMessages = listOf(
     FeedbackMessage.FriendRequestSent,
     FeedbackMessage.FriendRemoved,
     FeedbackMessage.YouHaveAlreadySent,
-    FeedbackMessage.LeagueDeleted
+    FeedbackMessage.LeagueDeleted,
+    FeedbackMessage.YouAreNotPremium
 )
