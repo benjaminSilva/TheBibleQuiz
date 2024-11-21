@@ -239,7 +239,9 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             listOfLeagues = listOfLeagues,
             openLeague = {
                 homeViewModel.setCurrentLeague(it)
-                navController.navigate(Routes.LeagueScreen.value)
+                navController.navigate(Routes.LeagueScreen.value) {
+                    launchSingleTop = true
+                }
             },
             listOfLeagueInvitations = listOfLeagueInvitations,
             updateLeagueInvitation = { hasAccepted, leagueId ->

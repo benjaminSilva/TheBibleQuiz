@@ -49,8 +49,10 @@ sealed class FeedbackMessage(
     object ImageUpdated: FeedbackMessage(R.string.feedback_image_updated)
     object YouAreNowPremium: FeedbackMessage(R.string.feedback_user_premium)
     object YouAreNotPremium: FeedbackMessage(R.string.feedback_user_not_premium)
+    object LeftLeagueSuccessfully: FeedbackMessage(R.string.you_ve_left_the_league_successfully)
 }
 
 enum class LogTypes(val message: String) {
-    PERMISSION("Permission Issue")
+    PERMISSION("Permission Issue"),
+    LEAGUE_ERROR("League Related Error")
 }

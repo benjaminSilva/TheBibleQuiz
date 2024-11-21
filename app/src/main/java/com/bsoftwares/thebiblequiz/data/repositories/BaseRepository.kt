@@ -52,4 +52,5 @@ interface BaseRepository {
     suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>>
     suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>>
     suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>>
+    suspend fun userLeaveLeague(userId: String, leagueId: String): Flow<ResultOf<FeedbackMessage>>
 }

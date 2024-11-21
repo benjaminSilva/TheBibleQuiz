@@ -112,5 +112,8 @@
     <string name="days_in_streak">Days in streak</string>
     <string name="how_to_play_the_bible_quiz">How to play The Bible Quiz?</string>
     <string name="bible_quiz_description">Neste jogo, Você tem 30 segundos para responder uma pergunta. Poderá escolher uma dentre quatro respostas. Temos 4 dificuldades. Elas são:\n\n- Fácil\n- Médio\n- Difícil\n- Impossível\n\nVocê só tem uma change de responder. Responda com sabedoria.</string>
+    <string name="leave_league">Saindo da Liga</string>
+    <string name="are_you_sure_you_want_to_leave_this_league">Tem certeza que quer sair desta liga? Você perderá todos os pontos conquistados</string>
+    <string name="you_ve_left_the_league_successfully">Você saiu da Liga com sucesso</string>
 
 </resources>

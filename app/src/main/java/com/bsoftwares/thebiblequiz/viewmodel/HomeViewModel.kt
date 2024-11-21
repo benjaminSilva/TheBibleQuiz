@@ -474,4 +474,15 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun leaveLeague() = backGroundScope.launch {
+        repo.userLeaveLeague(sessionInLeague.value.userId, currentLeague.value.leagueId).collectLatest {
+            it.handleSuccessAndFailure { fbm ->
+                _isLoading.emit(true)
+                delay(10000)
+                _isLoading.emit(false)
+                emitFeedbackMessage(fbm)
+            }
+        }
+    }
 }

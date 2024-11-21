@@ -107,7 +107,9 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
 
     BasicScreenBox {
         LeagueScreen(league = league, sessionInLeague = currentSessionInLeague, navigateEditScreen = {
-            navController.navigate(Routes.EditLeague.value)
+            navController.navigate(Routes.EditLeague.value) {
+                launchSingleTop = true
+            }
         }, openUserProfile = {
             viewModel.updateVisibleSession(userId = it)
             navController.popBackStack()

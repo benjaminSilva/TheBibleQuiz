@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.LeagueDuration
@@ -59,7 +59,7 @@ import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
 @Composable
-fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeViewModel) {
+fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: HomeViewModel) {
     val league by viewModel.currentLeague.collectAsStateWithLifecycle()
     val sessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
@@ -126,6 +126,19 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
                     })
             }
 
+            is EditLeagueDialog.LeaveLeague -> {
+                BasicPositiveNegativeDialog(
+                    onDismissRequest = {
+                        viewModel.updateDialog()
+                    },
+                    dialogIcon = league.leagueIcon.getPainter(),
+                    title = stringResource(R.string.leave_league),
+                    description = stringResource(R.string.are_you_sure_you_want_to_leave_this_league),
+                    positiveFunction = {
+                        viewModel.leaveLeague()
+                    })
+            }
+
             else -> Unit
         }
     }
@@ -135,6 +148,8 @@ fun InitializeLeagueEditScreen(navController: NavController, viewModel: HomeView
             viewModel.updateDialog(it)
         }, deleteLeague = {
             viewModel.updateDialog(EditLeagueDialog.DeleteLeague)
+        }, leaveLeague = {
+            viewModel.updateDialog(EditLeagueDialog.LeaveLeague)
         }) { updatedLeague, updateCycle ->
             viewModel.updateLeague(league = updatedLeague, updateTime = updateCycle)
         }
@@ -147,6 +162,7 @@ fun EditLeagueScreen(
     sessionInLeague: SessionInLeague,
     createDialog: (DialogType) -> Unit,
     deleteLeague: () -> Unit,
+    leaveLeague: () -> Unit,
     updateLeague: (League, Boolean) -> Unit
 ) {
 
@@ -266,16 +282,18 @@ fun EditLeagueScreen(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (sessionInLeague.adminUser) {
-                BasicContainer(onClick = {
+            BasicContainer(onClick = {
+                if (sessionInLeague.adminUser) {
                     deleteLeague()
-                }) {
-                    Image(
-                        modifier = Modifier.padding(16.dp),
-                        painter = painterResource(id = R.drawable.baseline_delete_24),
-                        contentDescription = null
-                    )
+                } else {
+                    leaveLeague()
                 }
+            }) {
+                Image(
+                    modifier = Modifier.padding(16.dp),
+                    painter = painterResource(id = R.drawable.baseline_delete_24),
+                    contentDescription = null
+                )
             }
             /* To Be implemented after release
             BasicContainer {
@@ -503,7 +521,7 @@ fun PreviewLeagueEdit() {
         EditLeagueScreen(
             League(endCycleString = "11/08/2024"),
             SessionInLeague(adminUser = true),
-            {}, {}) { _, _ ->
+            {}, {}, {}) { _, _ ->
 
         }
     }
@@ -513,7 +531,7 @@ fun PreviewLeagueEdit() {
 @Composable
 fun PreviewLeagueEditNonAdmin() {
     NovaGincanaBiblicaTheme {
-        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}, {}) { _, _ ->
+        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}, {}, {}) { _, _ ->
 
         }
     }
