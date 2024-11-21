@@ -48,6 +48,7 @@ sealed class LeagueDialog : DialogType() {
 sealed class EditLeagueDialog : DialogType() {
     object SelectNewIcon : EditLeagueDialog()
     object DeleteLeague : EditLeagueDialog()
+    object LeaveLeague : EditLeagueDialog()
     object Logs : EditLeagueDialog()
     data class ConfirmSave(val updatedLeague: League) : EditLeagueDialog() {
         fun getLeague() : League {

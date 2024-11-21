@@ -26,6 +26,7 @@ import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
@@ -34,6 +35,7 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -42,11 +44,14 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 class BaseRepositoryImpl @Inject constructor(
@@ -799,6 +804,44 @@ class BaseRepositoryImpl @Inject constructor(
                 )
         }
         awaitClose { channel.close() }
+    }
+
+    override suspend fun userLeaveLeague(userId: String, leagueId: String): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+        try {
+            // Await both database operations
+            leaguesDatabaseReference
+                .child(leagueId)
+                .child(stringLeagueUsers)
+                .child(userId)
+                .ref
+                .awaitRemoveValue() // Custom suspend function for removeValue
+
+            usersReference
+                .child(userId)
+                .child(stringLeagues)
+                .child(leagueId)
+                .ref
+                .awaitRemoveValue() // Custom suspend function for removeValue
+
+            // If both operations succeed, send success
+            trySend(ResultOf.Success(FeedbackMessage.LeftLeagueSuccessfully))
+        } catch (exception: Exception) {
+            // If any operation fails, send failure and log the error
+            trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+            trySend(ResultOf.LogMessage(LogTypes.LEAGUE_ERROR, exception.message.toString()))
+        } finally {
+            awaitClose { channel.close() }
+        }
+    }
+
+    private suspend fun DatabaseReference.awaitRemoveValue() {
+        suspendCancellableCoroutine { continuation ->
+            this.removeValue()
+                .addOnSuccessListener { continuation.resume(Unit) }
+                .addOnFailureListener { exception ->
+                    continuation.resumeWithException(exception)
+                }
+        }
     }
 
     override suspend fun sendLeagueRequest(
