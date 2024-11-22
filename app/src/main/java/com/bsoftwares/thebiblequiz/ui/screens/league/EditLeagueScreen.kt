@@ -142,7 +142,7 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
         }
     }
 
-    BasicScreenBox(feedbackMessage = feedbackMessage) {
+    BasicScreenBox(feedbackMessage = feedbackMessage, dialogType = dialog) {
         EditLeagueScreen(league = league, sessionInLeague = sessionInLeague, createDialog = {
             viewModel.updateDialog(it)
         }, deleteLeague = {
