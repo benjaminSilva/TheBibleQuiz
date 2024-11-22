@@ -54,5 +54,6 @@ sealed class FeedbackMessage(
 
 enum class LogTypes(val message: String) {
     PERMISSION("Permission Issue"),
-    LEAGUE_ERROR("League Related Error")
+    LEAGUE_ERROR("League Related Error"),
+    FIREBASE_ERROR("Firebase failure error")
 }

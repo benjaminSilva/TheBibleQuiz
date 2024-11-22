@@ -33,6 +33,7 @@ fun BasicDialog(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
 @Composable
 fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                                 title: String = stringResource(R.string.warning),
+                                dismissible : Boolean = true, // When this is false, you have to update the Dialog on the positive and negative functions
                                 dialogIcon: Painter? = painterResource(id = R.drawable.warning_24dp),
                                 description: String = stringResource(R.string.emptyString),
                                 positiveString: String = stringResource(R.string.yes),
@@ -41,7 +42,7 @@ fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                                 negativeIcon: Painter = painterResource(id = R.drawable.baseline_close_24_bw),
                                 positiveFunction: () -> Unit = {},
                                 negativeFunction: () -> Unit = {}) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
+    Dialog(onDismissRequest = { if (dismissible) onDismissRequest() else Unit }) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(.85f)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BasicContainer(modifier = Modifier.fillMaxWidth()) {

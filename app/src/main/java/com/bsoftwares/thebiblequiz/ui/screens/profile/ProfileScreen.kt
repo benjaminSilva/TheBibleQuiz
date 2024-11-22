@@ -1,6 +1,5 @@
 package com.bsoftwares.thebiblequiz.ui.screens.profile
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -207,7 +206,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        condition = profileScreenFeedbackMessages.contains(feedbackMessage)
+        conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage)
     ) {
         ProfileScreen(
             modifier = Modifier.alpha(alphaAnimation),

@@ -64,7 +64,6 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
     val sessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -85,7 +84,7 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
     if (displayDialog) {
         when (dialog) {
             is DialogType.Loading -> {
-                DialogType.Loading.generate(modifier = Modifier.fillMaxSize())
+                DialogType.Loading.Generate(modifier = Modifier.fillMaxSize())
             }
 
             is EditLeagueDialog.ConfirmSave -> {
@@ -143,7 +142,7 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
         }
     }
 
-    BasicScreenBox(feedbackMessage = feedbackMessage, isLoading = isLoading) {
+    BasicScreenBox(feedbackMessage = feedbackMessage) {
         EditLeagueScreen(league = league, sessionInLeague = sessionInLeague, createDialog = {
             viewModel.updateDialog(it)
         }, deleteLeague = {
