@@ -56,6 +56,7 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButto
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
 @Composable
@@ -272,6 +273,14 @@ fun EditLeagueScreen(
             BasicText(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(R.string.date_for_recycle, league.endCycleString),
+                fontSize = 22
+            )
+            BasicText(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(
+                    R.string.admin,
+                    league.listOfUsers.find { it.adminUser }?.userName ?: emptyString
+                ),
                 fontSize = 22
             )
         }

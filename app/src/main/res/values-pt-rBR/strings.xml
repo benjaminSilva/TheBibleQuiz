@@ -115,5 +115,8 @@
     <string name="leave_league">Saindo da Liga</string>
     <string name="are_you_sure_you_want_to_leave_this_league">Tem certeza que quer sair desta liga? Você perderá todos os pontos conquistados</string>
     <string name="you_ve_left_the_league_successfully">Você saiu da Liga com sucesso</string>
+    <string name="admin">Administrador: %1$s</string>
+    <string name="removing_from_league">Removendo Usuário</string>
+    <string name="are_you_sure_you_want_to_remove_from_the_league">Você tem certeza que você quer remover %1$s desta Liga?</string>
 
 </resources>
