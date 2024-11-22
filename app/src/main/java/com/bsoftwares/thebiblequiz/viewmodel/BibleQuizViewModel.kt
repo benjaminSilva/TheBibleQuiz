@@ -84,9 +84,7 @@ class BibleQuizViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             autoCancellable {
                 repo.updateStats(currentQuestion.value, false, localSession.value)
-                    .collectLatestAndApplyOnMain {
-                        emitFeedbackMessage(it)
-                    }
+                    .collectLatest {}
             }
         }
     }
@@ -109,11 +107,15 @@ class BibleQuizViewModel @Inject constructor(
     }
 
     fun updateQuestionResult(isCorrect: Boolean) = backGroundScope.launch {
-        repo.updateStats(currentQuestion.value, isCorrect, localSession.value, selectedAnswer.value.answerText)
-            .collectLatestAndApplyOnMain {
-                emitFeedbackMessage(it)
+            repo.updateStats(
+                currentQuestion.value,
+                isCorrect,
+                localSession.value,
+                selectedAnswer.value.answerText
+            ).collectLatest {
+                it.handleSuccessAndFailure {}
             }
-    }
+        }
 
     fun updateGameAvailability() = backGroundScope.launch {
         repo.updateHasPlayedBibleQuiz()

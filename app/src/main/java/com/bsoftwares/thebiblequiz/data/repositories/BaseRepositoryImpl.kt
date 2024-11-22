@@ -23,7 +23,6 @@ import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -113,7 +112,7 @@ class BaseRepositoryImpl @Inject constructor(
         isCorrect: Boolean,
         session: Session,
         answerSelectedByTheUser: String
-    ): Flow<FeedbackMessage> =
+    ): Flow<ResultOf<Nothing>> =
         channelFlow {
 
             if (session.userInfo.userId.isNotEmpty()) {
@@ -166,23 +165,39 @@ class BaseRepositoryImpl @Inject constructor(
                     }
                 }
 
+                try {
+                    if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
+                        session.localListLeagues.forEach {
+                            val pointsRef =
+                                leaguesDatabaseReference.child(it).child(stringLeagueUsers)
+                                    .child(session.userInfo.userId).child(stringPointsForQuiz)
+                            val oldPoints = pointsRef.get().addOnFailureListener { error ->
+                                throw error
+                            }.await().value as Long
 
-                if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
-                    session.localListLeagues.forEach {
-                        val pointsRef = leaguesDatabaseReference.child(it).child(stringLeagueUsers)
-                            .child(session.userInfo.userId).child(stringPointsForQuiz)
-                        val oldPoints = pointsRef.get().await().value as Long
-                        pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
-                    }
-                }
-
-                usersReference.child(session.userInfo.userId).child(quizStats)
-                    .setValue(currentUserStats)
-                    .addOnFailureListener {
-                        it.message?.apply {
-                            trySend(FeedbackMessage.InternetIssues)
+                            pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
+                                .addOnFailureListener { error ->
+                                    throw error
+                                }.await()
                         }
                     }
+                    usersReference.child(session.userInfo.userId).child(quizStats)
+                        .setValue(currentUserStats)
+                        .addOnFailureListener {
+                            throw it
+                        }
+                        .await()
+
+
+                } catch (exception: Exception) {
+                    trySend(
+                        ResultOf.LogMessage(
+                            LogTypes.FIREBASE_ERROR,
+                            exception.message.toString()
+                        )
+                    )
+                }
+
             }
         }
 

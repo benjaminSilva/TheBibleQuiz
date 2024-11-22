@@ -108,16 +108,20 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         }
     }
 
-    suspend fun <T> ResultOf<T>.handleSuccessAndFailure(action: suspend (value: T) -> Unit) =
+    suspend fun <T> ResultOf<T>.handleSuccessAndFailure(
+        failureAction: suspend () -> Unit = {},
+        logAction: suspend () -> Unit = {},
+        action: suspend (value: T) -> Unit
+    ) =
         when (this) {
             is ResultOf.Success -> action(value)
             is ResultOf.Failure -> {
                 emitFeedbackMessage(errorMessage)
-                Unit
+                failureAction()
             }
             is ResultOf.LogMessage -> {
                 Log.i("Bible Quiz App ~ ${reference.message}", errorMessage)
-                Unit
+                logAction()
             }
         }
 

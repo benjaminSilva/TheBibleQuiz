@@ -2,7 +2,7 @@ package com.bsoftwares.thebiblequiz.data.models.state
 
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -10,11 +10,11 @@ import androidx.compose.ui.window.Dialog
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 
-sealed class DialogType() {
+sealed class DialogType {
     object EmptyValue : DialogType()
     object Loading : DialogType() {
         @Composable
-        fun generate(modifier: Modifier = Modifier) {
+        fun Generate(modifier: Modifier = Modifier) {
             Dialog(onDismissRequest = {}) {
                 Box(modifier = modifier) {
                     CircularProgressIndicator(
