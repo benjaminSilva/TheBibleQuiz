@@ -31,6 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,6 +53,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.LeagueDialog
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicPositiveNegativeDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
@@ -101,6 +104,23 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                 }
             }
 
+            is LeagueDialog.RemoveFriend -> {
+                val userToBeRemoved = (dialog as LeagueDialog.RemoveFriend).sessionInLeague
+                BasicPositiveNegativeDialog(
+                    onDismissRequest = {
+                        viewModel.updateDialog()
+                    },
+                    title = stringResource(R.string.removing_from_league),
+                    description = stringResource(
+                        R.string.are_you_sure_you_want_to_remove_from_the_league,
+                        userToBeRemoved.userName
+                    ),
+                    positiveFunction = {
+                        viewModel.leaveLeague(userToBeRemoved.userId)
+                    }
+                )
+            }
+
             else -> Unit
         }
     }
@@ -128,6 +148,8 @@ fun LeagueScreen(
     openUserProfile: (String) -> Unit,
     updateDialog: (DialogType) -> Unit
 ) {
+
+    val haptic = LocalHapticFeedback.current
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -180,6 +202,13 @@ fun LeagueScreen(
                 }
             }
 
+            fun displayDialogIfAdmin(userName: SessionInLeague) {
+                if (sessionInLeague.adminUser && !userName.adminUser) {
+                    updateDialog(LeagueDialog.RemoveFriend(sessionInLeague = userName))
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            }
+
             BasicContainer(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
@@ -188,35 +217,44 @@ fun LeagueScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    league.listOfUsers.onEachIndexed { index, sessionInLeague ->
+                    league.listOfUsers.onEachIndexed { index, user ->
                         when (index) {
                             0 -> {
-                                FirstPosition(session = sessionInLeague, rule = league.leagueRule) {
-                                    openUserProfile(sessionInLeague.userId)
+                                FirstPosition(session = user, rule = league.leagueRule, onLongClick = {
+                                    displayDialogIfAdmin(user)
+                                }) {
+                                    openUserProfile(user.userId)
                                 }
                             }
 
                             1 -> SecondPosition(
-                                session = sessionInLeague,
-                                rule = league.leagueRule
+                                session = user,
+                                rule = league.leagueRule, onLongClick = {
+                                    displayDialogIfAdmin(user)
+
+                                }
                             ) {
-                                openUserProfile(sessionInLeague.userId)
+                                openUserProfile(user.userId)
                             }
 
                             2 -> OthersPositions(
-                                session = sessionInLeague,
-                                rule = league.leagueRule
+                                session = user,
+                                rule = league.leagueRule, onLongClick = {
+                                    displayDialogIfAdmin(user)
+                                }
                             ) {
-                                openUserProfile(sessionInLeague.userId)
+                                openUserProfile(user.userId)
                             }
 
                             else -> OthersPositions(
                                 backGroundColor = colorResource(id = R.color.basic_container_color),
-                                session = sessionInLeague,
+                                session = user,
                                 index = index + 1,
-                                rule = league.leagueRule
+                                rule = league.leagueRule, onLongClick = {
+                                    displayDialogIfAdmin(user)
+                                }
                             ) {
-                                openUserProfile(sessionInLeague.userId)
+                                openUserProfile(user.userId)
                             }
                         }
 
@@ -299,10 +337,10 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
 }
 
 @Composable
-fun FirstPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: () -> Unit) {
+fun FirstPosition(session: SessionInLeague, rule: LeagueRule, onLongClick: () -> Unit, openUserProfile: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(text = stringResource(R.string.first_place), fontSize = 26)
-        BasicContainer(backGroundColor = wrongPlace, onClick = { openUserProfile() }) {
+        BasicContainer(backGroundColor = wrongPlace, onClick = openUserProfile, onLongClick = onLongClick) {
             Column(
                 modifier = Modifier
                     .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -356,10 +394,10 @@ fun FirstPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: (
 }
 
 @Composable
-fun SecondPosition(session: SessionInLeague, rule: LeagueRule, openUserProfile: () -> Unit) {
+fun SecondPosition(session: SessionInLeague, rule: LeagueRule, onLongClick: () -> Unit, openUserProfile: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(text = stringResource(R.string.second_place), fontSize = 22)
-        BasicContainer(backGroundColor = gray, onClick = { openUserProfile() }) {
+        BasicContainer(backGroundColor = gray, onClick = openUserProfile, onLongClick = onLongClick) {
             Column(
                 modifier = Modifier
                     .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -407,7 +445,7 @@ fun OthersPositions(
     backGroundColor: Color = lightBrown,
     session: SessionInLeague,
     index: Int = 0,
-    rule: LeagueRule,
+    rule: LeagueRule, onLongClick: () -> Unit,
     openUserProfile: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -417,9 +455,7 @@ fun OthersPositions(
             ),
             fontSize = 18
         )
-        BasicContainer(backGroundColor = backGroundColor, onClick = {
-            openUserProfile()
-        }) {
+        BasicContainer(backGroundColor = backGroundColor, onClick = openUserProfile, onLongClick = onLongClick) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

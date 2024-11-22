@@ -119,5 +119,8 @@
     <string name="leave_league">Leave League</string>
     <string name="are_you_sure_you_want_to_leave_this_league">Are you sure you want to leave this League? You will lose any point you\'ve gained</string>
     <string name="you_ve_left_the_league_successfully">You\'ve left the League successfully</string>
+    <string name="admin">Admin: %1$s</string>
+    <string name="removing_from_league">Removing user</string>
+    <string name="are_you_sure_you_want_to_remove_from_the_league">Are you sure you want to remove %1$s from the League?</string>
 
 </resources>

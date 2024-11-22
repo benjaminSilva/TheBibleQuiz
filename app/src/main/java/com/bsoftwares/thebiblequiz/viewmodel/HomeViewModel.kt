@@ -472,8 +472,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun leaveLeague() = backGroundScope.launch {
-        repo.userLeaveLeague(sessionInLeague.value.userId, currentLeague.value.leagueId).collectLatest {
+    fun leaveLeague(userId: String = sessionInLeague.value.userId) = backGroundScope.launch {
+        repo.userLeaveLeague(userId, currentLeague.value.leagueId).collectLatest {
             it.handleSuccessAndFailure { fbm ->
                 updateDialog(DialogType.Loading)
                 delay(10000)
