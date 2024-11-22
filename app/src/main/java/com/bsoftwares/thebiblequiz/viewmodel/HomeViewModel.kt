@@ -45,9 +45,6 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-
     private var _listOfFriendRequests = MutableStateFlow(listOf<Session>())
     val listOfFriendRequests = _listOfFriendRequests.asStateFlow()
 
@@ -451,7 +448,7 @@ class HomeViewModel @Inject constructor(
                         it.handleSuccessAndFailure { feedbackMessage ->
                             delay(2000)
                             loadLeagues(currentLeagueId = league.leagueId)
-                            updateDialog(DialogType.Loading)
+                            updateDialog(DialogType.EmptyValue)
                             emitFeedbackMessage(feedbackMessage)
                         }
                     }
@@ -467,9 +464,9 @@ class HomeViewModel @Inject constructor(
     fun deleteLeague(league: League) = backGroundScope.launch {
         repo.deleteLeague(leagueId = league.leagueId).collectLatest {
             it.handleSuccessAndFailure { fbm ->
-                _isLoading.emit(true)
+                updateDialog(DialogType.Loading)
                 delay(10000)
-                _isLoading.emit(false)
+                updateDialog(DialogType.EmptyValue)
                 emitFeedbackMessage(fbm)
             }
         }
@@ -478,9 +475,9 @@ class HomeViewModel @Inject constructor(
     fun leaveLeague() = backGroundScope.launch {
         repo.userLeaveLeague(sessionInLeague.value.userId, currentLeague.value.leagueId).collectLatest {
             it.handleSuccessAndFailure { fbm ->
-                _isLoading.emit(true)
+                updateDialog(DialogType.Loading)
                 delay(10000)
-                _isLoading.emit(false)
+                updateDialog(DialogType.EmptyValue)
                 emitFeedbackMessage(fbm)
             }
         }
