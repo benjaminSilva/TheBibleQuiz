@@ -250,7 +250,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
             localSessionJob?.cancel()
             _localSession.emit(session)
         } else {
-            collectSession()
+            localSessionJob = collectSession()
         }
     }
 

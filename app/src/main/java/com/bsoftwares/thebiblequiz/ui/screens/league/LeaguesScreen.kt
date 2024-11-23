@@ -49,6 +49,7 @@ import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.getString
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
+import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.LeagueDialog
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
@@ -74,6 +75,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
     val friendsNotInThisLeague by viewModel.listOfFriendsNotInLeague.collectAsStateWithLifecycle()
     val currentSessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
+    val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
 
     BackHandler {
         viewModel.updateVisibleSession(null)
@@ -116,7 +118,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                         userToBeRemoved.userName
                     ),
                     positiveFunction = {
-                        viewModel.leaveLeague(userToBeRemoved.userId)
+                        viewModel.leaveLeague(userToBeRemoved)
                     }
                 )
             }
@@ -125,7 +127,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
         }
     }
 
-    BasicScreenBox {
+    BasicScreenBox(feedbackMessage = feedbackMessage, conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.RemovedUserSuccessfully) {
         LeagueScreen(league = league, sessionInLeague = currentSessionInLeague, navigateEditScreen = {
             navController.navigate(Routes.EditLeague.value) {
                 launchSingleTop = true
