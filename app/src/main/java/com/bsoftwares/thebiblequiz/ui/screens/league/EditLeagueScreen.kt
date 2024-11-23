@@ -139,6 +139,20 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
                     })
             }
 
+            is EditLeagueDialog.HowItWorks -> {
+                val extraTextForAdminOnly = stringResource(R.string.admin_extra_rules)
+                BasicPositiveNegativeDialog(onDismissRequest = {
+                    viewModel.updateDialog()
+                }, title = stringResource(R.string.how_does_league_work),
+                    description = stringResource(
+                        R.string.league_explained,
+                        if (sessionInLeague.adminUser) extraTextForAdminOnly else emptyString
+                    ),
+                    dialogIcon = null,
+                    negativeString = null,
+                    positiveString = "Got it")
+            }
+
             else -> Unit
         }
     }
@@ -282,6 +296,17 @@ fun EditLeagueScreen(
                     league.listOfUsers.find { it.adminUser }?.userName ?: emptyString
                 ),
                 fontSize = 22
+            )
+        }
+        BasicContainer(modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .align(Alignment.BottomStart),onClick = {
+            createDialog(EditLeagueDialog.HowItWorks)
+        }) {
+            Image(
+                modifier = Modifier.padding(16.dp),
+                painter = painterResource(id = R.drawable.question_mark_24dp),
+                contentDescription = null
             )
         }
         Row(

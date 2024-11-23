@@ -118,5 +118,8 @@
     <string name="admin">Administrador: %1$s</string>
     <string name="removing_from_league">Removendo Usuário</string>
     <string name="are_you_sure_you_want_to_remove_from_the_league">Você tem certeza que você quer remover %1$s desta Liga?</string>
+    <string name="league_explained"><![CDATA[Uma Liga permite que você compita com outras pessoas para alcançar a maior pontuação. Seus resultados de Quiz e Wordle são atualizados automaticamente na Liga. Os pontos são zerados para todos na Data de Reciclagem, marcando o fim de cada ciclo da Liga.\n\nPontos no Quiz (Correto/Errado):\n\nFácil: +1 / Sem Penalidade\nMédio: +2 / -1\nDifícil: +3 / -2\nImpossível: +5 / -3\n\nPontos no Wordle (Tentativa):\n\n1ª Tentativa: 6 Pontos\n2ª Tentativa: 5 Pontos\n3ª Tentativa: 3 Pontos\n4ª Tentativa: 2 Pontos\n5ª Tentativa: 2 Pontos\n6ª Tentativa: 1 Ponto\nSem Solução: -3 Pontos\n\n%1$s]]></string>
+    <string name="how_does_league_work">Como funciona a Liga?</string>
+    <string name="admin_extra_rules">Se você for um Administrador, pode remover outros usuários usando o click longo nos seus perfis no Ranking da Liga.</string>
 
 </resources>
