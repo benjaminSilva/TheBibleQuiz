@@ -64,6 +64,7 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.QuizStats
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.ButtonWithHold
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.WordleStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
@@ -78,7 +79,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
-    val userData by homeViewModel.visibleSession.collectAsStateWithLifecycle()
+    val visibleSession by homeViewModel.visibleSession.collectAsStateWithLifecycle()
     val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
@@ -94,7 +95,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
 
     BackHandler {
-        if (isFromLeague) {
+        if (isFromLeague && !isFromMainUser) {
             navController.navigate(Routes.LeagueScreen.value)
             return@BackHandler
         }
@@ -121,7 +122,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.updateDialog()
                 }) {
                     QuizStats(
-                        data = userData.quizStats,
+                        data = visibleSession.quizStats,
                         calculatedData = calculatedQuizData,
                         isFromProfileScreen = true
                     ) {
@@ -135,7 +136,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.updateDialog()
                 }) {
                     WordleStats(
-                        wordleStats = userData.wordle.wordleStats,
+                        wordleStats = visibleSession.wordle.wordleStats,
                         progresses = calculatedWordleData,
                         isFromProfileScreen = true
                     ) {
@@ -206,13 +207,14 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage)
+        conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
+        dialogType = dialog
     ) {
         ProfileScreen(
             modifier = Modifier.alpha(alphaAnimation),
-            session = userData,
-            calculateQuizData = { homeViewModel.calculateQuizData(session = userData) },
-            calculateWordleData = { homeViewModel.calculateWordleData(session = userData) },
+            session = visibleSession,
+            calculateQuizData = { homeViewModel.calculateQuizData(session = visibleSession) },
+            calculateWordleData = { homeViewModel.calculateWordleData(session = visibleSession) },
             displayDialogFunction = { isThisQuiz ->
                 homeViewModel.updateDialog(dialogType = isThisQuiz)
             },
@@ -247,7 +249,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
             },
             addUser = {
-                userData.userInfo.userId.apply {
+                visibleSession.userInfo.userId.apply {
                     homeViewModel.addFriend(this)
                 }
             }
@@ -526,67 +528,7 @@ fun ProfileScreen(
                             BasicText(text = stringResource(R.string.leagues_invitations))
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOfLeagueInvitations.onEach {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .clickable {
-                                                openLeague(it)
-                                            }
-                                            .background(lessWhite)
-                                            .padding(8.dp)
-                                    ) {
-                                        Row(modifier = Modifier.align(Alignment.CenterStart)) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(CircleShape)
-                                                    .background(
-                                                        almostWhite
-                                                    )
-                                            ) {
-                                                Image(
-                                                    modifier = Modifier
-                                                        .size(24.dp)
-                                                        .padding(8.dp),
-                                                    painter = it.leagueIcon.getPainter(),
-                                                    contentDescription = null,
-                                                    colorFilter = ColorFilter.tint(closeToBlack)
-
-                                                )
-                                            }
-                                            BasicText(
-                                                modifier = Modifier.align(Alignment.CenterVertically),
-                                                text = it.leagueName,
-                                                fontSize = 22,
-                                                fontColor = closeToBlack
-                                            )
-                                        }
-                                        Row(
-                                            modifier = Modifier.align(Alignment.CenterEnd),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            Image(
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterVertically)
-                                                    .size(24.dp)
-                                                    .clickable {
-                                                        updateLeagueInvitation(false, it.leagueId)
-                                                    },
-                                                painter = painterResource(id = R.drawable.baseline_close_24),
-                                                contentDescription = emptyString
-                                            )
-                                            Image(
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterVertically)
-                                                    .size(24.dp)
-                                                    .clickable {
-                                                        updateLeagueInvitation(true, it.leagueId)
-                                                    },
-                                                painter = painterResource(id = R.drawable.baseline_check_24),
-                                                contentDescription = emptyString
-                                            )
-                                        }
-                                    }
+                                    LeagueInvitation(it, openLeague, updateLeagueInvitation)
                                 }
                             }
                         }
@@ -948,6 +890,72 @@ fun FriendItem(
 
 }
 
+@Composable
+fun LeagueInvitation(league: League, openLeague: (League) -> Unit, updateLeagueInvitation: (Boolean, String) -> Unit ) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable {
+                openLeague(league)
+            }
+            .background(lessWhite)
+            .padding(8.dp)
+    ) {
+        Row(modifier = Modifier.align(Alignment.CenterStart), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        almostWhite
+                    )
+            ) {
+                Image(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(24.dp),
+                    painter = league.leagueIcon.getPainter(),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(closeToBlack)
+                )
+            }
+            BasicText(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = league.leagueName,
+                fontSize = 22,
+                fontColor = closeToBlack
+            )
+        }
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Image(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(24.dp)
+                    .clickable {
+                        updateLeagueInvitation(false, league.leagueId)
+                    },
+                painter = painterResource(id = R.drawable.baseline_close_24_bw),
+                contentDescription = emptyString,
+                colorFilter = ColorFilter.tint(almostBlack)
+            )
+            Image(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(24.dp)
+                    .clickable {
+                        updateLeagueInvitation(true, league.leagueId)
+                    },
+                painter = painterResource(id = R.drawable.baseline_check_24_bw),
+                contentDescription = emptyString,
+                colorFilter = ColorFilter.tint(almostBlack)
+            )
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -985,6 +993,14 @@ fun ProfilePreview() {
 @Composable
 fun PreviewIcon() {
     LeaguesIcon()
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewViewLeagueInviationView() {
+    LeagueInvitation(League(leagueName = "Test Name"),{}) { test, teste ->
+
+    }
 }
 
 val profileScreenFeedbackMessages = listOf(

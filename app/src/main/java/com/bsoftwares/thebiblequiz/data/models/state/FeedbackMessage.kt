@@ -7,7 +7,7 @@ import com.bsoftwares.thebiblequiz.R
 sealed class FeedbackMessage(
     private val messageId: Int = 0,
     val messageText: String = "",
-    val extraData: Array<out Any> = arrayOf()
+    var extraData: Array<out Any> = arrayOf()
 ) {
 
     @Composable
@@ -50,6 +50,7 @@ sealed class FeedbackMessage(
     object YouAreNowPremium: FeedbackMessage(R.string.feedback_user_premium)
     object YouAreNotPremium: FeedbackMessage(R.string.feedback_user_not_premium)
     object LeftLeagueSuccessfully: FeedbackMessage(R.string.you_ve_left_the_league_successfully)
+    object RemovedUserSuccessfully: FeedbackMessage(R.string.you_have_removed_1_successfully)
 }
 
 enum class LogTypes(val message: String) {

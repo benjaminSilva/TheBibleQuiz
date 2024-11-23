@@ -8,6 +8,7 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
@@ -52,5 +53,5 @@ interface BaseRepository {
     suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>>
     suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>>
     suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>>
-    suspend fun userLeaveLeague(userId: String, leagueId: String): Flow<ResultOf<FeedbackMessage>>
+    suspend fun userLeaveLeague(user: SessionInLeague, leagueId: String, isFromCurrentSession: Boolean): Flow<ResultOf<FeedbackMessage>>
 }

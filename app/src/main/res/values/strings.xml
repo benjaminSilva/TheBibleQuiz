@@ -125,5 +125,6 @@
     <string name="league_explained"><![CDATA[A League lets you compete with others to achieve the highest score. Your Quiz and Wordle results automatically update in the League. Points reset for everyone on the Recycle Date, marking the end of each League cycle.\n\nQuiz Points (Correct/Wrong):\n\nEasy: +1 / No Penalty\nMedium: +2 / -1\nHard: +3 / -2\nImpossible: +5 / -3\n\nWordle Points (Attempt Number):\n\n1st Attempt: 6 Points\n2nd Attempt: 5 Points\n3rd Attempt: 3 Points\n4th Attempt: 2 Points\n5th Attempt: 2 Points\n6th Attempt: 1 Point\nNo Solution: -3 Points\n\n%1$s]]></string>
     <string name="how_does_league_work">How does League work?</string>
     <string name="admin_extra_rules">If you are an Admin, you can remove other users by holding on their profiles on the League Board.</string>
+    <string name="you_have_removed_1_successfully">You have removed %1$s successfully</string>
 
 </resources>

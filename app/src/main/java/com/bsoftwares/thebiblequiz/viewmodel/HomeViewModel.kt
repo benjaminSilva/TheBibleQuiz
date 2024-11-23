@@ -195,6 +195,7 @@ class HomeViewModel @Inject constructor(
         _visibleSession.update {
             Session()
         }
+        loginSession?.cancel()
         updateSession(Session())
         _listOfFriendRequests.update {
             listOf()
@@ -212,8 +213,6 @@ class HomeViewModel @Inject constructor(
                     _visibleSession.emit(session)
                 }
             }
-        }.apply {
-            start()
         }
     }
 
@@ -355,6 +354,7 @@ class HomeViewModel @Inject constructor(
             emitFeedbackMessage(FeedbackMessage.YouAreNotPremium)
             return@launch
         }
+        updateDialog(DialogType.Loading)
         repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
             it.handleSuccessAndFailure { league ->
                 emitFeedbackMessage(
@@ -363,6 +363,7 @@ class HomeViewModel @Inject constructor(
                 )
                 setCurrentLeague(league)
             }
+            updateDialog(DialogType.EmptyValue)
         }
     }
 
@@ -472,13 +473,17 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun leaveLeague(userId: String = sessionInLeague.value.userId) = backGroundScope.launch {
-        repo.userLeaveLeague(userId, currentLeague.value.leagueId).collectLatest {
+    fun leaveLeague(user: SessionInLeague = sessionInLeague.value) = backGroundScope.launch {
+        repo.userLeaveLeague(
+            user,
+            currentLeague.value.leagueId,
+            isFromCurrentSession = user.userId == localSession.value.userInfo.userId
+        ).collectLatest {
             it.handleSuccessAndFailure { fbm ->
                 updateDialog(DialogType.Loading)
+                emitFeedbackMessage(fbm)
                 delay(10000)
                 updateDialog(DialogType.EmptyValue)
-                emitFeedbackMessage(fbm)
             }
         }
     }

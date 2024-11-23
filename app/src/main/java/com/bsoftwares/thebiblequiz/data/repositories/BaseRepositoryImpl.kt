@@ -235,12 +235,16 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateUserPremiumStatus(session: Session, newValue: Boolean): Flow<FeedbackMessage> = channelFlow {
-        usersReference.child(session.userInfo.userId).child(premium).setValue(newValue).addOnSuccessListener {
-            if (newValue) {
-                trySend(FeedbackMessage.YouAreNowPremium)
-            }
-        }.addOnFailureListener {
+    override suspend fun updateUserPremiumStatus(
+        session: Session,
+        newValue: Boolean
+    ): Flow<FeedbackMessage> = channelFlow {
+        usersReference.child(session.userInfo.userId).child(premium).setValue(newValue)
+            .addOnSuccessListener {
+                if (newValue) {
+                    trySend(FeedbackMessage.YouAreNowPremium)
+                }
+            }.addOnFailureListener {
             it.message?.apply {
                 trySend(FeedbackMessage.Error(this))
             }
@@ -295,37 +299,41 @@ class BaseRepositoryImpl @Inject constructor(
                 }
             }
             currentUserRef.addValueEventListener(postListener)
-            awaitClose { currentUserRef.removeEventListener(postListener) }
+            awaitClose {
+                currentUserRef.removeEventListener(postListener)
+            }
         }
     }
 
-    override suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>> = channelFlow {
-        leaguesDatabaseReference.child(leagueId).ref.removeValue().addOnSuccessListener {
-            trySend(ResultOf.Success(FeedbackMessage.LeagueDeleted))
-        }.addOnFailureListener { message ->
-            trySend(ResultOf.LogMessage(LogTypes.PERMISSION, message.message.toString()))
+    override suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>> =
+        channelFlow {
+            leaguesDatabaseReference.child(leagueId).ref.removeValue().addOnSuccessListener {
+                trySend(ResultOf.Success(FeedbackMessage.LeagueDeleted))
+            }.addOnFailureListener { message ->
+                trySend(ResultOf.LogMessage(LogTypes.PERMISSION, message.message.toString()))
+            }
+            awaitClose { channel.close() }
         }
-        awaitClose { channel.close() }
-    }
 
-    override suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>> = callbackFlow {
-        val ref = leaguesDatabaseReference.child(currentLeague.leagueId)
-        val postListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.getValue<League>()?.apply {
-                    trySend(ResultOf.Success(this.run {
-                        copy(endCycleString = transformEndCycleToString())
-                    }))
+    override suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>> =
+        callbackFlow {
+            val ref = leaguesDatabaseReference.child(currentLeague.leagueId)
+            val postListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.getValue<League>()?.apply {
+                        trySend(ResultOf.Success(this.run {
+                            copy(endCycleString = transformEndCycleToString())
+                        }))
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
                 }
             }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
-            }
+            ref.addValueEventListener(postListener)
+            awaitClose { ref.removeEventListener(postListener) }
         }
-        ref.addValueEventListener(postListener)
-        awaitClose { ref.removeEventListener(postListener) }
-    }
 
     override suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>> = callbackFlow {
         Log.e("User Id", getSignedInUserId())
@@ -336,8 +344,15 @@ class BaseRepositoryImpl @Inject constructor(
                 }
 
                 override fun onReceived(customerInfo: CustomerInfo) {
-                    Log.e("Is user subscribed?", customerInfo.activeSubscriptions.isNotEmpty().toString())
-                    trySend(ResultOf.Success(customerInfo.entitlements["Premium"]?.isActive ?: false))
+                    Log.e(
+                        "Is user subscribed?",
+                        customerInfo.activeSubscriptions.isNotEmpty().toString()
+                    )
+                    trySend(
+                        ResultOf.Success(
+                            customerInfo.entitlements["Premium"]?.isActive ?: false
+                        )
+                    )
                 }
             }
         )
@@ -522,7 +537,8 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun getAttempts(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
         callbackFlow {
             val ref =
-                usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttempts")
+                usersReference.child(session.userInfo.userId).child("wordle")
+                    .child("listOfAttempts")
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<List<WordleAttempt>>()?.apply {
@@ -690,7 +706,12 @@ class BaseRepositoryImpl @Inject constructor(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    trySend(ResultOf.LogMessage(reference = LogTypes.PERMISSION, errorMessage = error.message))
+                    trySend(
+                        ResultOf.LogMessage(
+                            reference = LogTypes.PERMISSION,
+                            errorMessage = error.message
+                        )
+                    )
                 }
 
             }
@@ -821,25 +842,35 @@ class BaseRepositoryImpl @Inject constructor(
         awaitClose { channel.close() }
     }
 
-    override suspend fun userLeaveLeague(userId: String, leagueId: String): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+    override suspend fun userLeaveLeague(
+        user: SessionInLeague,
+        leagueId: String,
+        isFromCurrentSession: Boolean
+    ): Flow<ResultOf<FeedbackMessage>> = channelFlow {
         try {
             // Await both database operations
             leaguesDatabaseReference
                 .child(leagueId)
                 .child(stringLeagueUsers)
-                .child(userId)
+                .child(user.userId)
                 .ref
                 .awaitRemoveValue() // Custom suspend function for removeValue
 
             usersReference
-                .child(userId)
+                .child(user.userId)
                 .child(stringLeagues)
                 .child(leagueId)
                 .ref
                 .awaitRemoveValue() // Custom suspend function for removeValue
 
             // If both operations succeed, send success
-            trySend(ResultOf.Success(FeedbackMessage.LeftLeagueSuccessfully))
+            if (isFromCurrentSession) {
+                trySend(ResultOf.Success(FeedbackMessage.LeftLeagueSuccessfully))
+            } else {
+                trySend(ResultOf.Success(FeedbackMessage.RemovedUserSuccessfully.apply {
+                    extraData = arrayOf(user.userName)
+                }))
+            }
         } catch (exception: Exception) {
             // If any operation fails, send failure and log the error
             trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
