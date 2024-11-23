@@ -37,7 +37,7 @@ fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                                 dialogIcon: Painter? = painterResource(id = R.drawable.warning_24dp),
                                 description: String = stringResource(R.string.emptyString),
                                 positiveString: String = stringResource(R.string.yes),
-                                negativeString: String = stringResource(R.string.no),
+                                negativeString: String? = stringResource(R.string.no),
                                 positiveIcon: Painter = painterResource(id = R.drawable.baseline_check_24_bw),
                                 negativeIcon: Painter = painterResource(id = R.drawable.baseline_close_24_bw),
                                 positiveFunction: () -> Unit = {},
@@ -76,34 +76,36 @@ fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                BasicContainer(modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                    onClick = {
-                        onDismissRequest()
-                        negativeFunction()
-                    }
-                ) {
-
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
+                if (negativeString != null) {
+                    BasicContainer(modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                        onClick = {
+                            onDismissRequest()
+                            negativeFunction()
+                        }
                     ) {
 
-                        Image(
+                        Row(
                             modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.CenterVertically),
-                            painter = negativeIcon,
-                            contentDescription = null
-                        )
+                                .padding(16.dp)
+                        ) {
 
-                        BasicText(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(start = 8.dp),
-                            text = negativeString,
-                        )
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.CenterVertically),
+                                painter = negativeIcon,
+                                contentDescription = null
+                            )
+
+                            BasicText(
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 8.dp),
+                                text = negativeString,
+                            )
+                        }
                     }
                 }
 
