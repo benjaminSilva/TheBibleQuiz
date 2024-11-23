@@ -355,6 +355,7 @@ class HomeViewModel @Inject constructor(
             emitFeedbackMessage(FeedbackMessage.YouAreNotPremium)
             return@launch
         }
+        updateDialog(DialogType.Loading)
         repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
             it.handleSuccessAndFailure { league ->
                 emitFeedbackMessage(
@@ -363,6 +364,7 @@ class HomeViewModel @Inject constructor(
                 )
                 setCurrentLeague(league)
             }
+            updateDialog(DialogType.EmptyValue)
         }
     }
 
