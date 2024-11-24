@@ -16,4 +16,5 @@ sealed class Routes(val value: String) {
     object WordleResults: Routes(value = "wordle_results")
     object LeagueScreen: Routes(value = "leagues")
     object EditLeague: Routes(value = "edit_league")
+    object AdScreen: Routes(value = "ad_screen")
 }

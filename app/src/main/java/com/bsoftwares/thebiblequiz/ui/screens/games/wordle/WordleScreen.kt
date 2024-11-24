@@ -66,13 +66,21 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
     val attempt by viewModel.attemptsString.collectAsStateWithLifecycle()
     val listKeyBoardState = viewModel.keyboardState
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
+    val session by viewModel.localSession.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigate) {
         if (navigate) {
-            navController.navigateWithoutRemembering(
-                route = Routes.WordleResults,
-                baseRoute = Routes.WordleMode
-            )
+            if (!session.premium && session.hasPlayedQuizGame) {
+                navController.navigateWithoutRemembering(
+                    route = Routes.AdScreen,
+                    baseRoute = Routes.WordleMode
+                )
+            } else {
+                navController.navigateWithoutRemembering(
+                    route = Routes.WordleResults,
+                    baseRoute = Routes.WordleMode
+                )
+            }
         }
     }
 

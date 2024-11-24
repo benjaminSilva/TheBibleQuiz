@@ -481,8 +481,12 @@ class HomeViewModel @Inject constructor(
         ).collectLatest {
             it.handleSuccessAndFailure { fbm ->
                 updateDialog(DialogType.Loading)
-                emitFeedbackMessage(fbm)
-                delay(10000)
+                if (fbm == FeedbackMessage.RemovedUserSuccessfully) {
+                    emitFeedbackMessage(fbm)
+                } else {
+                    delay(10000)
+                    emitFeedbackMessage(fbm)
+                }
                 updateDialog(DialogType.EmptyValue)
             }
         }

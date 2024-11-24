@@ -109,6 +109,9 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
 
+    //Ads
+    implementation("com.google.android.gms:play-services-ads:23.5.0")
+
     //Koil
     implementation("io.coil-kt:coil-compose:2.4.0")
 

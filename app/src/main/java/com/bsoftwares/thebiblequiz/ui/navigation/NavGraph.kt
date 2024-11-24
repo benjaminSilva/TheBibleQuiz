@@ -12,33 +12,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.get
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
-import com.bsoftwares.thebiblequiz.ui.screens.profile.InitializeProfileScreen
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
+import com.bsoftwares.thebiblequiz.ui.screens.games.AdScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitSuggestQuestionScreen
-import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizResultScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializePreQuizScreen
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizResultScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleResult
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleScreen
 import com.bsoftwares.thebiblequiz.ui.screens.home.InitializeHomeScreen
 import com.bsoftwares.thebiblequiz.ui.screens.league.InitializeLeagueEditScreen
 import com.bsoftwares.thebiblequiz.ui.screens.league.InitializeLeagueScreen
-import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
+import com.bsoftwares.thebiblequiz.ui.screens.profile.InitializeProfileScreen
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
+import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 
 const val MY_URI = "https://profile-deeplink.com"
-const val MY_ARG = "id"
 
 @Composable
-fun SetupNavGraph(navController: NavHostController) {
+fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
-
         navigation(startDestination = Routes.Home.value, route = Routes.Start.value) {
             composable(
                 route = Routes.Home.value
             ) {
-                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeHomeScreen(navController = navController, homeViewModel = homeViewModel)
             }
 
@@ -48,21 +46,18 @@ fun SetupNavGraph(navController: NavHostController) {
                     uriPattern = MY_URI
                 })
             ) {
-                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)
             }
 
             composable(
                 route = Routes.LeagueScreen.value
             ) {
-                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeLeagueScreen(navController = navController, viewModel = homeViewModel)
             }
 
             composable(
                 route = Routes.EditLeague.value
             ) {
-                val homeViewModel = it.sharedViewModel<HomeViewModel>(navController = navController)
                 InitializeLeagueEditScreen(navController = navController, viewModel = homeViewModel)
             }
         }
@@ -80,6 +75,13 @@ fun SetupNavGraph(navController: NavHostController) {
             ) {
                 val wordleViewModel = it.sharedViewModel<WordleViewModel>(navController = navController)
                 InitializeWordleResult(navController = navController, viewModel = wordleViewModel)
+            }
+
+            composable(
+                route = Routes.AdScreen.value
+            ) {
+                val viewModel = it.sharedViewModel<WordleViewModel>(navController = navController)
+                AdScreen(navHostController = navController, baseViewModel = viewModel)
             }
         }
 
@@ -114,6 +116,13 @@ fun SetupNavGraph(navController: NavHostController) {
                 val viewModel =
                     it.sharedViewModel<BibleQuizViewModel>(navController = navController)
                 InitSuggestQuestionScreen(viewModel =  viewModel)
+            }
+
+            composable(
+                route = Routes.AdScreen.value
+            ) {
+                val viewModel = it.sharedViewModel<BibleQuizViewModel>(navController = navController)
+                AdScreen(navHostController = navController, baseViewModel = viewModel)
             }
         }
     }
