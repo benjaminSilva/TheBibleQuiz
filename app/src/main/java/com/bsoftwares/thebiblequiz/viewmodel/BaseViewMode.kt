@@ -12,6 +12,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepository
 import com.bsoftwares.thebiblequiz.ui.theme.jobTimeOut
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,6 +43,9 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
 
     private val _displayDialog = MutableStateFlow<DialogType>(DialogType.EmptyValue)
     val displayDialog = _displayDialog.asStateFlow()
+
+    private val _ad = MutableStateFlow<InterstitialAd?>(null)
+    val ad = _ad.asStateFlow()
 
     private var dayFlow: Job? = null
 
@@ -252,6 +256,10 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         } else {
             localSessionJob = collectSession()
         }
+    }
+
+    fun updateAd(interstitialAd: InterstitialAd) = backGroundScope.launch {
+        _ad.emit(interstitialAd)
     }
 
 }

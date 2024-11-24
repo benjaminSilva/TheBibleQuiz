@@ -53,7 +53,8 @@ fun FeedbackMessageContainer(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp),
+                .padding(16.dp)
+                .align(Alignment.Center),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Image(

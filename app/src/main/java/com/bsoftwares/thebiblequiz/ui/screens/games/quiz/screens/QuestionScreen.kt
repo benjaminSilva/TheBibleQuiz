@@ -72,6 +72,7 @@ fun InitializeQuizScreen(
     val remainingTime by soloViewModel.remainingTime.collectAsStateWithLifecycle()
     val secondAnimation by soloViewModel.startSecondAnimation.collectAsStateWithLifecycle()
     val screenClickable by soloViewModel.screenClickable.collectAsStateWithLifecycle()
+    val localSession by soloViewModel.localSession.collectAsStateWithLifecycle()
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -84,10 +85,17 @@ fun InitializeQuizScreen(
     
     LaunchedEffect(navigateNextScreen) {
         if (navigateNextScreen) {
-            navController.navigateWithoutRemembering(
-                route = Routes.QuizResults,
-                baseRoute = Routes.QuizMode
-            )
+            if (!localSession.premium && localSession.hasPlayerWordleGame) {
+                navController.navigateWithoutRemembering(
+                    route = Routes.AdScreen,
+                    baseRoute = Routes.QuizMode
+                )
+            } else {
+                navController.navigateWithoutRemembering(
+                    route = Routes.QuizResults,
+                    baseRoute = Routes.QuizMode
+                )
+            }
         }
     }
 

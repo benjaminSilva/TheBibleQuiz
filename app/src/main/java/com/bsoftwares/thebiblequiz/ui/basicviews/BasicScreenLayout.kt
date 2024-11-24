@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +52,7 @@ fun BasicScreenBox(
         if (feedbackMessage != FeedbackMessage.NoMessage && conditionToDisplayFeedbackMessage) {
             FeedbackMessageContainer(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .align(Alignment.TopCenter)
                     .padding(16.dp),
                 errorMessage = feedbackMessage
