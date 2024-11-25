@@ -1,9 +1,11 @@
 package com.bsoftwares.thebiblequiz.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -12,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.get
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import com.bsoftwares.thebiblequiz.ui.screens.InitializeLoginScreen
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.AdScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitSuggestQuestionScreen
@@ -32,8 +35,18 @@ const val MY_URI = "https://profile-deeplink.com"
 
 @Composable
 fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
+
+    val signedInUser by homeViewModel.signedInUserId.collectAsStateWithLifecycle()
+    val startDestination = if (signedInUser.isEmpty()) Routes.LoginScreen else Routes.Home
+
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
-        navigation(startDestination = Routes.Home.value, route = Routes.Start.value) {
+        navigation(startDestination = startDestination.value, route = Routes.Start.value) {
+            composable(
+                route = Routes.LoginScreen.value
+            ) {
+                InitializeLoginScreen(navController = navController, homeViewModel = homeViewModel)
+            }
+
             composable(
                 route = Routes.Home.value
             ) {

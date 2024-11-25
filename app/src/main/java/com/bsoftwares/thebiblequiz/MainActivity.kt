@@ -68,10 +68,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val homeViewModel = hiltViewModel<HomeViewModel>()
             val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
+            val signedInUser by homeViewModel.signedInUserId.collectAsStateWithLifecycle()
 
             Box(modifier = Modifier.background(colorResource(id = R.color.background_color))) {
                 navController = rememberNavController()
-                if (localSession.premium) {
+                if (localSession.premium || localSession.userInfo.userId.isEmpty() || signedInUser.isEmpty()) {
                     SetupNavGraph(navController = navController ,homeViewModel)
                 } else {
                     Column (modifier = Modifier.fillMaxSize()) {

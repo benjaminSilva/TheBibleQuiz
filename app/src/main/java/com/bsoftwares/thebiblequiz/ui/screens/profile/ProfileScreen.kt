@@ -255,7 +255,9 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             }
         ) {
             homeViewModel.signOut()
-            navController.popBackStack()
+            navController.navigate(Routes.LoginScreen.value) {
+                popUpTo(Routes.Home.value) { inclusive = true }
+            }
         }
     }
 

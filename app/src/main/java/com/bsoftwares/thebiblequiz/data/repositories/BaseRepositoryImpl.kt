@@ -778,11 +778,11 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateToken(token: String) {
-        Log.i("Token Test", token)
         globalToken = token
         delay(2000)
-        if (getSignedInUserId() != "") {
-            usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue(token)
+        val userId = getSignedInUserId()
+        if (userId.isNotEmpty()) {
+            usersReference.child(userId).child(stringFcmToken).setValue(token)
         }
     }
 

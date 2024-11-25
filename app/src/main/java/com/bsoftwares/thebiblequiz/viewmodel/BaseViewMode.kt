@@ -32,6 +32,9 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
+    private val _signedInUserId = MutableStateFlow("")
+    val signedInUserId = _signedInUserId.asStateFlow()
+
     private val _day = MutableStateFlow(-1)
     val day = _day.asStateFlow()
 
@@ -67,6 +70,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         backGroundScope.launch {
             repo.loadToken()
             collectConnectivityStatus()
+            _signedInUserId.emit(repo.getSignedInUserId())
         }
     }
 

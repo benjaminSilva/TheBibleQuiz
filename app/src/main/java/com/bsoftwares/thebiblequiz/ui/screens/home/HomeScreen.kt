@@ -1,9 +1,6 @@
 package com.bsoftwares.thebiblequiz.ui.screens.home
 
-import android.app.Activity.RESULT_OK
 import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -110,15 +107,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == RESULT_OK) {
-                homeViewModel.signInSomething(result.data)
-            }
-        }
-    )
-
     BasicScreenBox {
         HomeScreen(
             hourOfTheDay = hourOfTheDay,
@@ -134,9 +122,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
             }, openDialog = { dialogToOpen ->
                 homeViewModel.updateDialog(dialogType = dialogToOpen)
             }
-        ) {
-            homeViewModel.signIn(launcher)
-        }
+        )
     }
 }
 
@@ -151,8 +137,7 @@ fun HomeScreen(
     isRefreshing: Boolean,
     enabled: Boolean,
     navigate: (Routes) -> Unit,
-    openDialog: (DialogType) -> Unit,
-    onClickSignIn: () -> Unit,
+    openDialog: (DialogType) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -373,11 +358,7 @@ fun HomeScreen(
                 },
                 enabled = enabled,
                 onClick = {
-                    if (localSession.userInfo.userId.isNotBlank()) {
-                        navigate(Routes.Profile)
-                    } else {
-                        onClickSignIn()
-                    }
+                    navigate(Routes.Profile)
                 }
             ) {
                 Row(
@@ -558,8 +539,6 @@ fun HomePreview() {
             }, {
 
             }
-        ) {
-
-        }
+        )
     }
 }
