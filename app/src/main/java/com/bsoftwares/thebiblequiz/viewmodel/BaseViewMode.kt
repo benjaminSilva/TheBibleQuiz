@@ -11,6 +11,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepository
+import com.bsoftwares.thebiblequiz.ui.theme.initialValue
 import com.bsoftwares.thebiblequiz.ui.theme.jobTimeOut
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
+open class BaseViewModel(private val repo: BaseRepository, private val initialize: Boolean = true) : ViewModel() {
 
     private val _feedbackMessage = MutableStateFlow<FeedbackMessage>(FeedbackMessage.NoMessage)
     val feedbackMessage = _feedbackMessage.asStateFlow()
@@ -32,7 +33,7 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
     private val _localSession = MutableStateFlow(Session())
     val localSession = _localSession.asStateFlow()
 
-    private val _signedInUserId = MutableStateFlow("")
+    private val _signedInUserId = MutableStateFlow(initialValue)
     val signedInUserId = _signedInUserId.asStateFlow()
 
     private val _day = MutableStateFlow(-1)
@@ -68,9 +69,8 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
 
     init {
         backGroundScope.launch {
-            repo.loadToken()
             collectConnectivityStatus()
-            _signedInUserId.emit(repo.getSignedInUserId())
+
         }
     }
 
@@ -78,7 +78,11 @@ open class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
         repo.getConnectivityStatus().collectLatest {
             when (it) {
                 ConnectivityStatus.AVAILABLE -> {
-                    dayFlow = collectDay()
+                    _signedInUserId.emit(repo.getSignedInUserId())
+                    if (initialize) {
+                        dayFlow = collectDay()
+                        repo.loadToken()
+                    }
                 }
                 ConnectivityStatus.LOST -> {
                     dayFlow?.cancel()

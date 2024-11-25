@@ -222,8 +222,14 @@ class HomeViewModel @Inject constructor(
         }
 
     fun signOut() = backGroundScope.launch {
-        repo.signOut()
-        resetState()
+        updateDialog(DialogType.Loading)
+        repo.signOut().collectLatest {
+            it.handleSuccessAndFailure(failureAction = {
+                updateDialog(DialogType.EmptyValue)
+            }) {
+                resetState()
+            }
+        }
     }
 
     fun addFriend(userId: String) = backGroundScope.launch {

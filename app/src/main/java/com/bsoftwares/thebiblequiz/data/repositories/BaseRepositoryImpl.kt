@@ -14,6 +14,7 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.UserData
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
@@ -219,9 +220,14 @@ class BaseRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun signOut() {
-        usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue("")
-        googleAuthUiClient.signOut()
+    override suspend fun signOut(): Flow<ResultOf<FeedbackMessage>> = channelFlow {
+        try {
+            usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue("").await()
+            googleAuthUiClient.signOut()
+            trySend(ResultOf.Success(FeedbackMessage.NoMessage))
+        } catch (e: Exception) {
+            trySend(ResultOf.LogMessage(LogTypes.FIREBASE_ERROR, e.message.toString()))
+        }
     }
 
     override suspend fun getSession(result: Intent?): Flow<ResultOf<Session>> = channelFlow {
@@ -252,28 +258,74 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     private fun handleSessionIfItExists(session: Session): Flow<ResultOf<Session>> = channelFlow {
-        val test = usersReference.child(session.userInfo.userId)
-        val postListener = object : ValueEventListener {
+        val userId = session.userInfo.userId
+        val result = createSessionIfNotExists(session)
+
+        if (result is ResultOf.Success) {
+            trySend(result)
+            listenToSessionChanges(userId).collectLatest { trySend(it) }
+        } else {
+            trySend(result)
+        }
+    }
+
+    override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
+        val userId = getSignedInUserId()
+        if (userId.isNotEmpty()) {
+            handleSessionIfItExists(Session(userInfo = UserData(userId = userId))).collectLatest {
+                trySend(it)
+            }
+        } else {
+            trySend(ResultOf.Failure(FeedbackMessage.Error("User is not signed in")))
+        }
+    }
+
+    private fun createValueEventListener(
+        onSuccess: (Session) -> Unit,
+        onFailure: (DatabaseError) -> Unit
+    ): ValueEventListener {
+        return object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.i("League Test", "Session Observed Function 1")
                 if (dataSnapshot.exists()) {
-                    dataSnapshot.getValue<Session>()?.apply {
-                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
-                    }
-                } else {
-                    usersReference.child(session.userInfo.userId)
-                        .setValue(session.copy(fcmToken = globalToken))
-                    trySend(ResultOf.Success(session))
+                    dataSnapshot.getValue<Session>()?.let(onSuccess)
                 }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                onFailure(databaseError)
             }
         }
-        test.addValueEventListener(postListener)
-        awaitClose { test.removeEventListener(postListener) }
+    }
 
+    // Function to listen for session changes
+    private fun listenToSessionChanges(userId: String): Flow<ResultOf<Session>> = channelFlow {
+        val userRef = usersReference.child(userId)
+        val dataSnapshot = userRef.get().await()
+
+        val postListener = createValueEventListener(
+            onSuccess = { session ->
+                trySend(ResultOf.Success(session.withLoadedFriends(dataSnapshot)))
+            },
+            onFailure = { databaseError ->
+                trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
+            }
+        )
+
+        userRef.addValueEventListener(postListener)
+        awaitClose { userRef.removeEventListener(postListener) }
+    }
+
+    // Function to create a new session if it doesn't exist
+    private suspend fun createSessionIfNotExists(session: Session): ResultOf<Session> {
+        val userRef = usersReference.child(session.userInfo.userId)
+        val existingSession = userRef.get().await().getValue<Session>()
+
+        return if (existingSession == null) {
+            userRef.setValue(session.copy(fcmToken = globalToken)).await()
+            ResultOf.Success(session)
+        } else {
+            ResultOf.Success(existingSession)
+        }
     }
 
     override suspend fun getSignedInUserId(): String = googleAuthUiClient.getSignerUserId()
@@ -281,27 +333,6 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun updateHasPlayedBibleQuiz() {
         usersReference.child(getSignedInUserId()).child("hasPlayedQuizGame").setValue(true)
         updateGameModeValue("hasPlayedQuizGame", true)
-    }
-
-    override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
-        if (getSignedInUserId().isNotEmpty()) {
-            val currentUserRef = usersReference.child(getSignedInUserId())
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    dataSnapshot.getValue<Session>()?.apply {
-                        trySend(ResultOf.Success(this.withLoadedFriends(dataSnapshot)))
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
-                }
-            }
-            currentUserRef.addValueEventListener(postListener)
-            awaitClose {
-                currentUserRef.removeEventListener(postListener)
-            }
-        }
     }
 
     override suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>> =

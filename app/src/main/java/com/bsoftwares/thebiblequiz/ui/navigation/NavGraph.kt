@@ -1,11 +1,9 @@
 package com.bsoftwares.thebiblequiz.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -34,10 +32,9 @@ import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 const val MY_URI = "https://profile-deeplink.com"
 
 @Composable
-fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
+fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel, navigateToLogin : Boolean) {
 
-    val signedInUser by homeViewModel.signedInUserId.collectAsStateWithLifecycle()
-    val startDestination = if (signedInUser.isEmpty()) Routes.LoginScreen else Routes.Home
+    val startDestination = if (navigateToLogin) Routes.LoginScreen else Routes.Home
 
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
         navigation(startDestination = startDestination.value, route = Routes.Start.value) {
