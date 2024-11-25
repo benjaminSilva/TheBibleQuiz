@@ -36,6 +36,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.QuizDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAngle
@@ -72,16 +73,21 @@ fun InitializePreQuizScreen(
         }
     }
 
-    PreSoloScreen(
-        navController = navController,
-        currentQuestionDifficulty = currentQuestion.difficulty,
-        openHowToPlayQuestionDialog = {
-            soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
+    BasicScreenBox {
+        if (currentQuestion.question.isNotEmpty()) {
+            PreSoloScreen(
+                navController = navController,
+                currentQuestionDifficulty = currentQuestion.difficulty,
+                openHowToPlayQuestionDialog = {
+                    soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
+                }
+            ) {
+                soloViewModel.updateGameAvailability()
+                navController.navigateWithoutRemembering(route = Routes.Quiz, baseRoute = Routes.QuizMode)
+            }
         }
-    ) {
-        soloViewModel.updateGameAvailability()
-        navController.navigateWithoutRemembering(route = Routes.Quiz, baseRoute = Routes.QuizMode)
     }
+
 }
 
 @Composable

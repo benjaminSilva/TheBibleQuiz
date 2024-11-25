@@ -126,5 +126,9 @@
     <string name="how_does_league_work">How does League work?</string>
     <string name="admin_extra_rules">If you are an Admin, you can remove other users by holding on their profiles on the League Board.</string>
     <string name="you_have_removed_1_successfully">You have removed %1$s successfully</string>
+    <string name="you_didn_t_select_an_answer">You didn\'t select an answer</string>
+    <string name="you_got_it">You got it</string>
+    <string name="you_got_it_wrong">You got it wrong :(</string>
+    <string name="none">None</string>
 
 </resources>

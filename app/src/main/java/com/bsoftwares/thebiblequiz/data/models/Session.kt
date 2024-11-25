@@ -22,7 +22,7 @@ data class Session(
     val premium: Boolean = false
 )
 
-fun Session.isNotLoggedIn() : Boolean = userInfo.userId.isEmpty()
+fun Session.isReady() : Boolean = userInfo.userId.isNotEmpty()
 
 data class WordleGame(
     val listOfAttempts: List<WordleAttempt> = generateStartWordleAttemptList(),
@@ -31,7 +31,7 @@ data class WordleGame(
 
 data class UserData(
     val userId: String = "",
-    val userName: String = "guest",
+    val userName: String = "Guest",
     val profilePictureUrl: String = ""
 )
 

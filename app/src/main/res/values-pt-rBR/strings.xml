@@ -122,5 +122,9 @@
     <string name="how_does_league_work">Como funciona a Liga?</string>
     <string name="admin_extra_rules">Se você for um Administrador, pode remover outros usuários usando o click longo nos seus perfis no Ranking da Liga.</string>
     <string name="you_have_removed_1_successfully">Você removeu %1$s com sucesso</string>
+    <string name="you_didn_t_select_an_answer">Você não escolheu nenhuma resposta</string>
+    <string name="you_got_it">Acertou!</string>
+    <string name="you_got_it_wrong">Resposta errada :(</string>
+    <string name="none">Nenhuma</string>
 
 </resources>

@@ -46,6 +46,7 @@ import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.quiz.Answer
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.ui.basicviews.AutoResizeText
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.FontSizeRange
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
@@ -119,14 +120,16 @@ fun InitializeQuizScreen(
         }
     }
 
-    SoloQuestionScreen(
-        currentQuestion = currentQuestionState,
-        startAnimation = startAnimation,
-        remainingTime = remainingTime,
-        screenClickable = screenClickable,
-        startSecondAnimation = secondAnimation
-    ) { answer ->
-        soloViewModel.verifyAnswer(answer)
+    BasicScreenBox {
+        SoloQuestionScreen(
+            currentQuestion = currentQuestionState,
+            startAnimation = startAnimation,
+            remainingTime = remainingTime,
+            screenClickable = screenClickable,
+            startSecondAnimation = secondAnimation
+        ) { answer ->
+            soloViewModel.verifyAnswer(answer)
+        }
     }
 
 }
