@@ -47,9 +47,9 @@
     <string name="icon_christ_the_redeemer">Christ, the Redeemer</string>
     <string name="icon_fish" translatable="false">Ichthys</string>
     <string name="icon_church">Church</string>
-    <string name="good_morning_msg">Good morning %1$s</string>
-    <string name="good_afternoon">Good afternoon %1$s</string>
-    <string name="good_evening">Good evening %1$s</string>
+    <string name="good_morning_msg">Good morning %1$s, Day %2$d</string>
+    <string name="good_afternoon">Good afternoon %1$s, Day %2$d</string>
+    <string name="good_evening">Good evening %1$s, Day %2$d</string>
     <string name="verse_of_the_day">Verse of the day</string>
     <string name="daily_bible_quiz">Daily Bible\nQuiz</string>
     <string name="biblical_wordle_home">Biblical\nWordle</string>
@@ -130,5 +130,8 @@
     <string name="you_got_it">You got it</string>
     <string name="you_got_it_wrong">You got it wrong :(</string>
     <string name="none">None</string>
+    <string name="the_bible_quiz_day_you_should_try_it_out">The Bible Quiz, Day %1$s\n\n%2$s\nYou Should try it out %3$s</string>
+    <string name="i_answered_the_question_correctly_today">I answered the question correctly today!</string>
+    <string name="i_got_the_answer_wrong">I got the answer wrong…</string>
 
 </resources>
