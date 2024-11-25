@@ -45,6 +45,7 @@ import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
@@ -108,21 +109,23 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     }
 
     BasicScreenBox {
-        HomeScreen(
-            hourOfTheDay = hourOfTheDay,
-            localSession = localSession,
-            dailyBibleVerse = dailyBibleVerse,
-            pullRefreshState = pullRefreshState,
-            hasUserPlayedLocally = hasUserPlayedLocally,
-            isRefreshing = isRefreshing,
-            enabled = enabled,
-            navigate = {
-                navController.navigate(it.value)
-                homeViewModel.updateClickable()
-            }, openDialog = { dialogToOpen ->
-                homeViewModel.updateDialog(dialogType = dialogToOpen)
-            }
-        )
+        if (localSession.isReady()) {
+            HomeScreen(
+                hourOfTheDay = hourOfTheDay,
+                localSession = localSession,
+                dailyBibleVerse = dailyBibleVerse,
+                pullRefreshState = pullRefreshState,
+                hasUserPlayedLocally = hasUserPlayedLocally,
+                isRefreshing = isRefreshing,
+                enabled = enabled,
+                navigate = {
+                    navController.navigate(it.value)
+                    homeViewModel.updateClickable()
+                }, openDialog = { dialogToOpen ->
+                    homeViewModel.updateDialog(dialogType = dialogToOpen)
+                }
+            )
+        }
     }
 }
 
@@ -151,12 +154,12 @@ fun HomeScreen(
 
     val animationLayoutList =
         generateSubSequentialAlphaAnimations(
-            numberOfViews = 6,
+            numberOfViews = 7,
             condition = startAnimation,
             duration = 1000
         )
     val animationPositionList = generateSubSequentialPositionAnimations(
-        numberOfViews = 6,
+        numberOfViews = 7,
         condition = startAnimation,
         offsetStart = IntOffset(-80, 0),
         duration = 500
@@ -201,7 +204,11 @@ fun HomeScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row {
+            Row (modifier = Modifier
+                .alpha(alpha = animationLayoutList[0].value)
+                .offset {
+                    animationPositionList[0].value
+                }) {
                 Image(
                     painter = painterResource(
                         id = when {
@@ -236,9 +243,9 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[0].value)
+                    .alpha(alpha = animationLayoutList[1].value)
                     .offset {
-                        animationPositionList[0].value
+                        animationPositionList[1].value
                     },
                 onLongClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -281,9 +288,9 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[1].value)
+                    .alpha(alpha = animationLayoutList[2].value)
                     .offset {
-                        animationPositionList[1].value
+                        animationPositionList[2].value
                     },
                 enabled = enabled,
                 onClick = {
@@ -317,9 +324,9 @@ fun HomeScreen(
             BasicContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[2].value)
+                    .alpha(alpha = animationLayoutList[3].value)
                     .offset {
-                        animationPositionList[2].value
+                        animationPositionList[3].value
                     },
                 enabled = enabled,
                 onClick = {
@@ -352,9 +359,9 @@ fun HomeScreen(
 
             BasicContainer(modifier = Modifier
                 .fillMaxWidth()
-                .alpha(alpha = animationLayoutList[3].value)
+                .alpha(alpha = animationLayoutList[4].value)
                 .offset {
-                    animationPositionList[3].value
+                    animationPositionList[4].value
                 },
                 enabled = enabled,
                 onClick = {
@@ -395,13 +402,13 @@ fun HomeScreen(
                 }
             }
 
-            var forLastView = 4
+            var forLastView = 5
 
             if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
                 AnimatedBorderCard(modifier = Modifier
-                    .alpha(alpha = animationLayoutList[4].value)
+                    .alpha(alpha = animationLayoutList[5].value)
                     .offset {
-                        animationPositionList[4].value
+                        animationPositionList[5].value
                     }) {
                     BasicContainer(
                         modifier = Modifier
@@ -432,7 +439,7 @@ fun HomeScreen(
                         }
                     }
                 }
-                forLastView = 5
+                forLastView = 6
             }
 
             Row(

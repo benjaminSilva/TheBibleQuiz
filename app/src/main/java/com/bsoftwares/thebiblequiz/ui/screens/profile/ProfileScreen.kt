@@ -46,7 +46,7 @@ import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
-import com.bsoftwares.thebiblequiz.data.models.isNotLoggedIn
+import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
@@ -97,7 +97,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
     LaunchedEffect(localSession) {
-        if (localSession.isNotLoggedIn()){
+        if (!localSession.isReady()){
             navController.navigate(Routes.LoginScreen.value) {
                 popUpTo(Routes.Home.value) { inclusive = true }
             }
@@ -221,51 +221,53 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
         dialogType = dialog
     ) {
-        ProfileScreen(
-            modifier = Modifier.alpha(alphaAnimation),
-            session = visibleSession,
-            calculateQuizData = { homeViewModel.calculateQuizData(session = visibleSession) },
-            calculateWordleData = { homeViewModel.calculateWordleData(session = visibleSession) },
-            displayDialogFunction = { isThisQuiz ->
-                homeViewModel.updateDialog(dialogType = isThisQuiz)
-            },
-            listOfFriendRequests = friendsRequests,
-            listOfFriends = friends,
-            updateFriendRequest = { hasAccepted, userId ->
-                homeViewModel.updateFriendRequest(hasAccepted, userId)
-            },
-            isFromLocalSession = isFromMainUser,
-            updateVisibleSession = {
-                homeViewModel.updateVisibleSession(it)
-            },
-            removeFriend = {
-                homeViewModel.updateDialog(
-                    dialogType = ProfileDialogType.RemoveFriend
-                )
-            },
-            possibleToAdd = notFriends,
-            notFriendRequest = notFriendRequest,
-            createNewLeague = {
-                homeViewModel.createNewLeague()
-            },
-            listOfLeagues = listOfLeagues,
-            openLeague = {
-                homeViewModel.setCurrentLeague(it)
-                navController.navigate(Routes.LeagueScreen.value) {
-                    launchSingleTop = true
+        if (localSession.isReady()) {
+            ProfileScreen(
+                modifier = Modifier.alpha(alphaAnimation),
+                session = visibleSession,
+                calculateQuizData = { homeViewModel.calculateQuizData(session = visibleSession) },
+                calculateWordleData = { homeViewModel.calculateWordleData(session = visibleSession) },
+                displayDialogFunction = { isThisQuiz ->
+                    homeViewModel.updateDialog(dialogType = isThisQuiz)
+                },
+                listOfFriendRequests = friendsRequests,
+                listOfFriends = friends,
+                updateFriendRequest = { hasAccepted, userId ->
+                    homeViewModel.updateFriendRequest(hasAccepted, userId)
+                },
+                isFromLocalSession = isFromMainUser,
+                updateVisibleSession = {
+                    homeViewModel.updateVisibleSession(it)
+                },
+                removeFriend = {
+                    homeViewModel.updateDialog(
+                        dialogType = ProfileDialogType.RemoveFriend
+                    )
+                },
+                possibleToAdd = notFriends,
+                notFriendRequest = notFriendRequest,
+                createNewLeague = {
+                    homeViewModel.createNewLeague()
+                },
+                listOfLeagues = listOfLeagues,
+                openLeague = {
+                    homeViewModel.setCurrentLeague(it)
+                    navController.navigate(Routes.LeagueScreen.value) {
+                        launchSingleTop = true
+                    }
+                },
+                listOfLeagueInvitations = listOfLeagueInvitations,
+                updateLeagueInvitation = { hasAccepted, leagueId ->
+                    homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
+                },
+                addUser = {
+                    visibleSession.userInfo.userId.apply {
+                        homeViewModel.addFriend(this)
+                    }
                 }
-            },
-            listOfLeagueInvitations = listOfLeagueInvitations,
-            updateLeagueInvitation = { hasAccepted, leagueId ->
-                homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
-            },
-            addUser = {
-                visibleSession.userInfo.userId.apply {
-                    homeViewModel.addFriend(this)
-                }
+            ) {
+                homeViewModel.signOut()
             }
-        ) {
-            homeViewModel.signOut()
         }
     }
 

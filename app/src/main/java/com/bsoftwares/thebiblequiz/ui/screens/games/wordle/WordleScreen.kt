@@ -85,16 +85,18 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
     }
 
     BasicScreenBox(feedbackMessage = feedbackMessage) {
-        WordleScreen(
-            wordleWord = wordle.word,
-            attempt = attempt,
-            listWordleAttemps = attempts,
-            listOfKeyboardStates = listKeyBoardState,
-            errorMessage = feedbackMessage,
-            updateAttemptString = {
-                viewModel.updateAttemptString(it)
-            }) {
-            viewModel.checkWord()
+        if (wordle.word.isNotEmpty()) {
+            WordleScreen(
+                wordleWord = wordle.word,
+                attempt = attempt,
+                listWordleAttemps = attempts,
+                listOfKeyboardStates = listKeyBoardState,
+                errorMessage = feedbackMessage,
+                updateAttemptString = {
+                    viewModel.updateAttemptString(it)
+                }) {
+                viewModel.checkWord()
+            }
         }
     }
 }

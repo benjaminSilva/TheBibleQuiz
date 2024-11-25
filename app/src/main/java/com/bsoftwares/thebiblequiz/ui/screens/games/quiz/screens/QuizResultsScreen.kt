@@ -1,10 +1,12 @@
 package com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,12 +30,13 @@ import com.bsoftwares.thebiblequiz.data.models.QuestionStatsDataCalculated
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.quiz.Answer
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
-import com.bsoftwares.thebiblequiz.data.models.state.QuestionAnswerState
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.QuizStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
 @Composable
@@ -44,7 +48,6 @@ fun InitializeQuizResultScreen(
     val session by soloViewModel.localSession.collectAsStateWithLifecycle()
     val calculatedData by soloViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val correctAnswer by soloViewModel.correctAnswer.collectAsStateWithLifecycle()
-    val selectedAnswer by soloViewModel.selectedAnswer.collectAsStateWithLifecycle()
 
     LaunchedEffect(session) {
         soloViewModel.calculateQuizData()
@@ -55,7 +58,6 @@ fun InitializeQuizResultScreen(
         question = question,
         session = session,
         calculatedData = calculatedData,
-        selectedAnswer = selectedAnswer,
         correctAnswer = correctAnswer
     )
 }
@@ -66,7 +68,6 @@ fun ResultsScreen(
     question: Question,
     session: Session,
     calculatedData: QuestionStatsDataCalculated,
-    selectedAnswer: Answer,
     correctAnswer: Answer
 ) {
     Box(
@@ -88,29 +89,36 @@ fun ResultsScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    BasicText(
+                    Row(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                        text = if (question.answerState == QuestionAnswerState.ANSWERED_CORRECTLY) {
-                            "You got it!"
-                        } else {
-                            "Wrong answer... try again tomorrow."
-                        }
-                    )
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        BasicText(
+                            text = when (session.quizStats.answerSelected) {
+                                emptyString -> stringResource(R.string.you_didn_t_select_an_answer)
+                                correctAnswer.answerText -> stringResource(R.string.you_got_it)
+                                else -> stringResource(R.string.you_got_it_wrong)
+                            },
+                            fontSize = 18
+                        )
+                        Image(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .size(24.dp),
+                            painter = painterResource(id = if (correctAnswer.answerText == session.quizStats.answerSelected) R.drawable.baseline_check_24_bw else R.drawable.baseline_close_24_bw),
+                            contentDescription = emptyString,
+                        )
+                    }
 
                     QuestionGridResultView(
                         question = question,
                         selectedAnswer = session.quizStats.answerSelected,
                         correctAnswer = correctAnswer
                     )
+
                 }
             }
-
-            if (!session.userInfo?.userId.isNullOrBlank()) {
-                QuizStats(data = session.quizStats, calculatedData = calculatedData)
-            } else {
-                BasicText(text = "Login to Keep up with you stats, gain badges add friends.")
-            }
-
+            QuizStats(data = session.quizStats, calculatedData = calculatedData)
         }
 
         BackAndShare(modifier = Modifier
@@ -130,8 +138,9 @@ fun BackAndShare(modifier: Modifier, goBackClick: () -> Unit, shareClick: () -> 
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        BasicContainer(modifier = Modifier.weight(1f), onClick = {shareClick()}) {
-            Row (modifier = Modifier.padding(16.dp),
+        BasicContainer(modifier = Modifier.weight(1f), onClick = { shareClick() }) {
+            Row(
+                modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
@@ -150,7 +159,8 @@ fun BackAndShare(modifier: Modifier, goBackClick: () -> Unit, shareClick: () -> 
         BasicContainer(modifier = Modifier.weight(1f), onClick = {
             goBackClick()
         }) {
-            Row (modifier = Modifier.padding(16.dp),
+            Row(
+                modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
@@ -172,16 +182,26 @@ fun BackAndShare(modifier: Modifier, goBackClick: () -> Unit, shareClick: () -> 
 @Composable
 fun QuestionGridResultView(question: Question, correctAnswer: Answer, selectedAnswer: String) {
     Box {
-        Column (verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             BasicText(text = question.question, fontSize = 22)
+            Spacer(modifier = Modifier.size(8.dp))
             Row {
                 BasicText(text = stringResource(id = R.string.correct_answer))
-                BasicText(modifier = Modifier.padding(start = 8.dp), text = correctAnswer.answerText)
+                BasicText(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = correctAnswer.answerText
+                )
             }
             if (selectedAnswer != correctAnswer.answerText) {
                 Row {
                     BasicText(text = stringResource(id = R.string.selected_answer))
-                    BasicText(modifier = Modifier.padding(start = 8.dp), text = selectedAnswer)
+                    BasicText(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = selectedAnswer.ifEmpty {
+                            stringResource(
+                                R.string.none
+                            )
+                        })
                 }
             }
             if (question.bibleVerse.isNotEmpty()) {
@@ -200,11 +220,13 @@ fun PreviewResultScreen() {
     NovaGincanaBiblicaTheme {
         ResultsScreen(
             navController = rememberNavController(),
-            question = Question(question = "Who did something bad at some point?", bibleVerse = "Answer found in this verse Test 22:1"),
+            question = Question(
+                question = "Who did something bad at some point?",
+                bibleVerse = "Answer found in this verse Test 22:1"
+            ),
             session = Session(),
             calculatedData = QuestionStatsDataCalculated(),
-            correctAnswer = Answer(answerText = "Very nice answer"),
-            selectedAnswer = Answer(answerText = "Wrong answer")
+            correctAnswer = Answer(answerText = "Very nice answer")
         )
     }
 }
