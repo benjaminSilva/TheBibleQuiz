@@ -65,11 +65,11 @@ import java.util.Calendar
 fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
-    val errorMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
-    val hasUserPlayedLocally by homeViewModel.hasUserPlayedLocally.collectAsStateWithLifecycle()
+    val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
     val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
+    val day by homeViewModel.day.collectAsStateWithLifecycle()
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -108,14 +108,14 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     }
 
-    BasicScreenBox {
+    BasicScreenBox (feedbackMessage = feedbackMessage) {
         if (localSession.isReady()) {
             HomeScreen(
+                dayNumber = day,
                 hourOfTheDay = hourOfTheDay,
                 localSession = localSession,
                 dailyBibleVerse = dailyBibleVerse,
                 pullRefreshState = pullRefreshState,
-                hasUserPlayedLocally = hasUserPlayedLocally,
                 isRefreshing = isRefreshing,
                 enabled = enabled,
                 navigate = {
@@ -132,10 +132,10 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
+    dayNumber: Int,
     hourOfTheDay: Int,
     localSession: Session,
     dailyBibleVerse: BibleVerse,
-    hasUserPlayedLocally: Boolean,
     pullRefreshState: PullRefreshState,
     isRefreshing: Boolean,
     enabled: Boolean,
@@ -188,8 +188,10 @@ fun HomeScreen(
     }
 
     val bibleVerseShareIntent = Intent.createChooser(bibleVerseIntent, null)
-    val appShareIntent = Intent.createChooser(appIntent,
-        stringResource(R.string.choose_where_you_re_sharing_this))
+    val appShareIntent = Intent.createChooser(
+        appIntent,
+        stringResource(R.string.choose_where_you_re_sharing_this)
+    )
     val haptic = LocalHapticFeedback.current
 
     Box(
@@ -204,7 +206,7 @@ fun HomeScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row (modifier = Modifier
+            Row(modifier = Modifier
                 .alpha(alpha = animationLayoutList[0].value)
                 .offset {
                     animationPositionList[0].value
@@ -224,17 +226,17 @@ fun HomeScreen(
                         .padding(start = 8.dp), text = when {
                         (6..12).contains(hourOfTheDay) -> stringResource(
                             R.string.good_morning_msg,
-                            localSession.userInfo.userName
+                            localSession.userInfo.userName, dayNumber
                         )
 
                         (12..18).contains(hourOfTheDay) -> stringResource(
                             R.string.good_afternoon,
-                            localSession.userInfo.userName
+                            localSession.userInfo.userName, dayNumber
                         )
 
                         else -> stringResource(
                             R.string.good_evening,
-                            localSession.userInfo.userName
+                            localSession.userInfo.userName, dayNumber
                         )
                     }
                 )
@@ -532,10 +534,10 @@ fun HomeScreen(
 fun HomePreview() {
     NovaGincanaBiblicaTheme {
         HomeScreen(
+            dayNumber = 13,
             hourOfTheDay = 22,
             localSession = Session(),
             dailyBibleVerse = BibleVerse(),
-            hasUserPlayedLocally = true,
             pullRefreshState = rememberPullRefreshState(
                 refreshing = true,
                 onRefresh = { /*TODO*/ }),

@@ -66,7 +66,6 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WordleResultsScreen(
     navController: NavHostController,

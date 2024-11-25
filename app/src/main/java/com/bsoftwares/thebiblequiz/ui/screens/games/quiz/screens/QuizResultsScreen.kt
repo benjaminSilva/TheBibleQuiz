@@ -1,7 +1,7 @@
 package com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens
 
+import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,7 +35,6 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.QuizStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
-import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
@@ -48,10 +47,33 @@ fun InitializeQuizResultScreen(
     val session by soloViewModel.localSession.collectAsStateWithLifecycle()
     val calculatedData by soloViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val correctAnswer by soloViewModel.correctAnswer.collectAsStateWithLifecycle()
+    val day by soloViewModel.day.collectAsStateWithLifecycle()
 
     LaunchedEffect(session) {
         soloViewModel.calculateQuizData()
     }
+
+    val context = LocalContext.current
+
+    val correctOrWrongString = if (session.quizStats.answerSelected == correctAnswer.answerText) stringResource(
+        R.string.i_answered_the_question_correctly_today
+    ) else stringResource(R.string.i_got_the_answer_wrong)
+
+    val intent = Intent.createChooser(Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(
+            Intent.EXTRA_TEXT,
+            stringResource(
+                R.string.the_bible_quiz_day_you_should_try_it_out,
+                day,
+                correctOrWrongString,
+                String(Character.toChars(0x1F440))
+            )
+        )
+        type = "text/plain"
+    }, null)
+
+    val shareAnswerIntent = Intent.createChooser(intent, null)
 
     ResultsScreen(
         navController = navController,
@@ -59,7 +81,9 @@ fun InitializeQuizResultScreen(
         session = session,
         calculatedData = calculatedData,
         correctAnswer = correctAnswer
-    )
+    ) {
+        context.startActivity(shareAnswerIntent)
+    }
 }
 
 @Composable
@@ -68,7 +92,8 @@ fun ResultsScreen(
     question: Question,
     session: Session,
     calculatedData: QuestionStatsDataCalculated,
-    correctAnswer: Answer
+    correctAnswer: Answer,
+    shareAnswer: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -126,7 +151,7 @@ fun ResultsScreen(
             .align(Alignment.BottomCenter), goBackClick = {
             navController.popBackStack(Routes.Home.value, false)
         }) {
-
+            shareAnswer()
         }
     }
 }
@@ -227,6 +252,8 @@ fun PreviewResultScreen() {
             session = Session(),
             calculatedData = QuestionStatsDataCalculated(),
             correctAnswer = Answer(answerText = "Very nice answer")
-        )
+        ) {
+
+        }
     }
 }
