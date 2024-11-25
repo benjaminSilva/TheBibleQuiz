@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.get
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import com.bsoftwares.thebiblequiz.ui.screens.InitializeLoginScreen
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.AdScreen
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitSuggestQuestionScreen
@@ -31,9 +32,18 @@ import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 const val MY_URI = "https://profile-deeplink.com"
 
 @Composable
-fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
+fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel, navigateToLogin : Boolean) {
+
+    val startDestination = if (navigateToLogin) Routes.LoginScreen else Routes.Home
+
     NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
-        navigation(startDestination = Routes.Home.value, route = Routes.Start.value) {
+        navigation(startDestination = startDestination.value, route = Routes.Start.value) {
+            composable(
+                route = Routes.LoginScreen.value
+            ) {
+                InitializeLoginScreen(navController = navController, homeViewModel = homeViewModel)
+            }
+
             composable(
                 route = Routes.Home.value
             ) {

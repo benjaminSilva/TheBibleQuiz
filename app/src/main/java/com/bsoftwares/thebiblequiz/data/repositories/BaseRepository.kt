@@ -17,7 +17,7 @@ import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import kotlinx.coroutines.flow.Flow
 
 interface BaseRepository {
-    suspend fun signOut()
+    suspend fun signOut():  Flow<ResultOf<FeedbackMessage>>
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
     suspend fun getSession(result: Intent?): Flow<ResultOf<Session>>
     suspend fun getSignedInUserId(): String

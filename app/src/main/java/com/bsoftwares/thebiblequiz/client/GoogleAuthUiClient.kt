@@ -82,14 +82,7 @@ class GoogleAuthUiClient(
         }
     }
 
-    fun getSignerUserId(): String {
-        if (auth.currentUser != null) {
-            auth.currentUser?.run {
-                return uid
-            }
-        }
-        return ""
-    }
+    fun getSignerUserId(): String = auth.currentUser?.uid ?: ""
 
     private fun buildSignInRequest(): BeginSignInRequest {
         return BeginSignInRequest.Builder().setGoogleIdTokenRequestOptions(

@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bsoftwares.thebiblequiz.ui.navigation.SetupNavGraph
+import com.bsoftwares.thebiblequiz.ui.theme.destination
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -63,6 +64,9 @@ class MainActivity : ComponentActivity() {
             MobileAds.initialize(this@MainActivity) {}
         }
 
+        val destination = intent.getStringExtra(destination)
+        val navigateToLogin = destination == "login"
+
         val adRequest = AdRequest.Builder().build()
 
         setContent {
@@ -71,12 +75,12 @@ class MainActivity : ComponentActivity() {
 
             Box(modifier = Modifier.background(colorResource(id = R.color.background_color))) {
                 navController = rememberNavController()
-                if (localSession.premium) {
-                    SetupNavGraph(navController = navController ,homeViewModel)
+                if (localSession.premium || localSession.userInfo.userId.isEmpty()) {
+                    SetupNavGraph(navController = navController ,homeViewModel, navigateToLogin)
                 } else {
                     Column (modifier = Modifier.fillMaxSize()) {
                         Box(modifier = Modifier.weight(0.9f)) {
-                            SetupNavGraph(navController = navController, homeViewModel)
+                            SetupNavGraph(navController = navController, homeViewModel, navigateToLogin)
                         }
                         AndroidView(modifier = Modifier.weight(.1f).fillMaxSize(), factory = { context ->
                             AdView(context).apply {

@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
+import com.bsoftwares.thebiblequiz.data.models.isNotLoggedIn
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
@@ -93,6 +94,16 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
     val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
+    val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
+
+    LaunchedEffect(localSession) {
+        if (localSession.isNotLoggedIn()){
+            navController.navigate(Routes.LoginScreen.value) {
+                popUpTo(Routes.Home.value) { inclusive = true }
+            }
+            homeViewModel.updateDialog(DialogType.EmptyValue)
+        }
+    }
 
     BackHandler {
         if (isFromLeague && !isFromMainUser) {
@@ -255,7 +266,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             }
         ) {
             homeViewModel.signOut()
-            navController.popBackStack()
         }
     }
 
