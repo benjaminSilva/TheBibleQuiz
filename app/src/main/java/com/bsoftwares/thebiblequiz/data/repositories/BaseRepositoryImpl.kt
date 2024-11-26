@@ -35,6 +35,7 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -230,16 +231,6 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSession(result: Intent?): Flow<ResultOf<Session>> = channelFlow {
-        googleAuthUiClient.signInWithIntent(
-            intent = result ?: return@channelFlow
-        ).also { session ->
-            handleSessionIfItExists(session).collectLatest {
-                trySend(it)
-            }
-        }
-    }
-
     override suspend fun updateUserPremiumStatus(
         session: Session,
         newValue: Boolean
@@ -257,9 +248,19 @@ class BaseRepositoryImpl @Inject constructor(
         awaitClose { channel.close() }
     }
 
+    override suspend fun getSession(result: Intent?): Flow<ResultOf<Session>> = channelFlow {
+        googleAuthUiClient.signInWithIntent(
+            intent = result ?: return@channelFlow
+        ).also { session ->
+            handleSessionIfItExists(session.copy(language = Locale.current.language)).collectLatest {
+                trySend(it)
+            }
+        }
+    }
+
     private fun handleSessionIfItExists(session: Session): Flow<ResultOf<Session>> = channelFlow {
         val userId = session.userInfo.userId
-        val result = createSessionIfNotExists(session)
+        val result = createOrUpdateSession(session)
 
         if (result is ResultOf.Success) {
             trySend(result)
@@ -316,18 +317,22 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     // Function to create a new session if it doesn't exist
-    private suspend fun createSessionIfNotExists(session: Session): ResultOf<Session> {
+    private suspend fun createOrUpdateSession(session: Session): ResultOf<Session> {
         val userRef = usersReference.child(session.userInfo.userId)
         val existingSession = userRef.get().await().getValue<Session>()
 
         return if (existingSession == null) {
-            userRef.setValue(session.copy(fcmToken = globalToken)).await()
+            // Create a new session if it doesn't exist
+            userRef.setValue(session.copy(fcmToken = globalToken, language = Locale.current.language)).await()
             ResultOf.Success(session)
         } else {
+            // Update the language if it has changed
+            if (existingSession.language != Locale.current.language) {
+                userRef.child("language").setValue(Locale.current.language).await()
+            }
             ResultOf.Success(existingSession)
         }
     }
-
     override suspend fun getSignedInUserId(): String = googleAuthUiClient.getSignerUserId()
 
     override suspend fun updateHasPlayedBibleQuiz() {
