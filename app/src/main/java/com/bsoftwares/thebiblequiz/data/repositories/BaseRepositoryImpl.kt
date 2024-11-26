@@ -414,18 +414,17 @@ class BaseRepositoryImpl @Inject constructor(
             })
 
 
-    override suspend fun getDay(): Flow<ResultOf<Int>> = callbackFlow<ResultOf<Int>> {
+    override suspend fun getDay(): Flow<ResultOf<Pair<Int,Boolean>>> = callbackFlow {
         val ref = firebaseRef.child("day")
         val currentDay = sharedPreferences.getInt("day", 0)
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Int>()?.apply {
-                    if (this > currentDay) { //Update Sharedpref
+                    val isNewDay = this > currentDay
+                    if (isNewDay) {
                         sharedPreferences.edit().putInt("day", this).apply()
-                        updateGameModeValue("hasUserPlayedWordle", false)
-                        updateGameModeValue("hasPlayedQuizGame", false)
                     }
-                    trySend(ResultOf.Success(this))
+                    trySend(ResultOf.Success(this to isNewDay))
                 }
             }
 

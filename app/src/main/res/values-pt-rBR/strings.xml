@@ -124,10 +124,11 @@
     <string name="you_have_removed_1_successfully">Você removeu %1$s com sucesso</string>
     <string name="you_didn_t_select_an_answer">Você não escolheu nenhuma resposta</string>
     <string name="you_got_it">Acertou!</string>
-    <string name="you_got_it_wrong">Resposta errada :(</string>
+    <string name="you_got_it_wrong">Resposta errada</string>
     <string name="none">Nenhuma</string>
     <string name="the_bible_quiz_day_you_should_try_it_out">The Bible Quiz, Dia %1$d\n\n%2$s\nNão tá a fim de tentar não? %3$s</string>
     <string name="i_answered_the_question_correctly_today">Hoje eu acertei a pergunta!</string>
     <string name="i_got_the_answer_wrong">Eu errei a resposta…</string>
+    <string name="a_new_day_has_started">O dia %1$d começou!</string>
 
 </resources>

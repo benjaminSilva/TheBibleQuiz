@@ -47,6 +47,7 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
+import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
@@ -108,7 +109,10 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     }
 
-    BasicScreenBox (feedbackMessage = feedbackMessage) {
+    BasicScreenBox(
+        feedbackMessage = feedbackMessage,
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NewDay
+    ) {
         if (localSession.isReady()) {
             HomeScreen(
                 dayNumber = day,

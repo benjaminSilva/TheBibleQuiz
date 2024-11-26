@@ -51,6 +51,7 @@ sealed class FeedbackMessage(
     object YouAreNotPremium: FeedbackMessage(R.string.feedback_user_not_premium)
     object LeftLeagueSuccessfully: FeedbackMessage(R.string.you_ve_left_the_league_successfully)
     object RemovedUserSuccessfully: FeedbackMessage(R.string.you_have_removed_1_successfully)
+    object NewDay: FeedbackMessage(R.string.a_new_day_has_started)
 }
 
 enum class LogTypes(val message: String) {

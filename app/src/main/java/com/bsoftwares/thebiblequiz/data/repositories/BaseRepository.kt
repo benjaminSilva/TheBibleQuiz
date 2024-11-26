@@ -24,7 +24,7 @@ interface BaseRepository {
     suspend fun updateHasPlayedBibleQuiz()
     suspend fun getSession(): Flow<ResultOf<Session>>
     suspend fun getSession(userId: String): Flow<ResultOf<Session>>
-    suspend fun getDay(): Flow<ResultOf<Int>>
+    suspend fun getDay(): Flow<ResultOf<Pair<Int,Boolean>>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>
     suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>>
     suspend fun updateStats(currentQuestion: Question, isCorrect: Boolean, session: Session, answerSelectedByTheUser: String = "You did not select an answer"): Flow<ResultOf<Nothing>>

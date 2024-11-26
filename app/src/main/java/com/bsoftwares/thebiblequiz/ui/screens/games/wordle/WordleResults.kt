@@ -54,6 +54,13 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
     val listOfAttempts by viewModel.attempts.collectAsStateWithLifecycle()
     val session by viewModel.localSession.collectAsStateWithLifecycle()
     val calculatedWordleData by viewModel.calculatedWordleData.collectAsStateWithLifecycle()
+    val isNewDay by viewModel.isNewDay.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isNewDay) {
+        if (isNewDay) {
+            navController.popBackStack()
+        }
+    }
 
     LaunchedEffect(session) {
         viewModel.calculateWordleData()
