@@ -39,6 +39,9 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
     private val _day = MutableStateFlow(-1)
     val day = _day.asStateFlow()
 
+    private val _isNewDay = MutableStateFlow(false)
+    val isNewDay = _isNewDay.asStateFlow()
+
     private val _calculatedQuizData = MutableStateFlow(QuestionStatsDataCalculated())
     val calculatedQuizData = _calculatedQuizData.asStateFlow()
 
@@ -101,9 +104,19 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
 
     private fun collectDay() = backGroundScope.launch {
         repo.getDay().collectLatest {
-            it.handleSuccessAndFailure { day ->
+            it.handleSuccessAndFailure { (day, isNewDay) ->
                 _day.emit(value = day)
-                localSessionJob = collectSession()
+                if (localSessionJob == null) {
+                    localSessionJob = collectSession()
+                }
+                if (isNewDay) {
+                    _isNewDay.emit(value = isNewDay)
+                    delay(500)
+                    _isNewDay.emit(false)
+                    emitFeedbackMessage(FeedbackMessage.NewDay.apply {
+                        extraData = arrayOf(day)
+                    })
+                }
             }
         }
     }

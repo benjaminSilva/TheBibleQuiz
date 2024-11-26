@@ -67,6 +67,13 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
     val listKeyBoardState = viewModel.keyboardState
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
     val session by viewModel.localSession.collectAsStateWithLifecycle()
+    val isNewDay by viewModel.isNewDay.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isNewDay) {
+        if (isNewDay) {
+            navController.popBackStack()
+        }
+    }
 
     LaunchedEffect(navigate) {
         if (navigate) {

@@ -74,6 +74,13 @@ fun InitializeQuizScreen(
     val secondAnimation by soloViewModel.startSecondAnimation.collectAsStateWithLifecycle()
     val screenClickable by soloViewModel.screenClickable.collectAsStateWithLifecycle()
     val localSession by soloViewModel.localSession.collectAsStateWithLifecycle()
+    val isNewDay by soloViewModel.isNewDay.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isNewDay) {
+        if (isNewDay) {
+            navController.popBackStack()
+        }
+    }
 
     var startAnimation by remember {
         mutableStateOf(true)

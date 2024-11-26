@@ -48,6 +48,13 @@ fun InitializeQuizResultScreen(
     val calculatedData by soloViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val correctAnswer by soloViewModel.correctAnswer.collectAsStateWithLifecycle()
     val day by soloViewModel.day.collectAsStateWithLifecycle()
+    val isNewDay by soloViewModel.isNewDay.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isNewDay) {
+        if (isNewDay) {
+            navController.popBackStack()
+        }
+    }
 
     LaunchedEffect(session) {
         soloViewModel.calculateQuizData()
