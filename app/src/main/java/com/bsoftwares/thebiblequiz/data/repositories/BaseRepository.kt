@@ -19,10 +19,10 @@ import kotlinx.coroutines.flow.Flow
 interface BaseRepository {
     suspend fun signOut():  Flow<ResultOf<FeedbackMessage>>
     suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
-    suspend fun getSession(result: Intent?): Flow<ResultOf<Session>>
+    suspend fun getSession(): Flow<ResultOf<Session>>
+    suspend fun signIn(intent: Intent?)
     suspend fun getSignedInUserId(): String
     suspend fun updateHasPlayedBibleQuiz()
-    suspend fun getSession(): Flow<ResultOf<Session>>
     suspend fun getSession(userId: String): Flow<ResultOf<Session>>
     suspend fun getDay(): Flow<ResultOf<Pair<Int,Boolean>>>
     suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>>

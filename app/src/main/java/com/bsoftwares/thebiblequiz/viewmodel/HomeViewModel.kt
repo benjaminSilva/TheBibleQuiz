@@ -1,6 +1,7 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -86,8 +87,6 @@ class HomeViewModel @Inject constructor(
 
     private val _sessionInLeague = MutableStateFlow(SessionInLeague())
     val sessionInLeague = _sessionInLeague.asStateFlow()
-
-    private var loginSession: Job? = null
 
     private var leagueJob: Job? = null
 
@@ -195,8 +194,6 @@ class HomeViewModel @Inject constructor(
         _visibleSession.update {
             Session()
         }
-        loginSession?.cancel()
-        updateSession(Session())
         _listOfFriendRequests.update {
             listOf()
         }
@@ -206,13 +203,8 @@ class HomeViewModel @Inject constructor(
     }
 
     fun signInSomething(intent: Intent?) {
-        loginSession = backGroundScope.launch {
-            repo.getSession(intent).collectLatest {
-                it.handleSuccessAndFailure { session ->
-                    updateSession(session)
-                    _visibleSession.emit(session)
-                }
-            }
+        backGroundScope.launch {
+            repo.signIn(intent)
         }
     }
 
@@ -225,7 +217,7 @@ class HomeViewModel @Inject constructor(
         updateDialog(DialogType.Loading)
         repo.signOut().collectLatest {
             it.handleSuccessAndFailure(failureAction = {
-                updateDialog(DialogType.EmptyValue)
+                updateDialog()
             }) {
                 resetState()
             }
@@ -233,20 +225,17 @@ class HomeViewModel @Inject constructor(
     }
 
     fun addFriend(userId: String) = backGroundScope.launch {
-        autoCancellable {
-            repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
-                it.handleSuccessAndFailure { feedbackMessage ->
-                    val checkIfUserIsAddingFromFriendsProfile =
-                        visibleSession.value.userInfo.userId != localSession.value.userInfo.userId
-                    if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
-                        emitFeedbackMessage(feedbackMessage = feedbackMessage)
-                        updateDialog()
-                    } else {
-                        emitFeedbackMessage(
-                            feedbackMessage = feedbackMessage,
-                            isAutoDelete = false
-                        )
-                    }
+        repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
+            it.handleSuccessAndFailure { feedbackMessage ->
+                val checkIfUserIsAddingFromFriendsProfile =
+                    visibleSession.value.userInfo.userId != localSession.value.userInfo.userId
+                if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
+                    emitFeedbackMessage(feedbackMessage = feedbackMessage)
+                } else {
+                    emitFeedbackMessage(
+                        feedbackMessage = feedbackMessage,
+                        isAutoDelete = false
+                    )
                 }
             }
         }
