@@ -35,6 +35,7 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +43,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -89,6 +94,9 @@ class BaseRepositoryImpl @Inject constructor(
     private val hasPlayedWordleGame = "hasPlayedWordleGame"
     private val quizStats = "quizStats"
     private val premium = "premium"
+
+    private val TAG = "SessionChangesListener"
+
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
         val ref = quizReference.child(Locale.current.language).child("day$day")
@@ -230,16 +238,6 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSession(result: Intent?): Flow<ResultOf<Session>> = channelFlow {
-        googleAuthUiClient.signInWithIntent(
-            intent = result ?: return@channelFlow
-        ).also { session ->
-            handleSessionIfItExists(session).collectLatest {
-                trySend(it)
-            }
-        }
-    }
-
     override suspend fun updateUserPremiumStatus(
         session: Session,
         newValue: Boolean
@@ -250,16 +248,48 @@ class BaseRepositoryImpl @Inject constructor(
                     trySend(FeedbackMessage.YouAreNowPremium)
                 }
             }.addOnFailureListener {
-            it.message?.apply {
-                trySend(FeedbackMessage.Error(this))
+                it.message?.apply {
+                    trySend(FeedbackMessage.Error(this))
+                }
             }
-        }
         awaitClose { channel.close() }
+    }
+
+    override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
+        var handleSessionJob: Job? = null
+
+        Log.d(TAG, "Log before the authStateFlow")
+
+        googleAuthUiClient.authStateFlow.distinctUntilChangedBy { it.userInfo.userId }
+            .collectLatest { session ->
+                val userId = session.userInfo.userId
+                if (userId.isEmpty()) { // No authenticated user
+                    Log.d(TAG, "No authenticated user found; stopping any ongoing session handling")
+                    handleSessionJob?.cancel() // Cancel the previous job if it's running
+                    handleSessionJob = null
+                    trySend(ResultOf.Success(session))
+                } else {
+                    Log.d(TAG, "getSession called for already logged-in user")
+                    handleSessionJob?.cancel() // Cancel the previous job if it's running
+                    handleSessionJob = launch {
+                        handleSessionIfItExists(session).collectLatest {
+                            trySend(it)
+                        }
+                    }
+                }
+            }
+    }
+
+    override suspend fun signIn(result: Intent?) {
+        if (result != null) {
+            // Handle the case where login just occurred
+            googleAuthUiClient.signInWithIntent(intent = result)
+        }
     }
 
     private fun handleSessionIfItExists(session: Session): Flow<ResultOf<Session>> = channelFlow {
         val userId = session.userInfo.userId
-        val result = createSessionIfNotExists(session)
+        val result = createOrUpdateSession(session)
 
         if (result is ResultOf.Success) {
             trySend(result)
@@ -269,16 +299,6 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSession(): Flow<ResultOf<Session>> = channelFlow {
-        val userId = getSignedInUserId()
-        if (userId.isNotEmpty()) {
-            handleSessionIfItExists(Session(userInfo = UserData(userId = userId))).collectLatest {
-                trySend(it)
-            }
-        } else {
-            trySend(ResultOf.Failure(FeedbackMessage.Error("User is not signed in")))
-        }
-    }
 
     private fun createValueEventListener(
         onSuccess: (Session) -> Unit,
@@ -287,7 +307,8 @@ class BaseRepositoryImpl @Inject constructor(
         return object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    dataSnapshot.getValue<Session>()?.let(onSuccess)
+                    dataSnapshot.getValue<Session>()?.withLoadedFriends(dataSnapshot)
+                        ?.let(onSuccess)
                 }
             }
 
@@ -297,33 +318,53 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    // Function to listen for session changes
     private fun listenToSessionChanges(userId: String): Flow<ResultOf<Session>> = channelFlow {
+        Log.d(TAG, "Coroutine started for userId: $userId")
+
         val userRef = usersReference.child(userId)
-        val dataSnapshot = userRef.get().await()
 
         val postListener = createValueEventListener(
             onSuccess = { session ->
-                trySend(ResultOf.Success(session.withLoadedFriends(dataSnapshot)))
+                Log.d(TAG, "Data received for userId: $userId - Session: $session")
+                trySend(ResultOf.Success(session))
             },
             onFailure = { databaseError ->
+                Log.e(TAG, "Error received for userId: $userId - Error: ${databaseError.message}")
                 trySend(ResultOf.Failure(FeedbackMessage.Error(databaseError.message)))
             }
         )
 
         userRef.addValueEventListener(postListener)
-        awaitClose { userRef.removeEventListener(postListener) }
+
+        awaitClose {
+            Log.d(TAG, "Coroutine canceled for userId: $userId")
+            userRef.removeEventListener(postListener)
+        }
+    }.onStart {
+        Log.d(TAG, "Flow started for userId: $userId")
+    }.onCompletion {
+        Log.d(TAG, "Flow completed for userId: $userId")
     }
 
     // Function to create a new session if it doesn't exist
-    private suspend fun createSessionIfNotExists(session: Session): ResultOf<Session> {
+    private suspend fun createOrUpdateSession(session: Session): ResultOf<Session> {
         val userRef = usersReference.child(session.userInfo.userId)
         val existingSession = userRef.get().await().getValue<Session>()
 
         return if (existingSession == null) {
-            userRef.setValue(session.copy(fcmToken = globalToken)).await()
+            // Create a new session if it doesn't exist
+            userRef.setValue(
+                session.copy(
+                    fcmToken = globalToken,
+                    language = Locale.current.language
+                )
+            ).await()
             ResultOf.Success(session)
         } else {
+            // Update the language if it has changed
+            if (existingSession.language != Locale.current.language) {
+                userRef.child("language").setValue(Locale.current.language).await()
+            }
             ResultOf.Success(existingSession)
         }
     }
@@ -414,7 +455,7 @@ class BaseRepositoryImpl @Inject constructor(
             })
 
 
-    override suspend fun getDay(): Flow<ResultOf<Pair<Int,Boolean>>> = callbackFlow {
+    override suspend fun getDay(): Flow<ResultOf<Pair<Int, Boolean>>> = callbackFlow {
         val ref = firebaseRef.child("day")
         val currentDay = sharedPreferences.getInt("day", 0)
         val postListener = object : ValueEventListener {
@@ -613,46 +654,73 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun sendFriendRequestV2(
         session: Session,
         friendId: String
-    ): Flow<ResultOf<FeedbackMessage>> =
-        callbackFlow {
-            val userId = session.userInfo.userId
-            if (friendId.isEmpty()) {
-                channel.trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
-                return@callbackFlow
-            }
-            if (userId == friendId) {
-                channel.trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
-                return@callbackFlow
-            }
-            val postListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (!dataSnapshot.exists()) {
-                        channel.trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
-                        return
-                    }
-                    val userInFriendsList = dataSnapshot.child("friendList").child(userId)
-                    if (userInFriendsList.exists()) {
-                        channel.trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
-                        return
-                    }
-                    if (dataSnapshot.child("friendRequests").hasChild(userId)) {
-                        channel.trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
-                        return
-                    } else {
-                        dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
-                    }
-                    channel.trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
-                }
+    ): Flow<ResultOf<FeedbackMessage>> = callbackFlow {
+        val userId = session.userInfo.userId
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
-                }
+        // Validate input early
+        when {
+            friendId.isEmpty() -> {
+                trySend(ResultOf.Success(FeedbackMessage.EmptyUser))
+                close()
+                return@callbackFlow
             }
-            usersReference.child(friendId).addListenerForSingleValueEvent(postListener)
-            awaitClose {
-                usersReference.removeEventListener(postListener)
+
+            userId == friendId -> {
+                trySend(ResultOf.Success(FeedbackMessage.CantAddYourself))
+                close()
+                return@callbackFlow
             }
         }
+
+        val friendRef = usersReference.child(friendId)
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                when {
+                    !dataSnapshot.exists() -> {
+                        trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
+                    }
+
+                    dataSnapshot.child("friendList").child(userId).exists() -> {
+                        trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
+                    }
+
+                    dataSnapshot.child("friendRequests").hasChild(userId) -> {
+                        trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
+                    }
+
+                    else -> {
+                        // Attempt to send the friend request
+                        dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
+                            .addOnSuccessListener {
+                                trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
+                                close()
+                            }
+                            .addOnFailureListener { e ->
+                                trySend(
+                                    ResultOf.Failure(
+                                        FeedbackMessage.Error(
+                                            e.message ?: "Unknown error"
+                                        )
+                                    )
+                                )
+                                close()
+                            }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+                close()
+            }
+        }
+
+        // Attach the listener and clean up properly
+        friendRef.addListenerForSingleValueEvent(postListener)
+        awaitClose {
+            friendRef.removeEventListener(postListener)
+        }
+    }
 
     override suspend fun createNewLeague(session: Session): Flow<ResultOf<League>> =
         channelFlow {

@@ -68,12 +68,9 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         CoroutineScope(Dispatchers.Default + viewModelJob)
     }
 
-    private var localSessionJob: Job? = null
-
     init {
         backGroundScope.launch {
             collectConnectivityStatus()
-
         }
     }
 
@@ -106,9 +103,7 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         repo.getDay().collectLatest {
             it.handleSuccessAndFailure { (day, isNewDay) ->
                 _day.emit(value = day)
-                if (localSessionJob == null) {
-                    localSessionJob = collectSession()
-                }
+                collectSession()
                 if (isNewDay) {
                     _isNewDay.emit(value = isNewDay)
                     delay(500)
@@ -267,15 +262,6 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
     suspend fun <T> Flow<T>.collectLatestAndApplyOnMain(action: suspend (value: T) -> Unit) {
         collectLatest {
             action(it)
-        }
-    }
-
-    fun updateSession(session: Session) = backGroundScope.launch {
-        if (session.userInfo.userId.isEmpty()) {
-            localSessionJob?.cancel()
-            _localSession.emit(session)
-        } else {
-            localSessionJob = collectSession()
         }
     }
 

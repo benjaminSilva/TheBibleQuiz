@@ -19,6 +19,7 @@ data class Session(
     @Exclude
     val localLeagueRequestList: List<String> = listOf(),
     val fcmToken: String = "",
+    val language: String = "",
     val premium: Boolean = false
 )
 
