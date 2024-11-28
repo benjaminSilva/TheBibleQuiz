@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,6 +59,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAn
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import java.util.Calendar
 
@@ -147,6 +149,7 @@ fun HomeScreen(
     openDialog: (DialogType) -> Unit
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
 
     var startAnimation by remember {
         mutableStateOf(true)
@@ -378,30 +381,19 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    if (localSession.userInfo.userId.isNotBlank()) {
                         AsyncImage(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(32.dp)
                                 .clip(CircleShape),
                             model = localSession.userInfo.profilePictureUrl,
                             contentDescription = null
                         )
-                    } else {
-                        Image(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .align(Alignment.CenterVertically),
-                            painter = painterResource(id = R.drawable.baseline_login_24),
-                            contentDescription = null
-                        )
-                    }
+
                     BasicText(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = if (localSession.userInfo.userId.isNotBlank()) stringResource(R.string.profile) else stringResource(
-                            R.string.login_with_google
-                        ),
+                        text = if (localSession.userInfo.userId.isNotBlank()) stringResource(R.string.profile) else emptyString,
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -521,6 +513,38 @@ fun HomeScreen(
                             lineHeight = 22
                         )
                     }
+                }
+            }
+            BasicContainer(modifier = Modifier
+                .fillMaxWidth()
+                .alpha(alpha = animationLayoutList[forLastView+1].value)
+                .offset {
+                    animationPositionList[forLastView].value
+                },
+                enabled = enabled,
+                onClick = {
+                    uriHandler.openUri("https://www.gofundme.com/f/the-bible-quiz-project")
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Image(
+                            painter = painterResource(id = R.drawable.volunteer_activism_24dp),
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            contentDescription = null
+                    )
+                    BasicText(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
+                        text = "Donate to our project",
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
                 }
             }
         }

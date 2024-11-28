@@ -56,13 +56,11 @@ fun BasicContainer(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true,
-    shadow: Dp = 20.dp,
     allowAnimation: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
-            .shadow(shadow)
             .bounceClick(onClick, onLongClick, allowAnimation)
             .clip(RoundedCornerShape(16.dp))
             .animateContentSize()
