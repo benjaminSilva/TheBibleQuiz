@@ -272,7 +272,7 @@ class BaseRepositoryImpl @Inject constructor(
                     Log.d(TAG, "getSession called for already logged-in user")
                     handleSessionJob?.cancel() // Cancel the previous job if it's running
                     handleSessionJob = launch {
-                        handleSessionIfItExists(Session(userInfo = UserData(userId = userId))).collectLatest {
+                        handleSessionIfItExists(session).collectLatest {
                             trySend(it)
                         }
                     }
