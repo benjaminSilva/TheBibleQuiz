@@ -125,7 +125,11 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
                 isRefreshing = isRefreshing,
                 enabled = enabled,
                 navigate = {
-                    navController.navigate(it.value)
+                    if (it is Routes.Profile) {
+                        navController.navigate(it.withParameter(localSession.userInfo.userId))
+                    } else {
+                        navController.navigate(it.value)
+                    }
                     homeViewModel.updateClickable()
                 }, openDialog = { dialogToOpen ->
                     homeViewModel.updateDialog(dialogType = dialogToOpen)

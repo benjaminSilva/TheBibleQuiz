@@ -277,6 +277,8 @@ class HomeViewModel @Inject constructor(
     }
 
     fun updateVisibleSession(userId: String) = backGroundScope.launch {
+        _transitionAnimation.emit(true)
+        delay(300)
         val userSelectedHimself = userId == localSession.value.userInfo.userId
 
         if (userSelectedHimself) {

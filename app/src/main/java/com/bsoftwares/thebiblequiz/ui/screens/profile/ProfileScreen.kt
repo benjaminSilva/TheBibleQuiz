@@ -79,7 +79,7 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
+fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel, userId: String) {
     val visibleSession by homeViewModel.visibleSession.collectAsStateWithLifecycle()
     val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
@@ -96,6 +96,19 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
+
+    var displaySession by remember {
+        mutableStateOf<Session?>(null)
+    }
+    LaunchedEffect(Unit) {
+        homeViewModel.updateVisibleSession(userId)
+        displaySession = if (userId == localSession.userInfo.userId) {
+            localSession
+        } else {
+            visibleSession
+        }
+    }
+
     LaunchedEffect(localSession) {
         if (!localSession.isReady()){
             navController.navigate(Routes.LoginScreen.value) {
@@ -105,7 +118,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         }
     }
 
-    BackHandler {
+    /*BackHandler {
         if (isFromLeague && !isFromMainUser) {
             navController.navigate(Routes.LeagueScreen.value)
             return@BackHandler
@@ -114,7 +127,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             navController.popBackStack()
         }
         homeViewModel.updateVisibleSession(null)
-    }
+    }*/
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -221,10 +234,10 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
         dialogType = dialog
     ) {
-        if (localSession.isReady()) {
+        if (localSession.isReady() && displaySession != null) {
             ProfileScreen(
                 modifier = Modifier.alpha(alphaAnimation),
-                session = visibleSession,
+                session = displaySession!!,
                 calculateQuizData = { homeViewModel.calculateQuizData(session = visibleSession) },
                 calculateWordleData = { homeViewModel.calculateWordleData(session = visibleSession) },
                 displayDialogFunction = { isThisQuiz ->
@@ -237,7 +250,10 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 },
                 isFromLocalSession = isFromMainUser,
                 updateVisibleSession = {
-                    homeViewModel.updateVisibleSession(it)
+                    //homeViewModel.updateVisibleSession(it)
+                    if (it != null) {
+                        navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
+                    }
                 },
                 removeFriend = {
                     homeViewModel.updateDialog(

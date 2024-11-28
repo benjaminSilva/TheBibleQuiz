@@ -12,9 +12,11 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.bsoftwares.thebiblequiz.ui.screens.InitializeLoginScreen
@@ -81,11 +83,10 @@ fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel
 
             composable(
                 route = Routes.Profile.value,
-                deepLinks = listOf(navDeepLink {
-                    uriPattern = MY_URI
-                })
+                arguments = listOf(navArgument("instanceId") { type = NavType.StringType })
             ) {
-                InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)
+                val instanceId = it.arguments?.getString("instanceId")
+                instanceId?.let { it1 -> InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel, userId = it1) }
             }
 
             composable(

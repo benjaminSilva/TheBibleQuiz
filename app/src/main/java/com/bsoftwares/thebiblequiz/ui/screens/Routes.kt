@@ -10,7 +10,9 @@ sealed class Routes(val value: String) {
     object Quiz: Routes(value = "quiz")
     object QuizResults: Routes(value = "quiz_results")
     object SuggestQuestion: Routes(value = "quiz_suggest")
-    object Profile: Routes(value = "profile")
+    object Profile: Routes(value = "profile/{instanceId}") {
+        fun withParameter(userId: String) = "profile/${userId}"
+    }
     object WordleMode: Routes(value = "wordle_mode")
     object Wordle: Routes(value = "wordle")
     object WordleResults: Routes(value = "wordle_results")
