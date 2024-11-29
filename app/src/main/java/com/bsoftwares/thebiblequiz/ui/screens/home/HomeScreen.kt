@@ -94,7 +94,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     LaunchedEffect(Unit) {
         val rightNow = Calendar.getInstance()
         hourOfTheDay = rightNow[Calendar.HOUR_OF_DAY]
-        homeViewModel.checkGamesAvailability()
     }
 
     if (displayDialog) {

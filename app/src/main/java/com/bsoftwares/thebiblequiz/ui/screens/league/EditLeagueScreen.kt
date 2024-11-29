@@ -78,7 +78,7 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage == FeedbackMessage.LeagueDeleted || feedbackMessage == FeedbackMessage.LeftLeagueSuccessfully) {
-            navController.popBackStack(Routes.Profile.value, inclusive = false)
+            navController.popBackStack(Routes.Profile.withParameter(sessionInLeague.userId), inclusive = false)
         }
     }
 

@@ -24,6 +24,7 @@ import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
+import com.google.firebase.FirebaseException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -1048,6 +1049,34 @@ class BaseRepositoryImpl @Inject constructor(
         }
         usersReference.addValueEventListener(postListener)
         awaitClose { usersReference.removeEventListener(postListener) }
+    }
+
+    override suspend fun loadFriendRequests(
+        friends: List<String>
+    ): Flow<ResultOf<List<Session>>> = callbackFlow {
+        val listOfFriends = mutableListOf<Session>()
+
+        try {
+            friends.forEach { friendId ->
+                val dataSnapshot = usersReference.child(friendId).get().await()
+                if (dataSnapshot.exists()) {
+                    // Safely map the data snapshot to a Session object
+                    val session = dataSnapshot.getValue(Session::class.java)
+                    if (session != null) {
+                        listOfFriends.add(session)
+                    }
+                }
+            }
+
+            // If all operations succeed, send the result
+            trySend(ResultOf.Success(listOfFriends))
+        } catch (e: Exception) {
+            // Handle exceptions during data fetching or mapping
+            trySend(ResultOf.LogMessage(LogTypes.FIREBASE_ERROR, e.message.toString()))
+        }
+
+        // Ensure the flow is properly closed
+        awaitClose { channel.close() }
     }
 
     override suspend fun updateFriendRequest(

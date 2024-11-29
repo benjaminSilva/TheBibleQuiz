@@ -54,4 +54,5 @@ interface BaseRepository {
     suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>>
     suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>>
     suspend fun userLeaveLeague(user: SessionInLeague, leagueId: String, isFromCurrentSession: Boolean): Flow<ResultOf<FeedbackMessage>>
+    suspend fun loadFriendRequests(friends: List<String>): Flow<ResultOf<List<Session>>>
 }

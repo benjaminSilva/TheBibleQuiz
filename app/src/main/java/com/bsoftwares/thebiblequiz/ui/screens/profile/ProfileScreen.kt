@@ -1,6 +1,5 @@
 package com.bsoftwares.thebiblequiz.ui.screens.profile
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
@@ -57,7 +55,6 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicPositiveNegativeDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
-import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateColor
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
@@ -76,36 +73,38 @@ import com.bsoftwares.thebiblequiz.ui.theme.lighterGray
 import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
-fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
-    val visibleSession by homeViewModel.otherUserSession.collectAsStateWithLifecycle()
-    val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
+fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel, userId: String) {
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val calculatedWordleData by homeViewModel.calculatedWordleData.collectAsStateWithLifecycle()
     val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
     val friendsRequests by homeViewModel.listOfFriendRequests.collectAsStateWithLifecycle()
     val friends by homeViewModel.listOfFriends.collectAsStateWithLifecycle()
-    val transitionAnimation by homeViewModel.transitionAnimation.collectAsStateWithLifecycle()
-    val notFriends by homeViewModel.notFriends.collectAsStateWithLifecycle()
-    val notFriendRequest by homeViewModel.notFriendRequest.collectAsStateWithLifecycle()
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
-    val isFromLeague by homeViewModel.isFromLeague.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
-
     var displaySession by remember {
-        mutableStateOf<Session?>(null)
+        mutableStateOf(Session())
     }
+
+    var listOfFriends by remember {
+        mutableStateOf(listOf<Session>())
+    }
+
     LaunchedEffect(Unit) {
-        homeViewModel.updateVisibleSession(userId)
-        displaySession = if (userId == localSession.userInfo.userId) {
-            localSession
+        if (userId == localSession.userInfo.userId) {
+            displaySession = localSession
+            listOfFriends = friends
         } else {
-            visibleSession
+            homeViewModel.updateVisibleSession(userId = userId).collectLatest {
+                displaySession = it.first
+                listOfFriends = it.second
+            }
         }
     }
 
@@ -117,17 +116,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
             homeViewModel.updateDialog(DialogType.EmptyValue)
         }
     }
-
-    /*BackHandler {
-        if (isFromLeague && !isFromMainUser) {
-            navController.navigate(Routes.LeagueScreen.value)
-            return@BackHandler
-        }
-        if (isFromMainUser) {
-            navController.popBackStack()
-        }
-        homeViewModel.updateVisibleSession(null)
-    }*/
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -146,7 +134,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.updateDialog()
                 }) {
                     QuizStats(
-                        data = visibleSession.quizStats,
+                        data = displaySession.quizStats,
                         calculatedData = calculatedQuizData,
                         isFromProfileScreen = true
                     ) {
@@ -160,7 +148,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.updateDialog()
                 }) {
                     WordleStats(
-                        wordleStats = visibleSession.wordle.wordleStats,
+                        wordleStats = displaySession.wordle.wordleStats,
                         progresses = calculatedWordleData,
                         isFromProfileScreen = true
                     ) {
@@ -196,7 +184,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                         homeViewModel.updateDialog()
                     },
                     positiveFunction = {
-                        homeViewModel.removeFriend()
+                        homeViewModel.removeFriend(displaySession.userInfo.userId)
                     },
                     positiveIcon = painterResource(R.drawable.baseline_delete_24)
                 )
@@ -214,15 +202,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         }
     }
 
-    val alphaAnimation by animateAlpha(condition = transitionAnimation, duration = 300, delay = 0)
-
-    LaunchedEffect(transitionAnimation) {
-        if (transitionAnimation) {
-            delay(300)
-            homeViewModel.finishTransitionAnimation()
-        }
-    }
-
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage == FeedbackMessage.LeagueCreated) {
             navController.navigate(Routes.LeagueScreen.value)
@@ -234,34 +213,35 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
         dialogType = dialog
     ) {
-        if (localSession.isReady() && displaySession != null) {
+        if (localSession.isReady() && displaySession.userInfo.userId.isNotEmpty()) {
             ProfileScreen(
-                modifier = Modifier.alpha(alphaAnimation),
-                session = displaySession!!,
-                calculateQuizData = { homeViewModel.calculateQuizData(session = visibleSession) },
-                calculateWordleData = { homeViewModel.calculateWordleData(session = visibleSession) },
+                session = displaySession,
+                calculateQuizData = { homeViewModel.calculateQuizData(session = displaySession) },
+                calculateWordleData = { homeViewModel.calculateWordleData(session = displaySession) },
                 displayDialogFunction = { isThisQuiz ->
                     homeViewModel.updateDialog(dialogType = isThisQuiz)
                 },
                 listOfFriendRequests = friendsRequests,
-                listOfFriends = friends,
+                listOfFriends = listOfFriends,
                 updateFriendRequest = { hasAccepted, userId ->
                     homeViewModel.updateFriendRequest(hasAccepted, userId)
                 },
-                isFromLocalSession = isFromMainUser,
+                isFromLocalSession = userId == localSession.userInfo.userId,
                 updateVisibleSession = {
-                    //homeViewModel.updateVisibleSession(it)
-                    if (it != null) {
+                    if (it == null) {
+                        navController.popBackStack(Routes.Profile.withParameter(localSession.userInfo.userId), inclusive = false)
+                    } else {
                         navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
                     }
+
                 },
                 removeFriend = {
                     homeViewModel.updateDialog(
                         dialogType = ProfileDialogType.RemoveFriend
                     )
                 },
-                possibleToAdd = notFriends,
-                notFriendRequest = notFriendRequest,
+                possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
+                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
                 createNewLeague = {
                     homeViewModel.createNewLeague()
                 },
@@ -277,7 +257,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
                 },
                 addUser = {
-                    visibleSession.userInfo.userId.apply {
+                    displaySession.userInfo.userId.apply {
                         homeViewModel.addFriend(this)
                     }
                 }
@@ -291,7 +271,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
 
 @Composable
 fun ProfileScreen(
-    modifier: Modifier,
     session: Session,
     calculateQuizData: () -> Unit,
     calculateWordleData: () -> Unit,
@@ -314,7 +293,7 @@ fun ProfileScreen(
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -990,7 +969,6 @@ fun LeagueInvitation(league: League, openLeague: (League) -> Unit, updateLeagueI
 fun ProfilePreview() {
     NovaGincanaBiblicaTheme {
         ProfileScreen(
-            modifier = Modifier,
             session = Session(),
             calculateQuizData = { },
             calculateWordleData = { },
