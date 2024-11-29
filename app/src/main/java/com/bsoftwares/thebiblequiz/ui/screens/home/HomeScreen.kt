@@ -73,6 +73,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val day by homeViewModel.day.collectAsStateWithLifecycle()
+    val remainingTimeForNextDay by homeViewModel.remainingTimeForNextDay.collectAsStateWithLifecycle()
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -116,6 +117,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     ) {
         if (localSession.isReady()) {
             HomeScreen(
+                remainingTimeForNextDay = remainingTimeForNextDay,
                 dayNumber = day,
                 hourOfTheDay = hourOfTheDay,
                 localSession = localSession,
@@ -141,6 +143,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
+    remainingTimeForNextDay: String,
     dayNumber: Int,
     hourOfTheDay: Int,
     localSession: Session,
@@ -222,6 +225,7 @@ fun HomeScreen(
                     animationPositionList[0].value
                 }) {
                 Image(
+                    modifier = Modifier.align(Alignment.CenterVertically),
                     painter = painterResource(
                         id = when {
                             (6..18).contains(hourOfTheDay) -> R.drawable.baseline_wb_sunny_24
@@ -236,17 +240,17 @@ fun HomeScreen(
                         .padding(start = 8.dp), text = when {
                         (6..12).contains(hourOfTheDay) -> stringResource(
                             R.string.good_morning_msg,
-                            localSession.userInfo.userName, dayNumber
+                            localSession.userInfo.userName, remainingTimeForNextDay, dayNumber
                         )
 
                         (12..18).contains(hourOfTheDay) -> stringResource(
                             R.string.good_afternoon,
-                            localSession.userInfo.userName, dayNumber
+                            localSession.userInfo.userName, remainingTimeForNextDay, dayNumber
                         )
 
                         else -> stringResource(
                             R.string.good_evening,
-                            localSession.userInfo.userName, dayNumber
+                            localSession.userInfo.userName, remainingTimeForNextDay, dayNumber
                         )
                     }
                 )
@@ -565,6 +569,7 @@ fun HomeScreen(
 fun HomePreview() {
     NovaGincanaBiblicaTheme {
         HomeScreen(
+            remainingTimeForNextDay = "23:33:12",
             dayNumber = 13,
             hourOfTheDay = 22,
             localSession = Session(),
