@@ -34,6 +34,9 @@ fun contrastColor() = colorResource(id = R.color.contrast_color)
 fun basicContainerClean() = colorResource(id = R.color.basic_container_without_shadow)
 
 @Composable
+fun basicContainer() = colorResource(id = R.color.basic_container_color)
+
+@Composable
 fun appBackground() = colorResource(id = R.color.background_color)
 
 @Composable
@@ -44,3 +47,6 @@ fun yellow() = colorResource(id = R.color.highlight_text)
 
 @Composable
 fun green() = colorResource(id = R.color.green)
+
+@Composable
+fun container_in_container() = colorResource(id = R.color.container_in_container_color)

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
+import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
 import com.bsoftwares.thebiblequiz.ui.theme.zillasFontFamily
 
 @Composable
@@ -53,7 +54,7 @@ fun BasicText(
     fontSize: Int = 14,
     fontFamily: FontFamily = zillasFontFamily,
     lineHeight: Int = fontSize + 2,
-    fontColor: Color = colorResource(id = R.color.contrast_color),
+    fontColor: Color = contrastColor(),
     textAlign: TextAlign = TextAlign.Start
 ) {
     if (text != null) {

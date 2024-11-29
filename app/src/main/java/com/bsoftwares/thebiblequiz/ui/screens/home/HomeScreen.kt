@@ -425,7 +425,7 @@ fun HomeScreen(
                                 .padding(16.dp)
                         ) {
                             Image(
-                                modifier = Modifier.size(48.dp),
+                                modifier = Modifier.size(32.dp),
                                 painter = painterResource(id = R.drawable.crown_svgrepo_com),
                                 contentDescription = null
                             )

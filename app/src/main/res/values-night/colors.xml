@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="basic_container_color">#424242</color>
-    <color name="basic_container_without_shadow">#424242</color>
+    <color name="basic_container_without_shadow">#616161</color>
     <color name="background_color">#000000</color>
     <color name="contrast_color">#fcfcfc</color>
+    <color name="container_in_container_color">#545454</color>
     <color name="letter_not_word">#000000</color>
     <color name="highlight_text">#D8BA5F</color>
     <color name="green">#9DB680</color>

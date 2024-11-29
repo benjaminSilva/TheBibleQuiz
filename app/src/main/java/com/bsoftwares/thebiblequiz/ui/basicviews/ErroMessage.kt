@@ -23,6 +23,7 @@ import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
+import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import kotlinx.coroutines.delay
 
 @Composable
@@ -49,7 +50,7 @@ fun FeedbackMessageContainer(
         modifier = modifier
             .alpha(alphaAnimation)
             .scale(animateScale),
-        backGroundColor = almostBlack
+        backGroundColor = container_in_container()
     ) {
         Row(
             modifier = Modifier

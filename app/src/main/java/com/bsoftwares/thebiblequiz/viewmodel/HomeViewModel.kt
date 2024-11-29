@@ -37,6 +37,12 @@ class HomeViewModel @Inject constructor(
             savedStateHandle["league"] = value
         }
 
+    private var signedInUser: String
+        get() = savedStateHandle["signedInUser"] ?: ""
+        set(value) {
+            savedStateHandle["signedInUser"] = value
+        }
+
     private val _dailyBibleVerse by lazy { MutableStateFlow(BibleVerse()) }
     val dailyBibleVerse = _dailyBibleVerse.asStateFlow()
 
@@ -69,6 +75,8 @@ class HomeViewModel @Inject constructor(
 
     private var leagueJob: Job? = null
 
+    private var revenueCatJob: Job? = null
+
     init {
         initHomeViewModel()
         initLocalSessionListener()
@@ -76,10 +84,17 @@ class HomeViewModel @Inject constructor(
 
     private fun initLocalSessionListener() = backGroundScope.launch {
         localSession.collectLatest { session ->
-            if (session.userInfo.userId.isNotEmpty()) {
-                loadPremiumStatus()
+            val userId = session.userInfo.userId
+            if (userId.isNotEmpty()) {
+                if (signedInUser != userId) {
+                    signedInUser = userId
+                    loadPremiumStatus(session)
+                }
                 loadFriendRequests(session)
                 loadLeagues()
+            } else {
+                signedInUser = ""
+                revenueCatJob?.cancel()
             }
         }
     }
@@ -92,14 +107,17 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadPremiumStatus() = backGroundScope.launch {
-        repo.getUserPremiumStatus().collectLatest { result ->
-            result.handleSuccessAndFailure { isSubscribed ->
-                if (isSubscribed != localSession.value.premium) {
-                    repo.updateUserPremiumStatus(session = localSession.value, isSubscribed)
-                        .collectLatest {
-                            emitFeedbackMessage(it)
-                        }
+    private fun loadPremiumStatus(session: Session) {
+        revenueCatJob = backGroundScope.launch {
+            delay(1000)
+            repo.getUserPremiumStatus().collectLatest { result ->
+                result.handleSuccessAndFailure { isSubscribed ->
+                    if (isSubscribed != localSession.value.premium) {
+                        repo.updateUserPremiumStatus(session = localSession.value, isSubscribed)
+                            .collectLatest {
+                                emitFeedbackMessage(it)
+                            }
+                    }
                 }
             }
         }
@@ -214,17 +232,17 @@ class HomeViewModel @Inject constructor(
     }
 
     fun updateVisibleSession(userId: String) = channelFlow {
-            repo.getSession(userId).collectLatest { result ->
-                result.handleSuccessAndFailure { session ->
-                    if (session.userInfo.userId.isEmpty()) {
-                        emitFeedbackMessage(FeedbackMessage.GeneralErrorMessage)
-                        return@handleSuccessAndFailure
-                    }
-                    loadFriendsForFriend(session).collectLatest {
-                        trySend(session to it)
-                    }
+        repo.getSession(userId).collectLatest { result ->
+            result.handleSuccessAndFailure { session ->
+                if (session.userInfo.userId.isEmpty()) {
+                    emitFeedbackMessage(FeedbackMessage.GeneralErrorMessage)
+                    return@handleSuccessAndFailure
+                }
+                loadFriendsForFriend(session).collectLatest {
+                    trySend(session to it)
                 }
             }
+        }
     }
 
     private fun loadFriendsForFriend(session: Session) = channelFlow {
