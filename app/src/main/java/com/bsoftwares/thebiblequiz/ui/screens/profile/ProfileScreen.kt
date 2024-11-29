@@ -233,7 +233,6 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     } else {
                         navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
                     }
-
                 },
                 removeFriend = {
                     homeViewModel.updateDialog(
@@ -260,6 +259,9 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     displaySession.userInfo.userId.apply {
                         homeViewModel.addFriend(this)
                     }
+                },
+                backToHome = {
+                    navController.popBackStack(Routes.Home.value, inclusive = false)
                 }
             ) {
                 homeViewModel.signOut()
@@ -289,6 +291,7 @@ fun ProfileScreen(
     listOfLeagueInvitations: List<League>,
     updateLeagueInvitation: (Boolean, String) -> Unit,
     addUser: () -> Unit,
+    backToHome:() -> Unit,
     signOut: () -> Unit
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
@@ -304,12 +307,25 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 when {
+                    isFromLocalSession -> {
+                        BasicContainer(modifier = Modifier
+                            .align(Alignment.CenterStart), onClick = backToHome) {
+                            Image(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .size(24.dp)
+                                    .align(Alignment.Center),
+                                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                                contentDescription = null
+                            )
+                        }
+                    }
                     !isFromLocalSession && possibleToAdd -> {
                         BasicContainer(modifier = Modifier
-                            .align(Alignment.CenterStart), onClick = {
-                            addUser()
-                        }) {
+                            .align(Alignment.CenterStart), onClick = addUser
+                        ) {
                             Image(
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -990,6 +1006,7 @@ fun ProfilePreview() {
                 League(leagueName = "League test")
             ),
             listOfLeagueInvitations = listOf(),
+            backToHome = {},
             updateLeagueInvitation = { _, _ -> }
         )
     }
