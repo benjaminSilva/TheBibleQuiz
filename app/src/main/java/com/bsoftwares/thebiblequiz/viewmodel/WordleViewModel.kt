@@ -84,11 +84,9 @@ class WordleViewModel @Inject constructor(
     }
 
     private fun listenToWordle(day: Int) = backGroundScope.launch {
-        autoCancellable {
-            repo.getWordle(day = day).collectLatestAndApplyOnMain {
-                it.handleSuccessAndFailure { wordle ->
-                    _wordle.emit(wordle)
-                }
+        repo.getWordle(day = day).collectLatest {
+            it.handleSuccessAndFailure { wordle ->
+                _wordle.emit(wordle)
             }
         }
     }
