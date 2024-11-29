@@ -134,5 +134,6 @@
     <string name="i_answered_the_question_correctly_today">I answered the question correctly today!</string>
     <string name="i_got_the_answer_wrong">I got the answer wrong…</string>
     <string name="a_new_day_has_started">The Day %1$d has started</string>
+    <string name="something_went_wrong_try_it_again_later">Something went wrong, try it again later.</string>
 
 </resources>

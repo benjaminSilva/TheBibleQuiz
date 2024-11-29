@@ -79,8 +79,8 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel, userId: String) {
-    val visibleSession by homeViewModel.visibleSession.collectAsStateWithLifecycle()
+fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
+    val visibleSession by homeViewModel.otherUserSession.collectAsStateWithLifecycle()
     val isFromMainUser by homeViewModel.isFromLocalSession.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()

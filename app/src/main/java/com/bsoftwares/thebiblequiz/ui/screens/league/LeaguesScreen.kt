@@ -133,8 +133,9 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                 launchSingleTop = true
             }
         }, openUserProfile = {
-            viewModel.updateVisibleSession(userId = it)
-            navController.popBackStack()
+            navController.navigate(Routes.Profile)
+            //viewModel.updateVisibleSession(userId = it)
+            //navController.popBackStack()
         }) {
             viewModel.updateDialog(it)
         }

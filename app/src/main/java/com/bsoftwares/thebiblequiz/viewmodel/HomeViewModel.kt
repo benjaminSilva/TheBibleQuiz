@@ -1,7 +1,6 @@
 package com.bsoftwares.thebiblequiz.viewmodel
 
 import android.content.Intent
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -55,8 +54,8 @@ class HomeViewModel @Inject constructor(
     private var _listOfFriendsNotInLeague = MutableStateFlow(listOf<Session>())
     val listOfFriendsNotInLeague = _listOfFriendsNotInLeague.asStateFlow()
 
-    private val _visibleSession = MutableStateFlow(Session())
-    val visibleSession = _visibleSession.asStateFlow()
+    private val _otherUserSession = MutableStateFlow(Session())
+    val otherUserSession = _otherUserSession.asStateFlow()
 
     private val _isFromLocalSession = MutableStateFlow(true)
     val isFromLocalSession = _isFromLocalSession.asStateFlow()
@@ -99,9 +98,8 @@ class HomeViewModel @Inject constructor(
         localSession.collectLatest { session ->
             if (session.userInfo.userId.isNotEmpty()) {
                 loadPremiumStatus()
-                val currentUserId = visibleSession.value.userInfo.userId
+                val currentUserId = otherUserSession.value.userInfo.userId
                 if ((currentUserId.isEmpty() || currentUserId == session.userInfo.userId)) {
-                    _visibleSession.emit(session)
                     _isFromLocalSession.emit(true)
                     loadFriendRequests(session)
                     loadLeagues()
@@ -191,7 +189,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun resetState() = backGroundScope.launch {
-        _visibleSession.update {
+        _otherUserSession.update {
             Session()
         }
         _listOfFriendRequests.update {
@@ -228,7 +226,7 @@ class HomeViewModel @Inject constructor(
         repo.sendFriendRequestV2(localSession.value, userId).collectLatest {
             it.handleSuccessAndFailure { feedbackMessage ->
                 val checkIfUserIsAddingFromFriendsProfile =
-                    visibleSession.value.userInfo.userId != localSession.value.userInfo.userId
+                    otherUserSession.value.userInfo.userId != localSession.value.userInfo.userId
                 if (feedbackMessage == FeedbackMessage.FriendRequestSent || checkIfUserIsAddingFromFriendsProfile) {
                     emitFeedbackMessage(feedbackMessage = feedbackMessage)
                 } else {
@@ -254,7 +252,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun updateVisibleSession(session: Session?) = backGroundScope.launch {
-        _transitionAnimation.emit(true)
+        /*_transitionAnimation.emit(true)
         delay(300)
         val userSelectedHimself =
             session?.userInfo?.userId == localSession.value.userInfo.userId
@@ -263,7 +261,7 @@ class HomeViewModel @Inject constructor(
             emitCurrentSession()
         } else {
             _isFromLocalSession.emit(false)
-            _visibleSession.emit(session)
+            _otherUserSession.emit(session)
             _notFriends.emit(
                 checkIfSessionIsNotFriendsWithLocal(session) && checkIfSessionDoesntAlreadyHaveAFriendRequest(
                     session
@@ -273,45 +271,29 @@ class HomeViewModel @Inject constructor(
                 checkIfSessionDoesntAlreadyHaveAFriendRequest(session)
             )
             loadFriendRequests(session = session)
-        }
+        }*/
     }
 
     fun updateVisibleSession(userId: String) = backGroundScope.launch {
-        _transitionAnimation.emit(true)
-        delay(300)
-        val userSelectedHimself = userId == localSession.value.userInfo.userId
-
-        if (userSelectedHimself) {
-            emitCurrentSession()
-        } else {
-            repo.getSession(userId).collectLatestAndApplyOnMain {
-                it.handleSuccessAndFailure { session ->
-                    if (session.userInfo.userId == "") {
-                        emitCurrentSession()
-                    } else {
-                        _visibleSession.emit(session)
-                        _isFromLocalSession.emit(false)
-                        _notFriends.emit(
-                            checkIfSessionIsNotFriendsWithLocal(session) && checkIfSessionDoesntAlreadyHaveAFriendRequest(
-                                session
-                            )
-                        )
-                        _notFriendRequest.emit(
-                            checkIfSessionDoesntAlreadyHaveAFriendRequest(session)
-                        )
-                        loadFriendRequests(session = session)
-                    }
+        repo.getSession(userId).collectLatest {
+            it.handleSuccessAndFailure { session ->
+                if (session.userInfo.userId.isEmpty()) {
+                    emitFeedbackMessage(FeedbackMessage.GeneralErrorMessage)
+                    return@handleSuccessAndFailure
                 }
+                _otherUserSession.emit(session)
+                _isFromLocalSession.emit(false)
+                _notFriends.emit(
+                    checkIfSessionIsNotFriendsWithLocal(session) && checkIfSessionDoesntAlreadyHaveAFriendRequest(
+                        session
+                    )
+                )
+                _notFriendRequest.emit(
+                    checkIfSessionDoesntAlreadyHaveAFriendRequest(session)
+                )
+                loadFriendRequests(session = session)
             }
-
         }
-    }
-
-    private fun emitCurrentSession() = backGroundScope.launch {
-        _isFromLocalSession.emit(true)
-        _isFromLeague.emit(false)
-        _visibleSession.emit(value = localSession.value)
-        loadFriendRequests(session = localSession.value)
     }
 
     private fun checkIfSessionDoesntAlreadyHaveAFriendRequest(session: Session): Boolean =
@@ -327,13 +309,13 @@ class HomeViewModel @Inject constructor(
 
     fun removeFriend() = backGroundScope.launch {
         autoCancellable {
-            visibleSession.value.userInfo.userId.apply {
+            otherUserSession.value.userInfo.userId.apply {
                 repo.removeFriend(session = localSession.value, friendId = this).collectLatest {
                     it.handleSuccessAndFailure { feedbackMessage ->
                         _transitionAnimation.emit(true)
                         updateDialog()
                         emitFeedbackMessage(feedbackMessage)
-                        _visibleSession.emit(localSession.value)
+                        _otherUserSession.emit(localSession.value)
                     }
                 }
             }
