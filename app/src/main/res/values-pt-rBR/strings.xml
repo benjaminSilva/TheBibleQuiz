@@ -130,5 +130,6 @@
     <string name="i_answered_the_question_correctly_today">Hoje eu acertei a pergunta!</string>
     <string name="i_got_the_answer_wrong">Eu errei a resposta…</string>
     <string name="a_new_day_has_started">O dia %1$d começou!</string>
+    <string name="something_went_wrong_try_it_again_later">Something went wrong, try it again later.</string>
 
 </resources>

@@ -1,5 +1,10 @@
 package com.bsoftwares.thebiblequiz.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -7,9 +12,11 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.bsoftwares.thebiblequiz.ui.screens.InitializeLoginScreen
@@ -36,7 +43,31 @@ fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel
 
     val startDestination = if (navigateToLogin) Routes.LoginScreen else Routes.Home
 
-    NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value) {
+    NavHost(navController = navController, startDestination = Routes.Start.value, route = Routes.Root.value,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { 1000 },
+                animationSpec = tween(durationMillis = 1000) // Adjust duration here
+            ) + fadeIn(animationSpec = tween(durationMillis = 1000)) // Matching duration for fade
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -1000 },
+                animationSpec = tween(durationMillis = 1000) // Adjust duration here
+            ) + fadeOut(animationSpec = tween(durationMillis = 1000))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -1000 },
+                animationSpec = tween(durationMillis = 1000) // Adjust duration here
+            ) + fadeIn(animationSpec = tween(durationMillis = 1000))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { 1000 },
+                animationSpec = tween(durationMillis = 500) // Adjust duration here
+            ) + fadeOut(animationSpec = tween(durationMillis = 1000))
+        }) {
         navigation(startDestination = startDestination.value, route = Routes.Start.value) {
             composable(
                 route = Routes.LoginScreen.value
@@ -52,11 +83,10 @@ fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel
 
             composable(
                 route = Routes.Profile.value,
-                deepLinks = listOf(navDeepLink {
-                    uriPattern = MY_URI
-                })
+                arguments = listOf(navArgument("instanceId") { type = NavType.StringType })
             ) {
-                InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel)
+                val instanceId = it.arguments?.getString("instanceId")
+                instanceId?.let { it1 -> InitializeProfileScreen(navController = navController, homeViewModel = homeViewModel, userId = it1) }
             }
 
             composable(

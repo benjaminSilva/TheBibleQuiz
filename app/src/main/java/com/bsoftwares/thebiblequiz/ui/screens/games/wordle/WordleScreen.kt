@@ -131,21 +131,24 @@ fun WordleScreen(
         ) {
             Column(
                 modifier = Modifier
+                    .fillMaxHeight()
                     .padding(vertical = 16.dp, horizontal = 32.dp)
                     .align(Alignment.Center),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 BasicText(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     text = "Biblical Wordle",
                     fontSize = 32
                 )
-                WordleRows(
-                    wordleWord = wordleWord,
-                    attempt = attempt,
-                    listWordleAttempts = listWordleAttemps,
-                    errorMessage = errorMessage
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    WordleRows(
+                        wordleWord = wordleWord,
+                        attempt = attempt,
+                        listWordleAttempts = listWordleAttemps,
+                        errorMessage = errorMessage
+                    )
+                }
             }
         }
 
@@ -560,7 +563,11 @@ fun RowLetterWordle(
     ) {
         if (wordleWord.length > 3) {
             for (i in wordleWord.indices) {
-                FlipCard(modifier = Modifier.weight(1f), delay = 300 * i, letterState = letterStates.listOfLetterStates[i]) {
+                FlipCard(
+                    modifier = Modifier.weight(1f),
+                    delay = 300 * i,
+                    letterState = letterStates.listOfLetterStates[i]
+                ) {
                     if (attempt.length > i) {
                         AutoResizeText(
                             modifier = Modifier
@@ -613,7 +620,11 @@ fun LetterButton(
         .clickable {
             letterClick(letter)
         }) {
-        BasicText(modifier = Modifier.align(Alignment.Center), text = letter, fontColor = contrastColor())
+        BasicText(
+            modifier = Modifier.align(Alignment.Center),
+            text = letter,
+            fontColor = contrastColor()
+        )
     }
 }
 

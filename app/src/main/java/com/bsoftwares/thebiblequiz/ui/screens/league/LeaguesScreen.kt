@@ -77,12 +77,6 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
     val currentSessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
 
-    BackHandler {
-        viewModel.updateVisibleSession(null)
-        viewModel.updateIsFromLeague()
-        navController.popBackStack()
-    }
-
     var displayDialog by remember {
         mutableStateOf(false)
     }
@@ -133,8 +127,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                 launchSingleTop = true
             }
         }, openUserProfile = {
-            viewModel.updateVisibleSession(userId = it)
-            navController.popBackStack()
+            navController.navigate(Routes.Profile.withParameter(it))
         }) {
             viewModel.updateDialog(it)
         }

@@ -184,8 +184,7 @@ fun PreSoloScreen(
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .weight(1f)
-                            .alpha(animateButtonsAlpha),
-                            shadow = animateShadow, onClick = {
+                            .alpha(animateButtonsAlpha), onClick = {
                                 openHowToPlayQuestionDialog()
                             }) {
                             BasicText(
@@ -202,7 +201,6 @@ fun PreSoloScreen(
                             .fillMaxHeight()
                             .weight(1f)
                             .alpha(animateButtonsAlpha),
-                            shadow = animateShadow,
                             onClick = {
                                 navController.navigate(Routes.SuggestQuestion.value)
                             }) {
@@ -220,7 +218,7 @@ fun PreSoloScreen(
                             .fillMaxHeight()
                             .weight(1f)
                             .alpha(animateButtonsAlpha),
-                            shadow = animateShadow, onClick = {
+                            onClick = {
                                 navController.popBackStack()
                             }) {
                             BasicText(
@@ -237,7 +235,6 @@ fun PreSoloScreen(
                             .fillMaxWidth()
                             .weight(0.7f)
                             .alpha(animateButtonsAlpha),
-                        shadow = animateShadow,
                         onClick = {
                             startQuestionClick()
                         }
