@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -25,12 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -85,11 +84,16 @@ fun Modifier.bounceClick(onClick: (() -> Unit)?, onLongClick:(() -> Unit)?, allo
                 indication = null,
                 onClick = { }
             )
-            .combinedClickable(onLongClick = {
-                onLongClick?.invoke()
-            }, onClick = {
-                onClick?.invoke()
-            })
+            .combinedClickable(
+                onClick = {
+                    onClick?.invoke()
+                },
+                onLongClick = {
+                    onLongClick?.invoke()
+                },
+                indication = null, // Removes the hover ripple effect
+                interactionSource = remember { MutableInteractionSource() } // Required for interaction management
+            )
             .graphicsLayer {
                 if (allowAnimation) {
                     scaleX = scale

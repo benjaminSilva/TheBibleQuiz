@@ -39,6 +39,7 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BackAndShare
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
+import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.correctAnswer
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 
@@ -157,10 +158,11 @@ fun DaysStreak(streakDays: Int) {
 
     BasicContainer (modifier = Modifier.fillMaxWidth()) {
         Row {
-            BasicContainer (
+            BasicContainer(
                 modifier = Modifier
                     .padding(8.dp)
-                    .size(64.dp)
+                    .size(64.dp),
+                backGroundColor = container_in_container()
             ) {
                 BasicText(
                     modifier = Modifier

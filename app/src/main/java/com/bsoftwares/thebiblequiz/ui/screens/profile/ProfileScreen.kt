@@ -64,7 +64,11 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.WordleStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
+import com.bsoftwares.thebiblequiz.ui.theme.basicContainer
+import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
+import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
+import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.ui.theme.gray
@@ -77,7 +81,11 @@ import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
-fun InitializeProfileScreen(navController: NavHostController, homeViewModel: HomeViewModel, userId: String) {
+fun InitializeProfileScreen(
+    navController: NavHostController,
+    homeViewModel: HomeViewModel,
+    userId: String
+) {
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val calculatedQuizData by homeViewModel.calculatedQuizData.collectAsStateWithLifecycle()
     val calculatedWordleData by homeViewModel.calculatedWordleData.collectAsStateWithLifecycle()
@@ -109,7 +117,7 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
     }
 
     LaunchedEffect(localSession) {
-        if (!localSession.isReady()){
+        if (!localSession.isReady()) {
             navController.navigate(Routes.LoginScreen.value) {
                 popUpTo(Routes.Home.value) { inclusive = true }
             }
@@ -229,7 +237,10 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                 isFromLocalSession = userId == localSession.userInfo.userId,
                 updateVisibleSession = {
                     if (it == null) {
-                        navController.popBackStack(Routes.Profile.withParameter(localSession.userInfo.userId), inclusive = false)
+                        navController.popBackStack(
+                            Routes.Profile.withParameter(localSession.userInfo.userId),
+                            inclusive = false
+                        )
                     } else {
                         navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
                     }
@@ -240,7 +251,9 @@ fun InitializeProfileScreen(navController: NavHostController, homeViewModel: Hom
                     )
                 },
                 possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
-                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
+                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(
+                    displaySession
+                ),
                 createNewLeague = {
                     homeViewModel.createNewLeague()
                 },
@@ -291,7 +304,7 @@ fun ProfileScreen(
     listOfLeagueInvitations: List<League>,
     updateLeagueInvitation: (Boolean, String) -> Unit,
     addUser: () -> Unit,
-    backToHome:() -> Unit,
+    backToHome: () -> Unit,
     signOut: () -> Unit
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
@@ -310,8 +323,10 @@ fun ProfileScreen(
 
                 when {
                     isFromLocalSession -> {
-                        BasicContainer(modifier = Modifier
-                            .align(Alignment.CenterStart), onClick = backToHome) {
+                        BasicContainer(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart), onClick = backToHome
+                        ) {
                             Image(
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -322,9 +337,11 @@ fun ProfileScreen(
                             )
                         }
                     }
+
                     !isFromLocalSession && possibleToAdd -> {
-                        BasicContainer(modifier = Modifier
-                            .align(Alignment.CenterStart), onClick = addUser
+                        BasicContainer(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart), onClick = addUser
                         ) {
                             Image(
                                 modifier = Modifier
@@ -353,37 +370,35 @@ fun ProfileScreen(
                         }
                     }
                 }
-                Box(modifier = Modifier
-                    .shadow(20.dp)
-                    .align(Alignment.CenterEnd)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable {
-                        if (isFromLocalSession) {
-                            signOut()
-                        } else {
-                            updateVisibleSession(null)
-                        }
-                    }
-                    .background(almostWhite)) {
-                    BasicContainer {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .size(24.dp),
-                                painter = painterResource(id = if (isFromLocalSession) R.drawable.logout_24 else R.drawable.baseline_arrow_back_24),
-                                contentDescription = null
-                            )
-                            BasicText(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                text = if (isFromLocalSession) stringResource(R.string.logout) else stringResource(
-                                    R.string.go_back_to_your_profile
-                                ),
-                                fontSize = 16
-                            )
-                        }
+
+                BasicContainer(
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            if (isFromLocalSession) {
+                                signOut()
+                            } else {
+                                updateVisibleSession(null)
+                            }
+                        }) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(24.dp),
+                            painter = painterResource(id = if (isFromLocalSession) R.drawable.logout_24 else R.drawable.baseline_arrow_back_24),
+                            contentDescription = null
+                        )
+                        BasicText(
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                            text = if (isFromLocalSession) stringResource(R.string.logout) else stringResource(
+                                R.string.go_back_to_your_profile
+                            ),
+                            fontSize = 16
+                        )
                     }
                 }
             }
@@ -421,14 +436,22 @@ fun ProfileScreen(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 BasicText(text = session.userInfo.userName, fontSize = 22)
-                                BasicText(text = stringResource(
-                                    R.string.id,
-                                    session.userInfo.userId
-                                ), fontSize = 8)
+                                BasicText(
+                                    text = stringResource(
+                                        R.string.id,
+                                        session.userInfo.userId
+                                    ), fontSize = 8
+                                )
                                 if (session.premium) {
-                                    BasicText(text = stringResource(R.string.premium_user), fontSize = 8)
+                                    BasicText(
+                                        text = stringResource(R.string.premium_user),
+                                        fontSize = 8
+                                    )
                                 } else {
-                                    BasicText(text = stringResource(R.string.non_premium_user), fontSize = 8)
+                                    BasicText(
+                                        text = stringResource(R.string.non_premium_user),
+                                        fontSize = 8
+                                    )
                                 }
                             }
                         }
@@ -617,14 +640,13 @@ fun ProfileScreen(
                         Column(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(gray)
+                                .background(container_in_container())
                                 .padding(horizontal = 8.dp, vertical = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             if (listOfFriendRequests.isNotEmpty() && isFromLocalSession) {
                                 BasicText(
-                                    text = stringResource(R.string.friend_requests),
-                                    fontColor = closeToBlack
+                                    text = stringResource(R.string.friend_requests)
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     listOfFriendRequests.forEach {
@@ -645,8 +667,7 @@ fun ProfileScreen(
                             }
                             if (listOfFriends.isNotEmpty()) {
                                 BasicText(
-                                    text = stringResource(R.string.friends),
-                                    fontColor = closeToBlack
+                                    text = stringResource(R.string.friends)
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     listOfFriends.forEach {
@@ -754,7 +775,7 @@ fun FriendRequest(
                         .clickable {
                             updateFriendStatus(false)
                         },
-                    painter = painterResource(id = R.drawable.baseline_close_24),
+                    painter = painterResource(id = R.drawable.baseline_close_24_bw),
                     contentDescription = emptyString
                 )
                 Image(
@@ -764,7 +785,7 @@ fun FriendRequest(
                         .clickable {
                             updateFriendStatus(true)
                         },
-                    painter = painterResource(id = R.drawable.baseline_check_24),
+                    painter = painterResource(id = R.drawable.baseline_check_24_bw),
                     contentDescription = emptyString
                 )
             }
@@ -828,7 +849,6 @@ fun LeaguesIcon(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .shadow(10.dp)
                 .fillMaxHeight(animateHeight[2].value)
                 .width(22.dp)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
@@ -867,7 +887,7 @@ fun FriendItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(prettyMuchBlack)
+            .background(basicContainer())
             .clickable {
                 updateVisibleSession()
                 if (selectable) {
@@ -914,7 +934,11 @@ fun FriendItem(
 }
 
 @Composable
-fun LeagueInvitation(league: League, openLeague: (League) -> Unit, updateLeagueInvitation: (Boolean, String) -> Unit ) {
+fun LeagueInvitation(
+    league: League,
+    openLeague: (League) -> Unit,
+    updateLeagueInvitation: (Boolean, String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -925,7 +949,10 @@ fun LeagueInvitation(league: League, openLeague: (League) -> Unit, updateLeagueI
             .background(lessWhite)
             .padding(8.dp)
     ) {
-        Row(modifier = Modifier.align(Alignment.CenterStart), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -1021,7 +1048,7 @@ fun PreviewIcon() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewViewLeagueInviationView() {
-    LeagueInvitation(League(leagueName = "Test Name"),{}) { test, teste ->
+    LeagueInvitation(League(leagueName = "Test Name"), {}) { test, teste ->
 
     }
 }

@@ -61,6 +61,7 @@ import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
+import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
@@ -258,12 +259,14 @@ fun LeagueScreen(
             }
         }
         if (sessionInLeague.adminUser) {
+
+            
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(32.dp), onClick = {
                     updateDialog(LeagueDialog.FriendList)
-                }, containerColor = prettyMuchBlack
+                }, containerColor = container_in_container()
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_add_24),
@@ -518,6 +521,38 @@ fun PreviewLeagueScreen() {
                 SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
             )
             ), sessionInLeague = SessionInLeague(), navigateEditScreen = {
+
+            }, openUserProfile = {}
+        ) {
+
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLeagueScreenIfAdmin() {
+    NovaGincanaBiblicaTheme {
+        LeagueScreen(
+            League(listOfUsers =
+            listOf(
+                SessionInLeague(
+                    userName = "Benjamin",
+                    title = "By the grace of God",
+                    pointsForWordle = 22,
+                    pointsForQuiz = 15
+                ),
+                SessionInLeague(
+                    userName = "Abbie",
+                    title = "Alone in the desert",
+                    pointsForWordle = 36,
+                    pointsForQuiz = 12
+                ),
+                SessionInLeague(userName = "Leia", pointsForWordle = 12, pointsForQuiz = 10),
+                SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
+            )
+            ), sessionInLeague = SessionInLeague(adminUser = true), navigateEditScreen = {
 
             }, openUserProfile = {}
         ) {
