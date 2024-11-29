@@ -14,7 +14,6 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
-import com.bsoftwares.thebiblequiz.data.models.UserData
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
@@ -24,7 +23,6 @@ import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
-import com.google.firebase.FirebaseException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -281,10 +279,10 @@ class BaseRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun signIn(result: Intent?) {
-        if (result != null) {
+    override suspend fun signIn(intent: Intent?) {
+        if (intent != null) {
             // Handle the case where login just occurred
-            googleAuthUiClient.signInWithIntent(intent = result)
+            googleAuthUiClient.signInWithIntent(intent = intent)
         }
     }
 
@@ -408,27 +406,37 @@ class BaseRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getUserPremiumStatus(): Flow<ResultOf<Boolean>> = callbackFlow {
-        Log.e("User Id", getSignedInUserId())
-        Purchases.sharedInstance.getCustomerInfo(
+        val userId = getSignedInUserId()
+        Log.d("getUserPremiumStatus", "Initiating premium status check for userId: $userId")
+        val instance = Purchases.sharedInstance
+
+        instance.getCustomerInfo(
             callback = object : ReceiveCustomerInfoCallback {
                 override fun onError(error: PurchasesError) {
+                    Log.e(
+                        "getUserPremiumStatus",
+                        "Error retrieving customer info for userId: $userId. Error: ${error.message}"
+                    )
                     trySend(ResultOf.Failure(FeedbackMessage.Error(error.message)))
                 }
 
                 override fun onReceived(customerInfo: CustomerInfo) {
-                    Log.e(
-                        "Is user subscribed?",
-                        customerInfo.activeSubscriptions.isNotEmpty().toString()
+                    val isActive = customerInfo.entitlements["Premium"]?.isActive ?: false
+                    Log.d(
+                        "getUserPremiumStatus",
+                        "Customer info retrieved for userId: $userId. Is Premium Active: $isActive"
                     )
-                    trySend(
-                        ResultOf.Success(
-                            customerInfo.entitlements["Premium"]?.isActive ?: false
-                        )
-                    )
+                    trySend(ResultOf.Success(isActive))
                 }
             }
         )
-        awaitClose { Purchases.sharedInstance.removeUpdatedCustomerInfoListener() }
+
+        Log.d("getUserPremiumStatus", "Awaiting closure of premium status flow for userId: $userId")
+
+        awaitClose {
+            Log.d("getUserPremiumStatus", "Cleaning up resources for userId: $userId")
+            instance.removeUpdatedCustomerInfoListener()
+        }
     }
 
     override suspend fun getSession(userId: String): Flow<ResultOf<Session>> = flow {
