@@ -48,9 +48,9 @@
     <string name="icon_christ_the_redeemer">Cristo Redentor</string>
     <string name="icon_fish">Ichthys</string>
     <string name="icon_church">Igreja</string>
-    <string name="good_morning_msg">Bom dia %1$s, Dia %1$d</string>
-    <string name="good_afternoon">Boa noite %1$s, Dia %1$d</string>
-    <string name="good_evening">Boa tarde %1$s, Dia %1$d</string>
+    <string name="good_morning_msg">Bom dia %1$s\n %2$s para o fim do Dia %3$d</string>
+    <string name="good_afternoon">Boa noite %1$s\n %2$s para o fim do Dia %3$d</string>
+    <string name="good_evening">Boa tarde %1$s\n %2$s para o fim do Dia %3$d</string>
     <string name="verse_of_the_day">Verso do dia</string>
     <string name="daily_bible_quiz">Quiz Bíblico\nDiário</string>
     <string name="biblical_wordle_home">Wordle\nBíblico</string>

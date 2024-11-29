@@ -22,8 +22,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 open class BaseViewModel(private val repo: BaseRepository, private val initialize: Boolean = true) : ViewModel() {
 
@@ -54,6 +58,9 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
     private val _ad = MutableStateFlow<InterstitialAd?>(null)
     val ad = _ad.asStateFlow()
 
+    private val _remainingTimeForNextDay = MutableStateFlow("")
+    val remainingTimeForNextDay = _remainingTimeForNextDay.asStateFlow()
+
     private var dayFlow: Job? = null
 
     private val viewModelJob by lazy {
@@ -69,6 +76,7 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
     }
 
     init {
+        startCountdown()
         backGroundScope.launch {
             collectConnectivityStatus()
         }
@@ -267,6 +275,42 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
 
     fun updateAd(interstitialAd: InterstitialAd) = backGroundScope.launch {
         _ad.emit(interstitialAd)
+    }
+
+    private fun startCountdown() = backGroundScope.launch {
+        while (isActive) {
+            _remainingTimeForNextDay.emit(getTimeRemainingUntil5PMEST())
+            delay(1000) // Update every second
+        }
+    }
+
+    private fun getTimeRemainingUntil5PMEST(): String {
+        // Set up EST TimeZone
+        val estTimeZone = TimeZone.getTimeZone("America/New_York")
+        val now = Calendar.getInstance(estTimeZone)
+
+        // Set target time to 5 PM EST today
+        val targetTime = Calendar.getInstance(estTimeZone).apply {
+            set(Calendar.HOUR_OF_DAY, 17)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        // If the current time is after 5 PM, move to 5 PM the next day
+        if (now.after(targetTime)) {
+            targetTime.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        // Calculate the difference in milliseconds
+        val millisUntilTarget = targetTime.timeInMillis - now.timeInMillis
+
+        // Convert to hours, minutes, and seconds
+        val hours = millisUntilTarget / (1000 * 60 * 60)
+        val minutes = (millisUntilTarget / (1000 * 60)) % 60
+        val seconds = (millisUntilTarget / 1000) % 60
+
+        return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
     }
 
 }
