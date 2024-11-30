@@ -65,7 +65,6 @@ import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
-import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.ui.theme.wrongPlace
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
@@ -260,7 +259,7 @@ fun LeagueScreen(
         }
         if (sessionInLeague.adminUser) {
 
-            
+
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)

@@ -338,7 +338,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    !isFromLocalSession && possibleToAdd -> {
+                    !isFromLocalSession && possibleToAdd && notFriendRequest -> {
                         BasicContainer(
                             modifier = Modifier
                                 .align(Alignment.CenterStart), onClick = addUser
@@ -623,7 +623,7 @@ fun ProfileScreen(
                 }
             }
             BasicText(text = "Friends list", fontSize = 22)
-            BasicContainer {
+            BasicContainer(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .padding(8.dp)
@@ -636,7 +636,12 @@ fun ProfileScreen(
                             displayDialogFunction(dialogType)
                         }
                     }
-                    if (listOfFriends.isNotEmpty() || listOfFriendRequests.isNotEmpty()) {
+                    if (listOfFriendRequests.isEmpty() && listOfFriends.isEmpty()) {
+                        BasicText(
+                            modifier = Modifier.padding(16.dp),
+                            text = stringResource(R.string.you_still_have_no_friends)
+                        )
+                    } else {
                         Column(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))

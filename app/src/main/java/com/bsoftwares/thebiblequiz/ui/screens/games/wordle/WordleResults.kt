@@ -55,6 +55,7 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
     val session by viewModel.localSession.collectAsStateWithLifecycle()
     val calculatedWordleData by viewModel.calculatedWordleData.collectAsStateWithLifecycle()
     val isNewDay by viewModel.isNewDay.collectAsStateWithLifecycle()
+    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
 
     LaunchedEffect(isNewDay) {
         if (isNewDay) {

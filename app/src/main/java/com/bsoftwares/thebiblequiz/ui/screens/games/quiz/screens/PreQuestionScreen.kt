@@ -56,6 +56,7 @@ fun InitializePreQuizScreen(
 ) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     val dialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
+    val enabled by soloViewModel.clickable.collectAsStateWithLifecycle()
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -79,11 +80,18 @@ fun InitializePreQuizScreen(
                 navController = navController,
                 currentQuestionDifficulty = currentQuestion.difficulty,
                 openHowToPlayQuestionDialog = {
-                    soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
+                    soloViewModel.updateClickable {
+                        soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
+                    }
                 }
             ) {
-                soloViewModel.updateGameAvailability()
-                navController.navigateWithoutRemembering(route = Routes.Quiz, baseRoute = Routes.QuizMode)
+                soloViewModel.updateClickable {
+                    soloViewModel.updateGameAvailability()
+                    navController.navigateWithoutRemembering(
+                        route = Routes.Quiz,
+                        baseRoute = Routes.QuizMode
+                    )
+                }
             }
         }
     }
@@ -120,7 +128,6 @@ fun PreSoloScreen(
         IntOffset(0, -70)
     )
     val animateButtonsAlpha by animateAlpha(startAnimation, duration = 500, delay = 1000)
-    val animateShadow by animateDp(condition = startAnimation, delay = 1500, endValue = 20.dp)
 
     Box(
         modifier = Modifier
@@ -185,8 +192,8 @@ fun PreSoloScreen(
                             .fillMaxHeight()
                             .weight(1f)
                             .alpha(animateButtonsAlpha), onClick = {
-                                openHowToPlayQuestionDialog()
-                            }) {
+                            openHowToPlayQuestionDialog()
+                        }) {
                             BasicText(
                                 modifier = Modifier.align(Alignment.Center),
                                 textAlign = TextAlign.Center,
@@ -257,7 +264,9 @@ fun PreSoloScreen(
 @Composable
 fun PreviewPreSoloScreen() {
     NovaGincanaBiblicaTheme {
-        PreSoloScreen(rememberNavController(), QuestionDifficulty.HARD, {}) {
+        PreSoloScreen(
+            navController = rememberNavController(),
+            currentQuestionDifficulty = QuestionDifficulty.HARD, {}) {
 
         }
     }

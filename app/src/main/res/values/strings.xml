@@ -75,7 +75,7 @@
     <string name="delete_league">Delete League</string>
     <string name="are_you_sure_you_want_to_delete_this_league">Are you sure you want to delete this League?</string>
     <string name="league_resetting_cycle">League Resetting Cycle:</string>
-    <string name="league_settings">League Settings:</string>
+    <string name="league_settings">League Settings</string>
     <string name="league_points">League Points:</string>
     <string name="date_for_recycle">Date for Recycle: %1$s</string>
     <string name="save">Save</string>
@@ -135,5 +135,8 @@
     <string name="i_got_the_answer_wrong">I got the answer wrong…</string>
     <string name="a_new_day_has_started">The Day %1$d has started</string>
     <string name="something_went_wrong_try_it_again_later">Something went wrong, try it again later.</string>
-
+    <string name="donate_to_our_project">Donate to our project</string>
+    <string name="you_still_have_no_friends">You still have no friends :(</string>
+    <string name="bible">Bible</string>
+    <string name="family">Family</string>
 </resources>

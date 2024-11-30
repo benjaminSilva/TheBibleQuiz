@@ -2,21 +2,18 @@ package com.bsoftwares.thebiblequiz.ui.screens.league
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -164,6 +162,8 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
             viewModel.updateDialog(EditLeagueDialog.DeleteLeague)
         }, leaveLeague = {
             viewModel.updateDialog(EditLeagueDialog.LeaveLeague)
+        }, goBack = {
+            navController.popBackStack()
         }) { updatedLeague, updateCycle ->
             viewModel.updateLeague(league = updatedLeague, updateTime = updateCycle)
         }
@@ -177,6 +177,7 @@ fun EditLeagueScreen(
     createDialog: (DialogType) -> Unit,
     deleteLeague: () -> Unit,
     leaveLeague: () -> Unit,
+    goBack: () -> Unit,
     updateLeague: (League, Boolean) -> Unit
 ) {
 
@@ -195,15 +196,31 @@ fun EditLeagueScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 16.dp)
+            .padding(16.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            BasicText(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                text = stringResource(R.string.league_settings),
-                fontSize = 32
-            )
-            BasicContainer(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                BasicContainer(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically), onClick = goBack
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .size(24.dp)
+                            .align(Alignment.Center),
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                        contentDescription = null
+                    )
+                }
+                BasicText(
+                    modifier = Modifier,
+                    text = stringResource(R.string.league_settings),
+                    fontSize = 32
+                )
+            }
+
+            BasicContainer {
                 Row(
                     modifier = Modifier
                         .padding(8.dp)
@@ -265,12 +282,10 @@ fun EditLeagueScreen(
                 }
             } else {
                 BasicText(
-                    Modifier.padding(horizontal = 16.dp),
                     text = league.leagueDuration.getString()
                 )
             }
             BasicText(
-                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(R.string.league_points),
                 fontSize = 22
             )
@@ -280,17 +295,14 @@ fun EditLeagueScreen(
                 }
             } else {
                 BasicText(
-                    Modifier.padding(horizontal = 16.dp),
                     text = league.leagueRule.getString()
                 )
             }
             BasicText(
-                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(R.string.date_for_recycle, league.endCycleString),
                 fontSize = 22
             )
             BasicText(
-                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(
                     R.string.admin,
                     league.listOfUsers.find { it.adminUser }?.userName ?: emptyString
@@ -299,7 +311,6 @@ fun EditLeagueScreen(
             )
         }
         BasicContainer(modifier = Modifier
-            .padding(horizontal = 16.dp)
             .align(Alignment.BottomStart),onClick = {
             createDialog(EditLeagueDialog.HowItWorks)
         }) {
@@ -311,8 +322,7 @@ fun EditLeagueScreen(
         }
         Row(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(horizontal = 16.dp),
+                .align(Alignment.BottomEnd),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             BasicContainer(onClick = {
@@ -387,13 +397,13 @@ fun EditLeagueScreen(
 fun LeagueDurationView(league: League, updateDuration: (LeagueDuration) -> Unit) {
 
     val listOfLeagueDurationOptions = listOf(
+        LeagueDuration.NO_END,
         LeagueDuration.WEEKLY,
         LeagueDuration.TWO_WEEKS,
         LeagueDuration.MONTHLY,
         LeagueDuration.THREE_MONTHS,
         LeagueDuration.SIX_MONTHS,
-        LeagueDuration.YEARLY,
-        LeagueDuration.NO_END,
+        LeagueDuration.YEARLY
     )
 
     val (selectedOption, onOptionSelected) = remember {
@@ -402,23 +412,37 @@ fun LeagueDurationView(league: League, updateDuration: (LeagueDuration) -> Unit)
         )
     }
 
-    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.width(16.dp))
-        listOfLeagueDurationOptions.onEach {
-            BasicRadioButton(selected = it == selectedOption, updateRadioButton = {
-                onOptionSelected(it)
-                updateDuration(it)
-            }) {
-                BasicText(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.Center), text = it.getString()
-                )
+    BasicContainer {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 100.dp), // Dynamically fit items
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(listOfLeagueDurationOptions) { option ->
+                BasicRadioButton(
+                    modifier = Modifier.height(50.dp),
+                    selected = option == selectedOption,
+                    updateRadioButton = {
+                        onOptionSelected(option)
+                        updateDuration(option)
+                    }
+                ) {
+                    BasicText(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .align(Alignment.Center),
+                        text = option.getString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
     }
 }
+
 
 @Composable
 fun LeaguePoints(league: League, updateRule: (LeagueRule) -> Unit) {
@@ -435,36 +459,40 @@ fun LeaguePoints(league: League, updateRule: (LeagueRule) -> Unit) {
         )
     }
 
-    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.width(16.dp))
-        listOfLeagueDurationOptions.onEach {
-            BasicRadioButton(
-                selected = it == selectedOption,
-                updateRadioButton = {
-                    onOptionSelected(it)
-                    updateRule(it)
-                }) {
-                BasicText(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.Center), text = it.getString()
-                )
+    BasicContainer {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 120.dp), // Adjust minSize as needed
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(listOfLeagueDurationOptions) { option ->
+                BasicRadioButton(
+                    modifier = Modifier.height(50.dp),
+                    selected = option == selectedOption,
+                    updateRadioButton = {
+                        onOptionSelected(option)
+                        updateRule(option)
+                    }
+                ) {
+                    BasicText(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .align(Alignment.Center),
+                        text = option.getString()
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
     }
 }
 
 @Composable
 fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
 
-    val listOfIcons = listOf(
-        LeagueImages.SHIELD_CROSS,
-        LeagueImages.FISH,
-        LeagueImages.THE_REDEEMER,
-        LeagueImages.CHURCH,
-        LeagueImages.BE_NOT_AFRAID
-    )
+    val listOfIcons = LeagueImages.values()
 
     val (selectedOption, onOptionSelected) = remember {
         mutableStateOf(
@@ -554,7 +582,7 @@ fun PreviewLeagueEdit() {
         EditLeagueScreen(
             League(endCycleString = "11/08/2024"),
             SessionInLeague(adminUser = true),
-            {}, {}, {}) { _, _ ->
+            {}, {}, {}, {}) { _, _ ->
 
         }
     }
@@ -564,7 +592,7 @@ fun PreviewLeagueEdit() {
 @Composable
 fun PreviewLeagueEditNonAdmin() {
     NovaGincanaBiblicaTheme {
-        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}, {}, {}) { _, _ ->
+        EditLeagueScreen(League(), SessionInLeague(adminUser = false), {}, {}, {}, {}) { _, _ ->
 
         }
     }

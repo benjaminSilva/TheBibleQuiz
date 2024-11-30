@@ -11,6 +11,7 @@ import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.LeagueRule
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepository
@@ -57,9 +58,6 @@ class HomeViewModel @Inject constructor(
 
     private var _listOfFriendsNotInLeague = MutableStateFlow(listOf<Session>())
     val listOfFriendsNotInLeague = _listOfFriendsNotInLeague.asStateFlow()
-
-    private val _clickable = MutableStateFlow(true)
-    val clickable = _clickable.asStateFlow()
 
     private val _currentLeague = MutableStateFlow(League())
     val currentLeague = _currentLeague.asStateFlow()
@@ -110,13 +108,15 @@ class HomeViewModel @Inject constructor(
     private fun loadPremiumStatus(session: Session) {
         revenueCatJob = backGroundScope.launch {
             delay(1000)
-            repo.getUserPremiumStatus().collectLatest { result ->
-                result.handleSuccessAndFailure { isSubscribed ->
-                    if (isSubscribed != localSession.value.premium) {
-                        repo.updateUserPremiumStatus(session = localSession.value, isSubscribed)
-                            .collectLatest {
-                                emitFeedbackMessage(it)
-                            }
+            if (session.isReady()) {
+                repo.getUserPremiumStatus().collectLatest { result ->
+                    result.handleSuccessAndFailure { isSubscribed ->
+                        if (isSubscribed != localSession.value.premium) {
+                            repo.updateUserPremiumStatus(session = localSession.value, isSubscribed)
+                                .collectLatest {
+                                    emitFeedbackMessage(it)
+                                }
+                        }
                     }
                 }
             }
@@ -267,12 +267,6 @@ class HomeViewModel @Inject constructor(
                 emitFeedbackMessage(feedbackMessage)
             }
         }
-    }
-
-    fun updateClickable() = mainScope.launch {
-        _clickable.emit(false)
-        delay(1000)
-        _clickable.emit(true)
     }
 
     fun createNewLeague() = backGroundScope.launch {

@@ -49,6 +49,7 @@ fun InitializeQuizResultScreen(
     val correctAnswer by soloViewModel.correctAnswer.collectAsStateWithLifecycle()
     val day by soloViewModel.day.collectAsStateWithLifecycle()
     val isNewDay by soloViewModel.isNewDay.collectAsStateWithLifecycle()
+    val enabled by soloViewModel.clickable.collectAsStateWithLifecycle()
 
     LaunchedEffect(isNewDay) {
         if (isNewDay) {
@@ -89,7 +90,9 @@ fun InitializeQuizResultScreen(
         calculatedData = calculatedData,
         correctAnswer = correctAnswer
     ) {
-        context.startActivity(shareAnswerIntent)
+        soloViewModel.updateClickable {
+            context.startActivity(shareAnswerIntent)
+        }
     }
 }
 
