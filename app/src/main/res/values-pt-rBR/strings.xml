@@ -74,7 +74,7 @@
     <string name="delete_league">Deletar Liga?</string>
     <string name="are_you_sure_you_want_to_delete_this_league">Você tem certeza que quer deletar essa liga?</string>
     <string name="league_resetting_cycle">Ciclo para resetar os pontos:</string>
-    <string name="league_settings">Configurações da Liga:</string>
+    <string name="league_settings">Configurações da Liga</string>
     <string name="league_points">Pontos da Liga:</string>
     <string name="date_for_recycle">Data que os pontos vão ser resetados: %1$s</string>
     <string name="save">Atualizar</string>
@@ -130,6 +130,9 @@
     <string name="i_answered_the_question_correctly_today">Hoje eu acertei a pergunta!</string>
     <string name="i_got_the_answer_wrong">Eu errei a resposta…</string>
     <string name="a_new_day_has_started">O dia %1$d começou!</string>
-    <string name="something_went_wrong_try_it_again_later">Something went wrong, try it again later.</string>
-
+    <string name="something_went_wrong_try_it_again_later">Alguma coisa deu errado, por favor tente mais tarde.</string>
+    <string name="donate_to_our_project">Doe para o nosso projeto</string>
+    <string name="you_still_have_no_friends">Você ainda não tem amigos :(</string>
+    <string name="bible">Bible</string>
+    <string name="family">Family</string>
 </resources>

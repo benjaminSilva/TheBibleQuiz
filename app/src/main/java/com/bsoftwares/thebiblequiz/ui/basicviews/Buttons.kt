@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -33,6 +32,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -54,14 +54,14 @@ fun BasicContainer(
     backGroundColor: Color = colorResource(id = R.color.basic_container_color),
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
-    enabled: Boolean = true,
     allowAnimation: Boolean = true,
+    shape: Shape = RoundedCornerShape(16.dp),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
             .bounceClick(onClick, onLongClick, allowAnimation)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(shape)
             .animateContentSize()
             .background(backGroundColor)
     ) {

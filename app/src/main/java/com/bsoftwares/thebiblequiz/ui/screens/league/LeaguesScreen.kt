@@ -65,7 +65,6 @@ import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
-import com.bsoftwares.thebiblequiz.ui.theme.prettyMuchBlack
 import com.bsoftwares.thebiblequiz.ui.theme.wrongPlace
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 
@@ -76,6 +75,13 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
     val friendsNotInThisLeague by viewModel.listOfFriendsNotInLeague.collectAsStateWithLifecycle()
     val currentSessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
+    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
+    }
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -121,14 +127,22 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
         }
     }
 
-    BasicScreenBox(feedbackMessage = feedbackMessage, conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.RemovedUserSuccessfully) {
-        LeagueScreen(league = league, sessionInLeague = currentSessionInLeague, navigateEditScreen = {
-            navController.navigate(Routes.EditLeague.value) {
-                launchSingleTop = true
-            }
-        }, openUserProfile = {
-            navController.navigate(Routes.Profile.withParameter(it))
-        }) {
+    BasicScreenBox(
+        feedbackMessage = feedbackMessage,
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.RemovedUserSuccessfully,
+        enabled = enabled.first
+    ) {
+        LeagueScreen(
+            league = league,
+            sessionInLeague = currentSessionInLeague,
+            navigateEditScreen = {
+                navController.navigate(Routes.EditLeague.value) {
+                    launchSingleTop = true
+                }
+            },
+            openUserProfile = {
+                navController.navigate(Routes.Profile.withParameter(it))
+            }) {
             viewModel.updateDialog(it)
         }
     }
@@ -152,7 +166,7 @@ fun LeagueScreen(
 
     LaunchedEffect(league) {
         if (league.leagueId.isNotEmpty())
-        startAnimation = false
+            startAnimation = false
     }
 
     val animateAlpha = animateAlpha(
@@ -215,9 +229,12 @@ fun LeagueScreen(
                     league.listOfUsers.onEachIndexed { index, user ->
                         when (index) {
                             0 -> {
-                                FirstPosition(session = user, rule = league.leagueRule, onLongClick = {
-                                    displayDialogIfAdmin(user)
-                                }) {
+                                FirstPosition(
+                                    session = user,
+                                    rule = league.leagueRule,
+                                    onLongClick = {
+                                        displayDialogIfAdmin(user)
+                                    }) {
                                     openUserProfile(user.userId)
                                 }
                             }
@@ -260,7 +277,7 @@ fun LeagueScreen(
         }
         if (sessionInLeague.adminUser) {
 
-            
+
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -290,7 +307,10 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                BasicText(text = stringResource(R.string.friends_you_can_add_to_this_league), fontSize = 22)
+                BasicText(
+                    text = stringResource(R.string.friends_you_can_add_to_this_league),
+                    fontSize = 22
+                )
                 if (friendsList.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         friendsList.onEach {
@@ -334,10 +354,19 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
 }
 
 @Composable
-fun FirstPosition(session: SessionInLeague, rule: LeagueRule, onLongClick: () -> Unit, openUserProfile: () -> Unit) {
+fun FirstPosition(
+    session: SessionInLeague,
+    rule: LeagueRule,
+    onLongClick: () -> Unit,
+    openUserProfile: () -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(text = stringResource(R.string.first_place), fontSize = 26)
-        BasicContainer(backGroundColor = wrongPlace, onClick = openUserProfile, onLongClick = onLongClick) {
+        BasicContainer(
+            backGroundColor = wrongPlace,
+            onClick = openUserProfile,
+            onLongClick = onLongClick
+        ) {
             Column(
                 modifier = Modifier
                     .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -391,10 +420,19 @@ fun FirstPosition(session: SessionInLeague, rule: LeagueRule, onLongClick: () ->
 }
 
 @Composable
-fun SecondPosition(session: SessionInLeague, rule: LeagueRule, onLongClick: () -> Unit, openUserProfile: () -> Unit) {
+fun SecondPosition(
+    session: SessionInLeague,
+    rule: LeagueRule,
+    onLongClick: () -> Unit,
+    openUserProfile: () -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(text = stringResource(R.string.second_place), fontSize = 22)
-        BasicContainer(backGroundColor = gray, onClick = openUserProfile, onLongClick = onLongClick) {
+        BasicContainer(
+            backGroundColor = gray,
+            onClick = openUserProfile,
+            onLongClick = onLongClick
+        ) {
             Column(
                 modifier = Modifier
                     .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -452,7 +490,11 @@ fun OthersPositions(
             ),
             fontSize = 18
         )
-        BasicContainer(backGroundColor = backGroundColor, onClick = openUserProfile, onLongClick = onLongClick) {
+        BasicContainer(
+            backGroundColor = backGroundColor,
+            onClick = openUserProfile,
+            onLongClick = onLongClick
+        ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -503,23 +545,24 @@ fun OthersPositions(
 fun PreviewLeagueScreen() {
     NovaGincanaBiblicaTheme {
         LeagueScreen(
-            League(listOfUsers =
-            listOf(
-                SessionInLeague(
-                    userName = "Benjamin",
-                    title = "By the grace of God",
-                    pointsForWordle = 22,
-                    pointsForQuiz = 15
-                ),
-                SessionInLeague(
-                    userName = "Abbie",
-                    title = "Alone in the desert",
-                    pointsForWordle = 36,
-                    pointsForQuiz = 12
-                ),
-                SessionInLeague(userName = "Leia", pointsForWordle = 12, pointsForQuiz = 10),
-                SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
-            )
+            League(
+                listOfUsers =
+                listOf(
+                    SessionInLeague(
+                        userName = "Benjamin",
+                        title = "By the grace of God",
+                        pointsForWordle = 22,
+                        pointsForQuiz = 15
+                    ),
+                    SessionInLeague(
+                        userName = "Abbie",
+                        title = "Alone in the desert",
+                        pointsForWordle = 36,
+                        pointsForQuiz = 12
+                    ),
+                    SessionInLeague(userName = "Leia", pointsForWordle = 12, pointsForQuiz = 10),
+                    SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
+                )
             ), sessionInLeague = SessionInLeague(), navigateEditScreen = {
 
             }, openUserProfile = {}
@@ -535,23 +578,24 @@ fun PreviewLeagueScreen() {
 fun PreviewLeagueScreenIfAdmin() {
     NovaGincanaBiblicaTheme {
         LeagueScreen(
-            League(listOfUsers =
-            listOf(
-                SessionInLeague(
-                    userName = "Benjamin",
-                    title = "By the grace of God",
-                    pointsForWordle = 22,
-                    pointsForQuiz = 15
-                ),
-                SessionInLeague(
-                    userName = "Abbie",
-                    title = "Alone in the desert",
-                    pointsForWordle = 36,
-                    pointsForQuiz = 12
-                ),
-                SessionInLeague(userName = "Leia", pointsForWordle = 12, pointsForQuiz = 10),
-                SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
-            )
+            League(
+                listOfUsers =
+                listOf(
+                    SessionInLeague(
+                        userName = "Benjamin",
+                        title = "By the grace of God",
+                        pointsForWordle = 22,
+                        pointsForQuiz = 15
+                    ),
+                    SessionInLeague(
+                        userName = "Abbie",
+                        title = "Alone in the desert",
+                        pointsForWordle = 36,
+                        pointsForQuiz = 12
+                    ),
+                    SessionInLeague(userName = "Leia", pointsForWordle = 12, pointsForQuiz = 10),
+                    SessionInLeague(userName = "Adeline", pointsForWordle = 0, pointsForQuiz = 2)
+                )
             ), sessionInLeague = SessionInLeague(adminUser = true), navigateEditScreen = {
 
             }, openUserProfile = {}

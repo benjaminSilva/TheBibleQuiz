@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -50,7 +52,6 @@ import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
-import com.bsoftwares.thebiblequiz.ui.basicviews.AnimatedBorderCard
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
@@ -59,6 +60,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAn
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import java.util.Calendar
@@ -82,6 +84,12 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     LaunchedEffect(dialog) {
         if (dialog != DialogType.EmptyValue) {
             displayDialog = true
+        }
+    }
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
         }
     }
 
@@ -113,7 +121,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NewDay
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NewDay,
+        enabled = enabled.first
     ) {
         if (localSession.isReady()) {
             HomeScreen(
@@ -124,16 +133,14 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
                 dailyBibleVerse = dailyBibleVerse,
                 pullRefreshState = pullRefreshState,
                 isRefreshing = isRefreshing,
-                enabled = enabled,
                 navigate = {
-                    if (it is Routes.Profile) {
-                        navController.navigate(it.withParameter(localSession.userInfo.userId))
-                    } else {
-                        navController.navigate(it.value)
+                    homeViewModel.updateClickable {
+                        if (it is Routes.Profile) {
+                            navController.navigate(it.withParameter(localSession.userInfo.userId))
+                        } else {
+                            navController.navigate(it.value)
+                        }
                     }
-                    homeViewModel.updateClickable()
-                }, openDialog = { dialogToOpen ->
-                    homeViewModel.updateDialog(dialogType = dialogToOpen)
                 }
             )
         }
@@ -150,9 +157,7 @@ fun HomeScreen(
     dailyBibleVerse: BibleVerse,
     pullRefreshState: PullRefreshState,
     isRefreshing: Boolean,
-    enabled: Boolean,
-    navigate: (Routes) -> Unit,
-    openDialog: (DialogType) -> Unit
+    navigate: (Routes) -> Unit
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -308,10 +313,8 @@ fun HomeScreen(
                     .offset {
                         animationPositionList[2].value
                     },
-                enabled = enabled,
                 onClick = {
-                    // Uncomment this before release
-                    if (localSession.hasPlayedQuizGame/* || hasUserPlayedLocally*/)
+                    if (localSession.hasPlayedQuizGame)
                         navigate(Routes.QuizResults)
                     else
                         navigate(Routes.QuizMode)
@@ -319,22 +322,45 @@ fun HomeScreen(
             ) {
 
                 Row(
-                    modifier = Modifier
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Image(
-                        modifier = Modifier.size(64.dp),
-                        painter = painterResource(id = R.drawable.baseline_menu_book_24),
-                        contentDescription = null
-                    )
-                    BasicText(
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(start = 8.dp),
-                        text = stringResource(R.string.daily_bible_quiz),
-                        fontSize = 24,
-                        lineHeight = 22
-                    )
+                            .padding(16.dp)
+                    ) {
+                        Image(
+                            modifier = Modifier.size(64.dp),
+                            painter = painterResource(id = R.drawable.bible_24),
+                            contentDescription = null
+                        )
+                        BasicText(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp),
+                            text = stringResource(R.string.daily_bible_quiz),
+                            fontSize = 24,
+                            lineHeight = 22
+                        )
+                    }
+
+                    BasicContainer(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.CenterVertically),
+                        shape = RoundedCornerShape(4.dp),
+                        backGroundColor = container_in_container()
+                    ) {
+                        if (localSession.hasPlayedQuizGame) {
+                            Image(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(id = R.drawable.baseline_check_24_bw),
+                                contentDescription = null
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.size(24.dp))
+                        }
+                    }
                 }
             }
             BasicContainer(
@@ -344,9 +370,8 @@ fun HomeScreen(
                     .offset {
                         animationPositionList[3].value
                     },
-                enabled = enabled,
                 onClick = {
-                    if (localSession.hasPlayerWordleGame/* || hasUserPlayedLocally*/)
+                    if (localSession.hasPlayerWordleGame)
                         navigate(Routes.WordleResults)
                     else
                         navigate(Routes.WordleMode)
@@ -354,22 +379,45 @@ fun HomeScreen(
             ) {
 
                 Row(
-                    modifier = Modifier
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Image(
-                        modifier = Modifier.size(64.dp),
-                        painter = painterResource(id = R.drawable.baseline_border_clear_24),
-                        contentDescription = null
-                    )
-                    BasicText(
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(start = 8.dp),
-                        text = stringResource(R.string.biblical_wordle_home),
-                        fontSize = 24,
-                        lineHeight = 22
-                    )
+                            .padding(16.dp)
+                    ) {
+                        Image(
+                            modifier = Modifier.size(64.dp),
+                            painter = painterResource(id = R.drawable.group_481),
+                            contentDescription = null
+                        )
+                        BasicText(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp),
+                            text = stringResource(R.string.biblical_wordle_home),
+                            fontSize = 24,
+                            lineHeight = 22
+                        )
+                    }
+
+                    BasicContainer(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.CenterVertically),
+                        shape = RoundedCornerShape(4.dp),
+                        backGroundColor = container_in_container()
+                    ) {
+                        if (localSession.hasPlayerWordleGame) {
+                            Image(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(id = R.drawable.baseline_check_24_bw),
+                                contentDescription = null
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.size(24.dp))
+                        }
+                    }
                 }
             }
 
@@ -379,7 +427,6 @@ fun HomeScreen(
                 .offset {
                     animationPositionList[4].value
                 },
-                enabled = enabled,
                 onClick = {
                     navigate(Routes.Profile)
                 }
@@ -388,13 +435,13 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                        AsyncImage(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape),
-                            model = localSession.userInfo.profilePictureUrl,
-                            contentDescription = null
-                        )
+                    AsyncImage(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
+                        model = localSession.userInfo.profilePictureUrl,
+                        contentDescription = null
+                    )
 
                     BasicText(
                         modifier = Modifier
@@ -407,52 +454,12 @@ fun HomeScreen(
                 }
             }
 
-            var forLastView = 5
-
-            if (localSession.userInfo.userId.isNotBlank() && !localSession.premium) {
-                AnimatedBorderCard(modifier = Modifier
-                    .alpha(alpha = animationLayoutList[5].value)
-                    .offset {
-                        animationPositionList[5].value
-                    }) {
-                    BasicContainer(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = enabled,
-                        onClick = {
-                            openDialog(ProfileDialogType.StartPremium)
-                        }
-                    ) {
-
-                        Row(
-                            modifier = Modifier
-                                .padding(16.dp)
-                        ) {
-                            Image(
-                                modifier = Modifier.size(32.dp),
-                                painter = painterResource(id = R.drawable.crown_svgrepo_com),
-                                contentDescription = null
-                            )
-                            BasicText(
-                                modifier = Modifier
-                                    .align(Alignment.CenterVertically)
-                                    .padding(start = 8.dp),
-                                text = stringResource(R.string.get_premium),
-                                fontSize = 24,
-                                lineHeight = 22
-                            )
-                        }
-                    }
-                }
-                forLastView = 6
-            }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[forLastView].value)
+                    .alpha(alpha = animationLayoutList[5].value)
                     .offset {
-                        animationPositionList[forLastView].value
+                        animationPositionList[5].value
                     },
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -460,7 +467,6 @@ fun HomeScreen(
                 BasicContainer(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                    enabled = enabled,
                     onClick = {
                         context.startActivity(appShareIntent)
                     }
@@ -493,7 +499,6 @@ fun HomeScreen(
                 BasicContainer(modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                    enabled = enabled,
                     onClick = {
 
                     }
@@ -524,11 +529,10 @@ fun HomeScreen(
             }
             BasicContainer(modifier = Modifier
                 .fillMaxWidth()
-                .alpha(alpha = animationLayoutList[forLastView+1].value)
+                .alpha(alpha = animationLayoutList[6].value)
                 .offset {
-                    animationPositionList[forLastView].value
+                    animationPositionList[6].value
                 },
-                enabled = enabled,
                 onClick = {
                     uriHandler.openUri("https://www.gofundme.com/f/the-bible-quiz-project")
                 }
@@ -538,17 +542,17 @@ fun HomeScreen(
                         .padding(16.dp)
                 ) {
                     Image(
-                            painter = painterResource(id = R.drawable.volunteer_activism_24dp),
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape),
-                            contentDescription = null
+                        painter = painterResource(id = R.drawable.volunteer_activism_24dp),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
+                        contentDescription = null
                     )
                     BasicText(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 8.dp),
-                        text = "Donate to our project",
+                        text = stringResource(R.string.donate_to_our_project),
                         fontSize = 24,
                         lineHeight = 22
                     )
@@ -578,10 +582,7 @@ fun HomePreview() {
                 refreshing = true,
                 onRefresh = { /*TODO*/ }),
             isRefreshing = true,
-            enabled = true,
             navigate = {
-
-            }, {
 
             }
         )
