@@ -294,7 +294,7 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
 
         // Set target time to 5 PM EST today
         val targetTime = Calendar.getInstance(estTimeZone).apply {
-            set(Calendar.HOUR_OF_DAY, 17)
+            set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)

@@ -95,9 +95,16 @@ fun InitializeProfileScreen(
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
+    val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
 
     var displaySession by remember {
         mutableStateOf(Session())
+    }
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
     }
 
     var listOfFriends by remember {
@@ -219,7 +226,8 @@ fun InitializeProfileScreen(
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
-        dialogType = dialog
+        dialogType = dialog,
+        enabled = enabled.first
     ) {
         if (localSession.isReady() && displaySession.userInfo.userId.isNotEmpty()) {
             ProfileScreen(

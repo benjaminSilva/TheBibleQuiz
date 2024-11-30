@@ -1,6 +1,7 @@
 package com.bsoftwares.thebiblequiz.ui.basicviews
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
@@ -23,6 +26,7 @@ fun BasicScreenBox(
     feedbackMessage: FeedbackMessage = FeedbackMessage.NoMessage,
     conditionToDisplayFeedbackMessage: Boolean = false,
     dialogType: DialogType = DialogType.EmptyValue,
+    enabled: Boolean = true,
     content: @Composable() (BoxScope.() -> Unit)
 ) {
 
@@ -48,6 +52,20 @@ fun BasicScreenBox(
 
     Box(modifier = Modifier.fillMaxSize()) {
         content()
+        if (!enabled) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Transparent) // Optional, purely for visibility
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent() // Consume all touch events
+                            }
+                        }
+                    }
+            )
+        }
         Log.i("Feedback message", feedbackMessage.messageText)
         if (feedbackMessage != FeedbackMessage.NoMessage && conditionToDisplayFeedbackMessage) {
             FeedbackMessageContainer(

@@ -58,6 +58,12 @@ fun InitializePreQuizScreen(
     val dialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
     val enabled by soloViewModel.clickable.collectAsStateWithLifecycle()
 
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
+    }
+
     var displayDialog by remember {
         mutableStateOf(false)
     }
@@ -74,7 +80,7 @@ fun InitializePreQuizScreen(
         }
     }
 
-    BasicScreenBox {
+    BasicScreenBox(enabled = enabled.first) {
         if (currentQuestion.question.isNotEmpty()) {
             PreSoloScreen(
                 navController = navController,

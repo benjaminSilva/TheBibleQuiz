@@ -87,6 +87,12 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     }
 
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
+    }
+
     val pullRefreshState =
         rememberPullRefreshState(isRefreshing, onRefresh = { homeViewModel.refresh() })
 
@@ -115,7 +121,8 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NewDay
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NewDay,
+        enabled = enabled.first
     ) {
         if (localSession.isReady()) {
             HomeScreen(

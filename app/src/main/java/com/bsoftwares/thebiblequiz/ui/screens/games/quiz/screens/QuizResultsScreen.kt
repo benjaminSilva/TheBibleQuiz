@@ -31,6 +31,7 @@ import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.quiz.Answer
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.QuizStats
@@ -54,6 +55,12 @@ fun InitializeQuizResultScreen(
     LaunchedEffect(isNewDay) {
         if (isNewDay) {
             navController.popBackStack()
+        }
+    }
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
         }
     }
 
@@ -83,15 +90,17 @@ fun InitializeQuizResultScreen(
 
     val shareAnswerIntent = Intent.createChooser(intent, null)
 
-    ResultsScreen(
-        navController = navController,
-        question = question,
-        session = session,
-        calculatedData = calculatedData,
-        correctAnswer = correctAnswer
-    ) {
-        soloViewModel.updateClickable {
-            context.startActivity(shareAnswerIntent)
+    BasicScreenBox(enabled = enabled.first) {
+        ResultsScreen(
+            navController = navController,
+            question = question,
+            session = session,
+            calculatedData = calculatedData,
+            correctAnswer = correctAnswer
+        ) {
+            soloViewModel.updateClickable {
+                context.startActivity(shareAnswerIntent)
+            }
         }
     }
 }

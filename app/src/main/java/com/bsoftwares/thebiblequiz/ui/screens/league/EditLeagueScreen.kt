@@ -63,6 +63,13 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
     val sessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
+    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
+    }
 
     var displayDialog by remember {
         mutableStateOf(false)
@@ -155,7 +162,7 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
         }
     }
 
-    BasicScreenBox(feedbackMessage = feedbackMessage, dialogType = dialog) {
+    BasicScreenBox(feedbackMessage = feedbackMessage, dialogType = dialog, enabled = enabled.first) {
         EditLeagueScreen(league = league, sessionInLeague = sessionInLeague, createDialog = {
             viewModel.updateDialog(it)
         }, deleteLeague = {

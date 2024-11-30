@@ -41,6 +41,7 @@ import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
+import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.highlightText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
@@ -63,15 +64,24 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
         }
     }
 
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second.invoke()
+        }
+    }
+
     LaunchedEffect(session) {
         viewModel.calculateWordleData()
     }
 
-    WordleResultsScreen(
-        navController = navController, wordle = wordle,
-        listOfAttempts = listOfAttempts,
-        session = session, calculatedWordleData = calculatedWordleData
-    )
+    BasicScreenBox(enabled = enabled.first) {
+        WordleResultsScreen(
+            navController = navController, wordle = wordle,
+            listOfAttempts = listOfAttempts,
+            session = session, calculatedWordleData = calculatedWordleData
+        )
+    }
 }
 
 @Composable
