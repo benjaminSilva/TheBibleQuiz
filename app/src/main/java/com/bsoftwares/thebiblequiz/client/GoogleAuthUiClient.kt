@@ -1,10 +1,9 @@
 package com.bsoftwares.thebiblequiz.client
 
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.util.Log
-import com.bsoftwares.thebiblequiz.R
+import com.bsoftwares.thebiblequiz.BuildConfig
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.UserData
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
@@ -22,10 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
-import kotlin.Exception
 
 class GoogleAuthUiClient(
-    private val context: Context,
     private val oneTapClient: SignInClient
 ) {
 
@@ -42,6 +39,7 @@ class GoogleAuthUiClient(
             ).await()
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d(TAG, e.message.toString())
             if (e is CancellationException) throw e
             null
         }
@@ -121,7 +119,7 @@ class GoogleAuthUiClient(
         return BeginSignInRequest.Builder().setGoogleIdTokenRequestOptions(
             GoogleIdTokenRequestOptions.builder().setSupported(true)
                 .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(context.getString(R.string.google_web_client_id)).build()
+                .setServerClientId(BuildConfig.GOOGLE_KEY).build()
         ).setAutoSelectEnabled(true).build()
     }
 

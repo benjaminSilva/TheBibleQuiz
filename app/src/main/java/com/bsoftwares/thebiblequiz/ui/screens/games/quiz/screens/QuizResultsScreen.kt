@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,8 +39,11 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.QuizStats
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeQuizResultScreen(
@@ -50,17 +56,22 @@ fun InitializeQuizResultScreen(
     val correctAnswer by soloViewModel.correctAnswer.collectAsStateWithLifecycle()
     val day by soloViewModel.day.collectAsStateWithLifecycle()
     val isNewDay by soloViewModel.isNewDay.collectAsStateWithLifecycle()
-    val enabled by soloViewModel.clickable.collectAsStateWithLifecycle()
 
-    LaunchedEffect(isNewDay) {
-        if (isNewDay) {
-            navController.popBackStack()
-        }
+    var enabled by remember {
+        mutableStateOf(enableClicks())
     }
 
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
+        }
+    }
+
+    LaunchedEffect(isNewDay) {
+        if (isNewDay) {
+            navController.popBackStack()
         }
     }
 
@@ -98,7 +109,7 @@ fun InitializeQuizResultScreen(
             calculatedData = calculatedData,
             correctAnswer = correctAnswer
         ) {
-            soloViewModel.updateClickable {
+            enabled = disableClicks {
                 context.startActivity(shareAnswerIntent)
             }
         }

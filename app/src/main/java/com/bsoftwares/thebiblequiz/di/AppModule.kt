@@ -25,7 +25,6 @@ object AppModule {
     @Singleton
     @Provides
     fun getGoogleAuthClient(@ApplicationContext appContext: Context) = GoogleAuthUiClient(
-        context = appContext,
         oneTapClient = Identity.getSignInClient(appContext)
     )
 

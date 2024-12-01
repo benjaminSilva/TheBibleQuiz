@@ -1,7 +1,6 @@
 package com.bsoftwares.thebiblequiz.ui.screens.games.wordle
 
 import android.content.Intent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +46,10 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.highlightText
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BackAndShare
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeWordleResult(navController: NavHostController, viewModel: WordleViewModel) {
@@ -56,18 +58,23 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
     val session by viewModel.localSession.collectAsStateWithLifecycle()
     val calculatedWordleData by viewModel.calculatedWordleData.collectAsStateWithLifecycle()
     val isNewDay by viewModel.isNewDay.collectAsStateWithLifecycle()
-    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
+
+
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
+
+    LaunchedEffect(enabled) {
+        if (!enabled.first) {
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
+        }
+    }
 
     LaunchedEffect(isNewDay) {
         if (isNewDay) {
             navController.popBackStack()
-        }
-    }
-
-
-    LaunchedEffect(enabled) {
-        if (!enabled.first) {
-            enabled.second.invoke()
         }
     }
 
@@ -77,7 +84,11 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
 
     BasicScreenBox(enabled = enabled.first) {
         WordleResultsScreen(
-            navController = navController, wordle = wordle,
+            navigateBack = {
+                enabled = disableClicks {
+                    navController.popBackStack(Routes.Home.value, false)
+                }
+            }, wordle = wordle,
             listOfAttempts = listOfAttempts,
             session = session, calculatedWordleData = calculatedWordleData
         )
@@ -86,7 +97,7 @@ fun InitializeWordleResult(navController: NavHostController, viewModel: WordleVi
 
 @Composable
 fun WordleResultsScreen(
-    navController: NavHostController,
+    navigateBack: () -> Unit,
     wordle: Wordle,
     listOfAttempts: List<WordleAttempt>,
     session: Session,
@@ -214,9 +225,7 @@ fun WordleResultsScreen(
                 heightForSpacer = with(localDesity) {
                     it.size.height.toDp()
                 }
-            }, goBackClick = {
-            navController.popBackStack(Routes.Home.value, false)
-        }) {
+            }, goBackClick = navigateBack) {
             context.startActivity(emojiIntent)
         }
     }
@@ -248,7 +257,7 @@ fun generateResultEmoteString(listOfAttempts: List<WordleAttempt>) = StringBuild
 fun PreviewWordleResults() {
     NovaGincanaBiblicaTheme {
         WordleResultsScreen(
-            rememberNavController(),
+            {},
             Wordle(),
             generateStartWordleAttemptList(),
             session = Session().copy(wordle = WordleGame().copy(wordleStats = generateWordleData())),
