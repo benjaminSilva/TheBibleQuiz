@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -14,13 +16,21 @@ android {
         applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.9"
+        versionCode = 9
+        versionName = "0.9.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        localProperties.load(localPropertiesFile.inputStream())
+
+        // Retrieve the property
+        val googleKey: String? = localProperties.getProperty("GOOGLE_KEY")
+        buildConfigField("String", "GOOGLE_KEY", "\"$googleKey\"")
     }
 
     buildTypes {
@@ -45,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.5"

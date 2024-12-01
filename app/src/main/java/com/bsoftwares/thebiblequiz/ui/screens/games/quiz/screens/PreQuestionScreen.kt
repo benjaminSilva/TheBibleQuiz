@@ -40,14 +40,16 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAngle
-import com.bsoftwares.thebiblequiz.ui.basicviews.animateDp
 import com.bsoftwares.thebiblequiz.ui.basicviews.animatePosition
 import com.bsoftwares.thebiblequiz.ui.navigation.navigateWithoutRemembering
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.HowToPlayQuizDialog
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.achivoFontFamily
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializePreQuizScreen(
@@ -56,11 +58,16 @@ fun InitializePreQuizScreen(
 ) {
     val currentQuestion by soloViewModel.currentQuestion.collectAsStateWithLifecycle()
     val dialog by soloViewModel.displayDialog.collectAsStateWithLifecycle()
-    val enabled by soloViewModel.clickable.collectAsStateWithLifecycle()
+
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
 
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
         }
     }
 
@@ -86,13 +93,14 @@ fun InitializePreQuizScreen(
                 navController = navController,
                 currentQuestionDifficulty = currentQuestion.difficulty,
                 openHowToPlayQuestionDialog = {
-                    soloViewModel.updateClickable {
+
+                    enabled = disableClicks {
                         soloViewModel.updateDialog(dialogType = QuizDialogType.HowToPlay)
                     }
                 }
             ) {
-                soloViewModel.updateClickable {
-                    soloViewModel.updateGameAvailability()
+                enabled = disableClicks {
+                soloViewModel.updateGameAvailability()
                     navController.navigateWithoutRemembering(
                         route = Routes.Quiz,
                         baseRoute = Routes.QuizMode

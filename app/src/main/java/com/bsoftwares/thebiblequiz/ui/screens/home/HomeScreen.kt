@@ -61,8 +61,11 @@ import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
+import kotlinx.coroutines.delay
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -72,7 +75,6 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
     val dailyBibleVerse by homeViewModel.dailyBibleVerse.collectAsStateWithLifecycle()
     val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
-    val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
     val dialog by homeViewModel.displayDialog.collectAsStateWithLifecycle()
     val day by homeViewModel.day.collectAsStateWithLifecycle()
     val remainingTimeForNextDay by homeViewModel.remainingTimeForNextDay.collectAsStateWithLifecycle()
@@ -87,9 +89,16 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         }
     }
 
+
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
+
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
         }
     }
 
@@ -134,7 +143,7 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
                 pullRefreshState = pullRefreshState,
                 isRefreshing = isRefreshing,
                 navigate = {
-                    homeViewModel.updateClickable {
+                    enabled = disableClicks {
                         if (it is Routes.Profile) {
                             navController.navigate(it.withParameter(localSession.userInfo.userId))
                         } else {

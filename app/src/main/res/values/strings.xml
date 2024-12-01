@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">The Bible Quiz</string>
-    <string name="google_web_client_id" translatable="false">156955365205-3c54hi3ib8ee9qpap57ishogg9p4bl5v.apps.googleusercontent.com</string>
     <string name="the_quiz_mode">The Quiz</string>
     <string name="biblical_wordle">Biblical Wordle</string>
     <string name="go_back">Go Back</string>

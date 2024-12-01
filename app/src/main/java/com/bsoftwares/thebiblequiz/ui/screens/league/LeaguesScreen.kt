@@ -63,10 +63,13 @@ import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
 import com.bsoftwares.thebiblequiz.ui.theme.wrongPlace
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeViewModel) {
@@ -75,11 +78,16 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
     val friendsNotInThisLeague by viewModel.listOfFriendsNotInLeague.collectAsStateWithLifecycle()
     val currentSessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
-    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
+
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
 
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
         }
     }
 
@@ -136,12 +144,16 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
             league = league,
             sessionInLeague = currentSessionInLeague,
             navigateEditScreen = {
-                navController.navigate(Routes.EditLeague.value) {
-                    launchSingleTop = true
+                enabled = disableClicks {
+                    navController.navigate(Routes.EditLeague.value) {
+                        launchSingleTop = true
+                    }
                 }
             },
             openUserProfile = {
-                navController.navigate(Routes.Profile.withParameter(it))
+                enabled = disableClicks {
+                    navController.navigate(Routes.Profile.withParameter(it))
+                }
             }) {
             viewModel.updateDialog(it)
         }

@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -65,12 +64,12 @@ import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.almostBlack
 import com.bsoftwares.thebiblequiz.ui.theme.almostWhite
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainer
-import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
-import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lessWhite
 import com.bsoftwares.thebiblequiz.ui.theme.lighterGray
@@ -95,15 +94,20 @@ fun InitializeProfileScreen(
     val listOfLeagues by homeViewModel.listOfLeague.collectAsStateWithLifecycle()
     val listOfLeagueInvitations by homeViewModel.listOfLeagueInvitation.collectAsStateWithLifecycle()
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
-    val enabled by homeViewModel.clickable.collectAsStateWithLifecycle()
 
     var displaySession by remember {
         mutableStateOf(Session())
     }
 
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
+
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
         }
     }
 
@@ -240,49 +244,61 @@ fun InitializeProfileScreen(
                 listOfFriendRequests = friendsRequests,
                 listOfFriends = listOfFriends,
                 updateFriendRequest = { hasAccepted, userId ->
-                    homeViewModel.updateFriendRequest(hasAccepted, userId)
+                    enabled = disableClicks {
+                        homeViewModel.updateFriendRequest(hasAccepted, userId)
+                    }
                 },
                 isFromLocalSession = userId == localSession.userInfo.userId,
                 updateVisibleSession = {
-                    if (it == null) {
-                        navController.popBackStack(
-                            Routes.Profile.withParameter(localSession.userInfo.userId),
-                            inclusive = false
-                        )
-                    } else {
-                        navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
+                    enabled = disableClicks {
+                        if (it == null) {
+                            navController.popBackStack(
+                                Routes.Profile.withParameter(localSession.userInfo.userId),
+                                inclusive = false
+                            )
+                        } else {
+                            navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
+                        }
                     }
                 },
                 removeFriend = {
-                    homeViewModel.updateDialog(
-                        dialogType = ProfileDialogType.RemoveFriend
-                    )
+                    enabled = disableClicks {
+                        homeViewModel.updateDialog(
+                            dialogType = ProfileDialogType.RemoveFriend
+                        )
+                    }
                 },
                 possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
-                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(
-                    displaySession
-                ),
+                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
                 createNewLeague = {
                     homeViewModel.createNewLeague()
                 },
                 listOfLeagues = listOfLeagues,
                 openLeague = {
-                    homeViewModel.setCurrentLeague(it)
-                    navController.navigate(Routes.LeagueScreen.value) {
-                        launchSingleTop = true
+                    enabled = disableClicks {
+                        homeViewModel.setCurrentLeague(it)
+                        navController.navigate(Routes.LeagueScreen.value) {
+                            launchSingleTop = true
+                        }
                     }
                 },
                 listOfLeagueInvitations = listOfLeagueInvitations,
                 updateLeagueInvitation = { hasAccepted, leagueId ->
-                    homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
+                    enabled = disableClicks {
+                        homeViewModel.updateLeagueInvitation(hasAccepted, leagueId)
+                    }
                 },
                 addUser = {
-                    displaySession.userInfo.userId.apply {
-                        homeViewModel.addFriend(this)
+                    enabled = disableClicks {
+                        displaySession.userInfo.userId.apply {
+                            homeViewModel.addFriend(this)
+                        }
                     }
                 },
                 backToHome = {
-                    navController.popBackStack(Routes.Home.value, inclusive = false)
+                    enabled = disableClicks {
+                        navController.popBackStack(Routes.Home.value, inclusive = false)
+                    }
                 }
             ) {
                 homeViewModel.signOut()

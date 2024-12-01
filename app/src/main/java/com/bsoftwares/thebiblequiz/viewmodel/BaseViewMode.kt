@@ -61,9 +61,6 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
     private val _remainingTimeForNextDay = MutableStateFlow("")
     val remainingTimeForNextDay = _remainingTimeForNextDay.asStateFlow()
 
-    private val _clickable = MutableStateFlow(true to {})
-    val clickable = _clickable.asStateFlow()
-
     private var dayFlow: Job? = null
 
     private val viewModelJob by lazy {
@@ -314,12 +311,6 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         val seconds = (millisUntilTarget / 1000) % 60
 
         return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
-    }
-
-    fun updateClickable(function: () -> Unit) = mainScope.launch {
-        _clickable.emit(false to function)
-        delay(1000)
-        _clickable.emit(true to {})
     }
 
 }

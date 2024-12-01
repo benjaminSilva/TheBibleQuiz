@@ -54,8 +54,11 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButto
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
+import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.emptyString
+import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: HomeViewModel) {
@@ -63,11 +66,16 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
     val sessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val dialog by viewModel.displayDialog.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
-    val enabled by viewModel.clickable.collectAsStateWithLifecycle()
+
+    var enabled by remember {
+        mutableStateOf(enableClicks())
+    }
 
     LaunchedEffect(enabled) {
         if (!enabled.first) {
-            enabled.second.invoke()
+            enabled.second()
+            delay(1000)
+            enabled = enableClicks()
         }
     }
 
@@ -170,9 +178,13 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
         }, leaveLeague = {
             viewModel.updateDialog(EditLeagueDialog.LeaveLeague)
         }, goBack = {
-            navController.popBackStack()
+            enabled = disableClicks {
+                navController.popBackStack()
+            }
         }) { updatedLeague, updateCycle ->
-            viewModel.updateLeague(league = updatedLeague, updateTime = updateCycle)
+            enabled = disableClicks {
+                viewModel.updateLeague(league = updatedLeague, updateTime = updateCycle)
+            }
         }
     }
 }
