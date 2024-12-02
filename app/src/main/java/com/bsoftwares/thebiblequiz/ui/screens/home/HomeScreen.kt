@@ -209,7 +209,7 @@ fun HomeScreen(
         action = Intent.ACTION_SEND
         putExtra(
             Intent.EXTRA_TEXT,
-            "Hi, we should play The Bible Quiz together. Download it here."
+            stringResource(R.string.hi_we_should_play_the_bible_quiz_together)
         )
         type = "text/plain"
     }
@@ -509,7 +509,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .weight(1f),
                     onClick = {
-
+                        uriHandler.openUri("https://play.google.com/store/apps/details?id=com.bsoftwares.thebiblequiz")
                     }
                 ) {
                     Row(
