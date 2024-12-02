@@ -114,7 +114,7 @@
     <string name="impossible">IMPOSSIBLE/</string>
     <string name="days_in_streak">Days in streak</string>
     <string name="how_to_play_the_bible_quiz">How to play The Bible Quiz?</string>
-    <string name="bible_quiz_description">In this game, you have 30 seconds to answer one question. You can choose 1 out of 4 answers. There are 4 difficulties in this game. They are:\n\n- Easy\n- Medium\n- Hard\n- Impossible\n\nIt is only one questions per day and you only have one try. Answer it wisely.</string>
+    <string name="bible_quiz_description">In this game, you have 30 seconds to answer a single question. Choose the correct answer from 4 options. The game offers 4 difficulty levels:\n\n- Easy\n- Medium\n- Hard\n- Impossible\n\nYou can only attempt one question per day, and you have just one chance to get it right. Choose wisely!</string>
     <string name="leave_league">Leave League</string>
     <string name="are_you_sure_you_want_to_leave_this_league">Are you sure you want to leave this League? You will lose any point you\'ve gained</string>
     <string name="you_ve_left_the_league_successfully">You\'ve left the League successfully</string>
@@ -129,7 +129,7 @@
     <string name="you_got_it">You got it</string>
     <string name="you_got_it_wrong">You got it wrong</string>
     <string name="none">None</string>
-    <string name="the_bible_quiz_day_you_should_try_it_out">The Bible Quiz, Day %1$s\n\n%2$s\nYou Should try it out %3$s</string>
+    <string name="the_bible_quiz_day_you_should_try_it_out">The Bible Quiz, Day %1$s\n\n%2$s\nYou Should try it out %3$s\n\nhttps://play.google.com/store/apps/details?id=com.bsoftwares.thebiblequiz</string>
     <string name="i_answered_the_question_correctly_today">I answered the question correctly today!</string>
     <string name="i_got_the_answer_wrong">I got the answer wrong…</string>
     <string name="a_new_day_has_started">The Day %1$d has started</string>
@@ -138,4 +138,5 @@
     <string name="you_still_have_no_friends">You still have no friends :(</string>
     <string name="bible">Bible</string>
     <string name="family">Family</string>
+    <string name="hi_we_should_play_the_bible_quiz_together">Hi, we should play The Bible Quiz together. Download it here.\n\nhttps://play.google.com/store/apps/details?id=com.bsoftwares.thebiblequiz</string>
 </resources>
