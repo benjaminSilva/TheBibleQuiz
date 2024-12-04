@@ -535,7 +535,7 @@ fun ProfileScreen(
                         Image(
                             modifier = Modifier
                                 .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_menu_book_24),
+                            painter = painterResource(id = R.drawable.bible_24),
                             contentDescription = null
                         )
                         BasicText(
@@ -555,7 +555,7 @@ fun ProfileScreen(
                         Image(
                             modifier = Modifier
                                 .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_border_clear_24),
+                            painter = painterResource(id = R.drawable.group_481),
                             contentDescription = null
                         )
                         BasicText(

@@ -210,8 +210,9 @@ fun SoloQuestionScreen(
                             text = currentQuestion.question,
                             modifier = Modifier
                                 .align(Alignment.Center),
-                            fontSizeRange = FontSizeRange(12.sp, 44.sp),
-                            fontFamily = achivoFontFamily
+                            fontSizeRange = FontSizeRange(12.sp, 28.sp),
+                            fontFamily = achivoFontFamily,
+                            maxLines = 4
                         )
                     }
                 }

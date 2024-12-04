@@ -9,7 +9,7 @@
     </style>
 
     <style name="SplashScreenTheme" parent="Theme.SplashScreenApp">
-        <item name="android:windowBackground">@drawable/splash_inset</item>
+        <item name="android:windowBackground">@drawable/tbq</item>
     </style>
 </resources>
 
