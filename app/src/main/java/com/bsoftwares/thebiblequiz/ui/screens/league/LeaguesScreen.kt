@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +48,7 @@ import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.LeagueRule
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.UserTitle
 import com.bsoftwares.thebiblequiz.data.models.getString
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
@@ -58,6 +61,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButton
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
@@ -131,13 +135,21 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                 )
             }
 
+            is LeagueDialog.TitleUpdate -> {
+                UpdateTitleDialog(session = currentSessionInLeague, onDismissRequest = {
+                    viewModel.updateDialog()
+                }) {
+                    viewModel.updateTitle(it)
+                }
+            }
+
             else -> Unit
         }
     }
 
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
-        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.RemovedUserSuccessfully,
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.RemovedUserSuccessfully || feedbackMessage == FeedbackMessage.TitleUpdated,
         enabled = enabled.first
     ) {
         LeagueScreen(
@@ -223,10 +235,16 @@ fun LeagueScreen(
                 }
             }
 
-            fun displayDialogIfAdmin(userName: SessionInLeague) {
-                if (sessionInLeague.adminUser && !userName.adminUser) {
-                    updateDialog(LeagueDialog.RemoveFriend(sessionInLeague = userName))
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            fun longClickFunction(userName: SessionInLeague) {
+                when {
+                    sessionInLeague.adminUser && !userName.adminUser -> {
+                        updateDialog(LeagueDialog.RemoveFriend(sessionInLeague = userName))
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                    sessionInLeague.userId == userName.userId -> {
+                        updateDialog(LeagueDialog.TitleUpdate)
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                 }
             }
 
@@ -245,7 +263,7 @@ fun LeagueScreen(
                                     session = user,
                                     rule = league.leagueRule,
                                     onLongClick = {
-                                        displayDialogIfAdmin(user)
+                                        longClickFunction(user)
                                     }) {
                                     openUserProfile(user.userId)
                                 }
@@ -254,8 +272,7 @@ fun LeagueScreen(
                             1 -> SecondPosition(
                                 session = user,
                                 rule = league.leagueRule, onLongClick = {
-                                    displayDialogIfAdmin(user)
-
+                                    longClickFunction(user)
                                 }
                             ) {
                                 openUserProfile(user.userId)
@@ -264,7 +281,7 @@ fun LeagueScreen(
                             2 -> OthersPositions(
                                 session = user,
                                 rule = league.leagueRule, onLongClick = {
-                                    displayDialogIfAdmin(user)
+                                    longClickFunction(user)
                                 }
                             ) {
                                 openUserProfile(user.userId)
@@ -275,7 +292,7 @@ fun LeagueScreen(
                                 session = user,
                                 index = index + 1,
                                 rule = league.leagueRule, onLongClick = {
-                                    displayDialogIfAdmin(user)
+                                    longClickFunction(user)
                                 }
                             ) {
                                 openUserProfile(user.userId)
@@ -404,7 +421,7 @@ fun FirstPosition(
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         BasicText(text = session.userName, fontSize = 22, fontColor = closeToBlack)
-                        BasicText(text = session.title, fontColor = closeToBlack)
+                        BasicText(text = session.title.getString(), fontColor = closeToBlack)
                     }
                 }
                 BasicContainer(
@@ -461,7 +478,7 @@ fun SecondPosition(
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         BasicText(text = session.userName, fontSize = 22, fontColor = closeToBlack)
-                        BasicText(text = session.title, fontColor = closeToBlack)
+                        BasicText(text = session.title.getString(), fontColor = closeToBlack)
                     }
                 }
                 BasicContainer(
@@ -522,15 +539,20 @@ fun OthersPositions(
                     model = session.profileImage,
                     contentDescription = null
                 )
-                BasicText(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
-                        .weight(0.7f),
-                    text = session.userName,
-                    fontSize = 22,
-                    fontColor = closeToBlack
-                )
+                Column(modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
+                    .weight(0.7f)) {
+                    BasicText(
+                        text = session.userName,
+                        fontSize = 22,
+                        fontColor = closeToBlack
+                    )
+                    BasicText(
+                        text = session.title.getString(),
+                        fontColor = closeToBlack
+                    )
+                }
                 BasicText(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -552,6 +574,50 @@ fun OthersPositions(
     }
 }
 
+@Composable
+fun UpdateTitleDialog(session: SessionInLeague ,onDismissRequest: () -> Unit, updateTitle: (UserTitle) -> Unit) {
+
+    val listOfLeagueDurationOptions = UserTitle.values()
+
+    val (selectedOption, onOptionSelected) = remember {
+        mutableStateOf(
+            session.title
+        )
+    }
+
+    BasicPositiveNegativeDialog(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(R.string.update_your_title),
+        dialogIcon = null,
+        positiveString = stringResource(R.string.update),
+        negativeString = stringResource(R.string.go_back),
+        positiveFunction = {
+            updateTitle(selectedOption)
+        },
+        negativeIcon = painterResource(R.drawable.baseline_arrow_back_24)
+    ) {
+        LazyColumn (verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            items(listOfLeagueDurationOptions) { option ->
+                BasicRadioButton(
+                    modifier = Modifier.height(50.dp),
+                    selected = option == selectedOption,
+                    updateRadioButton = {
+                        onOptionSelected(option)
+                    }
+                ) {
+                    BasicText(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .align(Alignment.Center),
+                        text = option.getString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewLeagueScreen() {
@@ -562,13 +628,13 @@ fun PreviewLeagueScreen() {
                 listOf(
                     SessionInLeague(
                         userName = "Benjamin",
-                        title = "By the grace of God",
+                        title = UserTitle.NEW_BELIEVER,
                         pointsForWordle = 22,
                         pointsForQuiz = 15
                     ),
                     SessionInLeague(
                         userName = "Abbie",
-                        title = "Alone in the desert",
+                        title = UserTitle.NEW_BELIEVER,
                         pointsForWordle = 36,
                         pointsForQuiz = 12
                     ),
@@ -578,12 +644,9 @@ fun PreviewLeagueScreen() {
             ), sessionInLeague = SessionInLeague(), navigateEditScreen = {
 
             }, openUserProfile = {}
-        ) {
-
-        }
+        ) {}
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -595,13 +658,13 @@ fun PreviewLeagueScreenIfAdmin() {
                 listOf(
                     SessionInLeague(
                         userName = "Benjamin",
-                        title = "By the grace of God",
+                        title = UserTitle.NEW_BELIEVER,
                         pointsForWordle = 22,
                         pointsForQuiz = 15
                     ),
                     SessionInLeague(
                         userName = "Abbie",
-                        title = "Alone in the desert",
+                        title = UserTitle.NEW_BELIEVER,
                         pointsForWordle = 36,
                         pointsForQuiz = 12
                     ),

@@ -53,6 +53,7 @@ sealed class FeedbackMessage(
     object RemovedUserSuccessfully: FeedbackMessage(R.string.you_have_removed_1_successfully)
     object NewDay: FeedbackMessage(R.string.a_new_day_has_started)
     object GeneralErrorMessage: FeedbackMessage(R.string.something_went_wrong_try_it_again_later)
+    object TitleUpdated: FeedbackMessage(R.string.your_title_was_updated)
 }
 
 enum class LogTypes(val message: String) {

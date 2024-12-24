@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -227,6 +228,8 @@ fun InitializeProfileScreen(
         }
     }
 
+    val context = LocalContext.current
+
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
@@ -271,7 +274,7 @@ fun InitializeProfileScreen(
                 possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
                 notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
                 createNewLeague = {
-                    homeViewModel.createNewLeague()
+                    homeViewModel.createNewLeague(context.getString(R.string.new_league_name))
                 },
                 listOfLeagues = listOfLeagues,
                 openLeague = {

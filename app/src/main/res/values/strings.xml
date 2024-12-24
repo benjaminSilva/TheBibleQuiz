@@ -139,4 +139,17 @@
     <string name="bible">Bible</string>
     <string name="family">Family</string>
     <string name="hi_we_should_play_the_bible_quiz_together">Hi, we should play The Bible Quiz together. Download it here.\n\nhttps://play.google.com/store/apps/details?id=com.bsoftwares.thebiblequiz</string>
+    <string name="the_boss_around_here">The boss around here</string>
+    <string name="understandable_have_a_great_day">Understandable, have a great day</string>
+    <string name="i_am_a_new_creature_of_god">I am a new creature of God</string>
+    <string name="the_last_animal_of_moses_ark">The last animal of Moses\' Ark</string>
+    <string name="i_m_not_a_prophet_but_i_know_i_m_gonna_win">I\'m not a prophet, but I know I\'m gonna win</string>
+    <string name="paul_was_right_about_you">Paul was right about you</string>
+    <string name="stephen_deserved_a_spin_off">Stephen deserved a spin-off</string>
+    <string name="how_is_the_view_from_down_there">↓ How is the view from down there? ↓</string>
+    <string name="new_league_name">Your new League</string>
+    <string name="your_title_was_updated">Your Title was updated</string>
+    <string name="by_the_grace_of_god">By the grace of God</string>
+    <string name="update_your_title">Update your title</string>
+    <string name="update">Update</string>
 </resources>

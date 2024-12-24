@@ -41,7 +41,8 @@ fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                                 positiveIcon: Painter = painterResource(id = R.drawable.baseline_check_24_bw),
                                 negativeIcon: Painter = painterResource(id = R.drawable.baseline_close_24_bw),
                                 positiveFunction: () -> Unit = {},
-                                negativeFunction: () -> Unit = {}) {
+                                negativeFunction: () -> Unit = onDismissRequest,
+                                extraUI: @Composable () -> Unit = {}) {
     Dialog(onDismissRequest = { if (dismissible) onDismissRequest() else Unit }) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(.85f)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -69,6 +70,8 @@ fun BasicPositiveNegativeDialog(onDismissRequest: () -> Unit,
                     if (description.isNotEmpty()) {
                         BasicText(text = description)
                     }
+                    //It will display extra views
+                    extraUI()
                 }
             }
             Row(
