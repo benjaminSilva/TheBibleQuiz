@@ -14,7 +14,6 @@ data class League(
     val leagueIcon: LeagueImages = LeagueImages.SHIELD_CROSS,
     val leagueRule: LeagueRule = LeagueRule.QUIZ_AND_WORDLE,
     val leagueDuration: LeagueDuration = LeagueDuration.NO_END,
-    val firstPlace: SessionInLeague = SessionInLeague(),
     val startCycleDate: Long = 0,
     val listOfLogs: List<LeagueLog> = listOf(),
     val endCycleDate: Long = 0,

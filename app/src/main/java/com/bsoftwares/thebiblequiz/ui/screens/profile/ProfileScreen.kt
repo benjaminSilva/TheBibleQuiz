@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -227,6 +228,8 @@ fun InitializeProfileScreen(
         }
     }
 
+    val context = LocalContext.current
+
     BasicScreenBox(
         feedbackMessage = feedbackMessage,
         conditionToDisplayFeedbackMessage = profileScreenFeedbackMessages.contains(feedbackMessage),
@@ -271,7 +274,7 @@ fun InitializeProfileScreen(
                 possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
                 notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
                 createNewLeague = {
-                    homeViewModel.createNewLeague()
+                    homeViewModel.createNewLeague(context.getString(R.string.new_league_name))
                 },
                 listOfLeagues = listOfLeagues,
                 openLeague = {
@@ -535,7 +538,7 @@ fun ProfileScreen(
                         Image(
                             modifier = Modifier
                                 .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_menu_book_24),
+                            painter = painterResource(id = R.drawable.bible_24),
                             contentDescription = null
                         )
                         BasicText(
@@ -555,7 +558,7 @@ fun ProfileScreen(
                         Image(
                             modifier = Modifier
                                 .size(24.dp),
-                            painter = painterResource(id = R.drawable.baseline_border_clear_24),
+                            painter = painterResource(id = R.drawable.group_481),
                             contentDescription = null
                         )
                         BasicText(

@@ -100,6 +100,7 @@ sealed class QuizDialogType : DialogType() {
 
 sealed class LeagueDialog : DialogType() {
     object FriendList : LeagueDialog()
+    object TitleUpdate : LeagueDialog()
     data class RemoveFriend(val sessionInLeague: SessionInLeague) : LeagueDialog()
 }
 

@@ -1,5 +1,8 @@
 package com.bsoftwares.thebiblequiz.data.models
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.generateStartWordleAttemptList
 import com.google.firebase.database.Exclude
@@ -101,7 +104,7 @@ data class SessionInLeague(
     val userName: String = "",
     val pointsForQuiz: Int = 0,
     val pointsForWordle: Int = 0,
-    val title: String = ""
+    val title: UserTitle = UserTitle.NEW_BELIEVER
 ) {
     @get:Exclude
     val totalPoints: Int
@@ -109,3 +112,28 @@ data class SessionInLeague(
             return pointsForQuiz + pointsForWordle
         }
 }
+
+enum class UserTitle {
+    ADMIN,
+    UNDERSTANDABLE,
+    NEW_BELIEVER,
+    MOSES_ARK,
+    PROPHET,
+    PAUL_WAS_RIGHT,
+    STEPHEN,
+    DOWN,
+    GRACE
+}
+
+@Composable
+fun UserTitle.getString(): String = stringResource(id = when(this) {
+    UserTitle.ADMIN -> R.string.the_boss_around_here
+    UserTitle.UNDERSTANDABLE -> R.string.understandable_have_a_great_day
+    UserTitle.NEW_BELIEVER -> R.string.i_am_a_new_creature_of_god
+    UserTitle.MOSES_ARK -> R.string.the_last_animal_of_moses_ark
+    UserTitle.PROPHET -> R.string.i_m_not_a_prophet_but_i_know_i_m_gonna_win
+    UserTitle.PAUL_WAS_RIGHT -> R.string.paul_was_right_about_you
+    UserTitle.STEPHEN -> R.string.stephen_deserved_a_spin_off
+    UserTitle.DOWN ->R.string.how_is_the_view_from_down_there
+    UserTitle.GRACE -> R.string.by_the_grace_of_god
+})

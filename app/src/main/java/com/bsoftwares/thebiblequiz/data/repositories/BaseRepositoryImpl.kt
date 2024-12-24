@@ -14,6 +14,7 @@ import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.UserTitle
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
@@ -456,7 +457,7 @@ class BaseRepositoryImpl @Inject constructor(
             localFriendRequestList = dataSnapshot.child("friendRequests").children.mapNotNull {
                 it.key
             },
-            localListLeagues = dataSnapshot.child("leagues").children.mapNotNull {
+            localListLeagues = dataSnapshot.child(stringLeagues).children.mapNotNull {
                 it.key
             },
             localLeagueRequestList = dataSnapshot.child(stringLeagueInvitation).children.mapNotNull {
@@ -731,7 +732,7 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createNewLeague(session: Session): Flow<ResultOf<League>> =
+    override suspend fun createNewLeague(session: Session, initialLeagueName: String): Flow<ResultOf<League>> =
         channelFlow {
             val leagueId = UUID.randomUUID().toString()
             val userId = session.userInfo.userId
@@ -739,24 +740,22 @@ class BaseRepositoryImpl @Inject constructor(
                 userId = userId,
                 profileImage = session.userInfo.profilePictureUrl,
                 userName = session.userInfo.userName,
-                title = "By the grace of God",
+                title = UserTitle.ADMIN,
                 adminUser = true
             )
             val league = League(
                 leagueId = leagueId,
-                leagueName = "Your new League",
-                firstPlace = newLeagueSession,
+                leagueName = initialLeagueName,
                 startCycleDate = System.currentTimeMillis()
             )
-            // TODO Make sure this we just accept success if they are all success
             val ref = leaguesDatabaseReference.child(leagueId)
             ref.setValue(league).addOnFailureListener {
                 it.message?.apply {
                     channel.trySend(ResultOf.Failure(FeedbackMessage.Error(message = this)))
                 }
             }.addOnSuccessListener {
-                usersReference.child(userId).child("leagues").child(leagueId).setValue(leagueId)
-                ref.child("leagueUsers").child(userId).setValue(newLeagueSession)
+                usersReference.child(userId).child(stringLeagues).child(leagueId).setValue(leagueId)
+                ref.child(stringLeagueUsers).child(userId).setValue(newLeagueSession)
                     .addOnFailureListener {
                         it.message?.apply {
                             channel.trySend(ResultOf.Failure(FeedbackMessage.Error(message = this)))
@@ -772,7 +771,7 @@ class BaseRepositoryImpl @Inject constructor(
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 channel.trySend(ResultOf.Success(league.copy(
-                    listOfUsers = snapshot.child("leagueUsers").children.mapNotNull {
+                    listOfUsers = snapshot.child(stringLeagueUsers).children.mapNotNull {
                         it.getValue<SessionInLeague>()
                     }
                 )))
@@ -940,8 +939,7 @@ class BaseRepositoryImpl @Inject constructor(
                     SessionInLeague(
                         userId = userId,
                         profileImage = session.userInfo.profilePictureUrl,
-                        userName = session.userInfo.userName,
-                        title = "Bootie Magooties"
+                        userName = session.userInfo.userName
                     )
                 )
         }
@@ -984,6 +982,16 @@ class BaseRepositoryImpl @Inject constructor(
         } finally {
             awaitClose { channel.close() }
         }
+    }
+
+    override suspend fun updateTitle(userId: String, leagueId: String, userTitle: UserTitle): Flow<ResultOf<FeedbackMessage>> = callbackFlow {
+
+        leaguesDatabaseReference.child(leagueId).child(stringLeagueUsers).child(userId).child("title").setValue(userTitle).addOnSuccessListener {
+            trySend(ResultOf.Success(FeedbackMessage.TitleUpdated))
+        }.addOnFailureListener {
+            trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
+        }
+        awaitClose { channel.close() }
     }
 
     private suspend fun DatabaseReference.awaitRemoveValue() {

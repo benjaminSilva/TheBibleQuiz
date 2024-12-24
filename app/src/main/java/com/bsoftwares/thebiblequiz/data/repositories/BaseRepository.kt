@@ -9,6 +9,7 @@ import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.UserTitle
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
@@ -40,7 +41,7 @@ interface BaseRepository {
     suspend fun updateFriendRequest(session: Session, hasAccepted: Boolean, friendId: String): Flow<ResultOf<Nothing>>
     suspend fun removeFriend(session: Session, friendId: String): Flow<ResultOf<FeedbackMessage>>
     suspend fun sendQuestionSuggestion(question: Question): Flow<ResultOf<FeedbackMessage>>
-    suspend fun createNewLeague(session: Session): Flow<ResultOf<League>>
+    suspend fun createNewLeague(session: Session, initialLeagueName: String): Flow<ResultOf<League>>
     suspend fun loadLeagueUsers(league: League): Flow<ResultOf<League>>
     suspend fun loadLeagues(session: Session): Flow<ResultOf<Pair<List<League>,List<League>>>>
     suspend fun sendLeagueRequest(list: List<Session>, league: League): Flow<ResultOf<FeedbackMessage>>
@@ -55,4 +56,5 @@ interface BaseRepository {
     suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>>
     suspend fun userLeaveLeague(user: SessionInLeague, leagueId: String, isFromCurrentSession: Boolean): Flow<ResultOf<FeedbackMessage>>
     suspend fun loadFriendRequests(friends: List<String>): Flow<ResultOf<List<Session>>>
+    suspend fun updateTitle(userId: String, leagueId: String, userTitle: UserTitle): Flow<ResultOf<FeedbackMessage>>
 }

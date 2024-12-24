@@ -11,6 +11,7 @@ import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.LeagueRule
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.UserTitle
 import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
@@ -269,13 +270,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun createNewLeague() = backGroundScope.launch {
+    fun createNewLeague(initialLeagueName: String) = backGroundScope.launch {
         if (!localSession.value.premium && localSession.value.localListLeagues.isNotEmpty()) {
             emitFeedbackMessage(FeedbackMessage.YouAreNotPremium)
             return@launch
         }
         updateDialog(DialogType.Loading)
-        repo.createNewLeague(localSession.value).collectLatestAndApplyOnMain {
+        repo.createNewLeague(localSession.value, initialLeagueName = initialLeagueName).collectLatestAndApplyOnMain {
             it.handleSuccessAndFailure { league ->
                 emitFeedbackMessage(
                     feedbackMessage = FeedbackMessage.LeagueCreated,
@@ -289,7 +290,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadLeagueUsers(league: League) = backGroundScope.launch {
         autoCancellable {
-            repo.loadLeagueUsers(league).collectLatestAndApplyOnMain { resultOf ->
+            repo.loadLeagueUsers(league).collectLatest { resultOf ->
                 resultOf.handleSuccessAndFailure { league ->
                     _currentLeague.emit(league.copy(listOfUsers = league.listOfUsers.sortedByDescending {
                         when (league.leagueRule) {
@@ -403,6 +404,16 @@ class HomeViewModel @Inject constructor(
                     emitFeedbackMessage(fbm)
                 }
                 updateDialog(DialogType.EmptyValue)
+            }
+        }
+    }
+
+    fun updateTitle(userTitle: UserTitle) = backGroundScope.launch {
+        if (userTitle != sessionInLeague.value.title) {
+            repo.updateTitle(sessionInLeague.value.userId, currentLeague.value.leagueId, userTitle).collectLatest {
+                it.handleSuccessAndFailure { feedbackMessage ->
+                    emitFeedbackMessage(feedbackMessage)
+                }
             }
         }
     }
