@@ -51,14 +51,12 @@ import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.isReady
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
-import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAnimations
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
-import com.bsoftwares.thebiblequiz.ui.screens.profile.PaywallScreen
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
@@ -109,21 +107,22 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         mutableIntStateOf(0)
     }
 
-    LaunchedEffect(Unit) {
-        val rightNow = Calendar.getInstance()
-        hourOfTheDay = rightNow[Calendar.HOUR_OF_DAY]
+    LaunchedEffect(localSession) {
+        if (localSession.isReady()){
+            val rightNow = Calendar.getInstance()
+            hourOfTheDay = rightNow[Calendar.HOUR_OF_DAY]
+            delay(1000)
+            homeViewModel.updateDialog()
+        } else {
+            homeViewModel.updateDialog(DialogType.Loading)
+        }
     }
 
     if (displayDialog) {
         when (dialog) {
-            ProfileDialogType.StartPremium -> {
-                PaywallScreen(enablePremium = {
-                    homeViewModel.updateToPremium()
-                }) {
-                    homeViewModel.updateDialog()
-                }
+            DialogType.Loading -> {
+                DialogType.Loading.Generate()
             }
-
             else -> Unit
         }
     }
@@ -175,8 +174,10 @@ fun HomeScreen(
         mutableStateOf(true)
     }
 
-    LaunchedEffect(Unit) {
-        startAnimation = false
+    LaunchedEffect(localSession) {
+        if (localSession.isReady()) {
+            startAnimation = false
+        }
     }
 
     val animationLayoutList =

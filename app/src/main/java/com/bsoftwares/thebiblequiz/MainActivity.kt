@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bsoftwares.thebiblequiz.ui.navigation.SetupNavGraph
+import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.destination
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.google.android.gms.ads.AdRequest
@@ -73,22 +74,24 @@ class MainActivity : ComponentActivity() {
             val homeViewModel = hiltViewModel<HomeViewModel>()
             val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
-            Box(modifier = Modifier.background(colorResource(id = R.color.background_color))) {
-                navController = rememberNavController()
-                if (localSession.premium || localSession.userInfo.userId.isEmpty()) {
-                    SetupNavGraph(navController = navController ,homeViewModel, navigateToLogin)
-                } else {
-                    Column (modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.weight(0.9f)) {
-                            SetupNavGraph(navController = navController, homeViewModel, navigateToLogin)
-                        }
-                        AndroidView(modifier = Modifier.weight(.1f).fillMaxSize(), factory = { context ->
-                            AdView(context).apply {
-                                setAdSize(AdSize.BANNER)
-                                adUnitId = "ca-app-pub-9654853503358559/6108665274"
-                                loadAd(adRequest)
+            NovaGincanaBiblicaTheme {
+                Box(modifier = Modifier.background(colorResource(id = R.color.background_color))) {
+                    navController = rememberNavController()
+                    if (localSession.premium || localSession.userInfo.userId.isEmpty()) {
+                        SetupNavGraph(navController = navController ,homeViewModel, navigateToLogin)
+                    } else {
+                        Column (modifier = Modifier.fillMaxSize()) {
+                            Box(modifier = Modifier.weight(0.9f)) {
+                                SetupNavGraph(navController = navController, homeViewModel, navigateToLogin)
                             }
-                        })
+                            AndroidView(modifier = Modifier.weight(.1f).fillMaxSize(), factory = { context ->
+                                AdView(context).apply {
+                                    setAdSize(AdSize.BANNER)
+                                    adUnitId = "ca-app-pub-9654853503358559/6108665274"
+                                    loadAd(adRequest)
+                                }
+                            })
+                        }
                     }
                 }
             }

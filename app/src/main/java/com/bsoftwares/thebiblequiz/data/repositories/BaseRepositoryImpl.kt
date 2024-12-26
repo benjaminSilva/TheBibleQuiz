@@ -292,7 +292,6 @@ class BaseRepositoryImpl @Inject constructor(
         val result = createOrUpdateSession(session)
 
         if (result is ResultOf.Success) {
-            trySend(result)
             listenToSessionChanges(userId).collectLatest { trySend(it) }
         } else {
             trySend(result)
