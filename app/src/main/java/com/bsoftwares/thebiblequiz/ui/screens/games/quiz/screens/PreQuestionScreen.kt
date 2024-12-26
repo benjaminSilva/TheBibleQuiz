@@ -152,10 +152,10 @@ fun PreSoloScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
-                    .fillMaxHeight(0.75f)
+                    .fillMaxHeight(0.7f)
                     .fillMaxWidth()
             ) {
-                Column(modifier = Modifier.align(Alignment.Center)) {
+                Column(modifier = Modifier.align(Alignment.Center), verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
                     Text(
                         modifier = Modifier
@@ -165,12 +165,7 @@ fun PreSoloScreen(
                             }
                             .alpha(animateScreenAlpha),
                         text = currentQuestionDifficulty.name,
-                        fontSize = when (currentQuestionDifficulty) {
-                            QuestionDifficulty.EASY -> 115.sp
-                            QuestionDifficulty.MEDIUM -> 75.sp
-                            QuestionDifficulty.HARD -> 115.sp
-                            QuestionDifficulty.IMPOSSIBLE -> 45.sp
-                        },
+                        fontSize = 60.sp,
                         fontFamily = achivoFontFamily,
                         color = colorResource(id = R.color.contrast_color)
                     )
@@ -281,7 +276,17 @@ fun PreviewPreSoloScreen() {
         PreSoloScreen(
             navController = rememberNavController(),
             currentQuestionDifficulty = QuestionDifficulty.HARD, {}) {
+        }
+    }
+}
 
+@Preview(showBackground = true, widthDp = 300, heightDp = 500)
+@Composable
+fun PreviewSmallScreen() {
+    NovaGincanaBiblicaTheme {
+        PreSoloScreen(
+            navController = rememberNavController(),
+            currentQuestionDifficulty = QuestionDifficulty.HARD, {}) {
         }
     }
 }

@@ -64,8 +64,10 @@ import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButton
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
+import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
 import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
@@ -280,6 +282,9 @@ fun LeagueScreen(
 
                             2 -> OthersPositions(
                                 session = user,
+                                backGroundColor = lightBrown,
+                                placementString = stringResource(R.string.third_place),
+                                textColor = closeToBlack,
                                 rule = league.leagueRule, onLongClick = {
                                     longClickFunction(user)
                                 }
@@ -288,9 +293,10 @@ fun LeagueScreen(
                             }
 
                             else -> OthersPositions(
-                                backGroundColor = colorResource(id = R.color.basic_container_color),
+                                backGroundColor = basicContainerClean(),
                                 session = user,
-                                index = index + 1,
+                                placementString = stringResource(R.string.place, index + 1),
+                                textColor = contrastColor(),
                                 rule = league.leagueRule, onLongClick = {
                                     longClickFunction(user)
                                 }
@@ -506,17 +512,16 @@ fun SecondPosition(
 
 @Composable
 fun OthersPositions(
-    backGroundColor: Color = lightBrown,
+    backGroundColor: Color,
+    placementString: String,
     session: SessionInLeague,
-    index: Int = 0,
+    textColor: Color,
     rule: LeagueRule, onLongClick: () -> Unit,
     openUserProfile: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BasicText(
-            text = if (backGroundColor == lightBrown) stringResource(R.string.third_place) else stringResource(
-                R.string.place, index
-            ),
+            text = placementString,
             fontSize = 18
         )
         BasicContainer(
@@ -546,11 +551,11 @@ fun OthersPositions(
                     BasicText(
                         text = session.userName,
                         fontSize = 22,
-                        fontColor = closeToBlack
+                        fontColor = textColor
                     )
                     BasicText(
                         text = session.title.getString(),
-                        fontColor = closeToBlack
+                        fontColor = textColor
                     )
                 }
                 BasicText(
@@ -567,7 +572,7 @@ fun OthersPositions(
                     ),
                     fontSize = 22,
                     textAlign = TextAlign.End,
-                    fontColor = closeToBlack
+                    fontColor = textColor
                 )
             }
         }

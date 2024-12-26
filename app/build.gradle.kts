@@ -16,8 +16,8 @@ android {
         applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.9.3"
+        versionCode = 14
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
