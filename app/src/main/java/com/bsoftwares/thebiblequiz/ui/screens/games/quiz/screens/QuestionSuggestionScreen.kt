@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +36,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +44,7 @@ import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.quiz.Answer
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
+import com.bsoftwares.thebiblequiz.data.models.quiz.getName
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicEditText
@@ -51,6 +54,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateColor
 import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.darkGray
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 
@@ -68,7 +72,7 @@ fun InitSuggestQuestionScreen(viewModel: BibleQuizViewModel) {
 @Composable
 fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Question) -> Unit) {
 
-    val listOfRadioButtonDifficultyOptions = listOf("Easy", "Medium", "Hard", "Impossible")
+    val listOfRadioButtonDifficultyOptions = QuestionDifficulty.values()
     val (selectedOption, onOptionSelected) = remember {
         mutableStateOf(
             listOfRadioButtonDifficultyOptions[0]
@@ -80,42 +84,42 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
     }
 
     var questionText by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var questionCorrectAnswer by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var questionWrongAnswer1 by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var questionWrongAnswer2 by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var questionWrongAnswer3 by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var bibleVerse by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     var questionCreator by remember {
-        mutableStateOf("")
+        mutableStateOf(emptyString)
     }
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage == FeedbackMessage.QuestionSuggestionSent) {
-            questionText = ""
-            questionCorrectAnswer = ""
-            questionWrongAnswer1 = ""
-            questionWrongAnswer2 = ""
-            questionWrongAnswer3 = ""
-            bibleVerse = ""
-            questionCreator = ""
+            questionText = emptyString
+            questionCorrectAnswer = emptyString
+            questionWrongAnswer1 = emptyString
+            questionWrongAnswer2 = emptyString
+            questionWrongAnswer3 = emptyString
+            bibleVerse = emptyString
+            questionCreator = emptyString
         }
     }
 
@@ -127,48 +131,57 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                 .padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            BasicText(text = "Suggest a Question", fontSize = 36)
-            BasicText(text = "Question Text", fontSize = 22)
+            BasicText(text = stringResource(R.string.suggest_a_question), fontSize = 36)
+            BasicText(text = stringResource(R.string.question_text), fontSize = 22)
             BasicEditText(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(128.dp), text = questionText,
-                errorMessage = if (displayErrorMessageIfNecessary && questionText.isEmpty()) "This field is required" else "",
-
+                errorMessage = if (displayErrorMessageIfNecessary && questionText.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 questionText = it
             }
-            BasicText(text = "Correct Answer Text", fontSize = 22)
+            BasicText(text = stringResource(R.string.correct_answer_text), fontSize = 22)
             BasicEditText(
                 text = questionCorrectAnswer,
-                errorMessage = if (displayErrorMessageIfNecessary && questionCorrectAnswer.isEmpty()) "This field is required" else ""
+                errorMessage = if (displayErrorMessageIfNecessary && questionCorrectAnswer.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 questionCorrectAnswer = it
             }
-            BasicText(text = "First Wrong Answer", fontSize = 22)
+            BasicText(text = stringResource(R.string.first_wrong_answer), fontSize = 22)
             BasicEditText(
                 text = questionWrongAnswer1,
-                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer1.isEmpty()) "This field is required" else ""
+                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer1.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 questionWrongAnswer1 = it
             }
-            BasicText(text = "Second Wrong Answer", fontSize = 22)
+            BasicText(text = stringResource(R.string.second_wrong_answer), fontSize = 22)
             BasicEditText(
                 text = questionWrongAnswer2,
-                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer2.isEmpty()) "This field is required" else ""
+                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer2.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 questionWrongAnswer2 = it
             }
-            BasicText(text = "Third Wrong Answer", fontSize = 22)
+            BasicText(text = stringResource(R.string.third_wrong_answer), fontSize = 22)
             BasicEditText(
                 text = questionWrongAnswer3,
-                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer3.isEmpty()) "This field is required" else ""
+                errorMessage = if (displayErrorMessageIfNecessary && questionWrongAnswer3.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 questionWrongAnswer3 = it
             }
             Column {
                 BasicText(
-                    text = "Bible verse with the answer",
+                    text = stringResource(R.string.bible_verse_with_the_answer),
                     fontSize = 22
                 )
                 BasicText(
@@ -179,12 +192,14 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
             }
             BasicEditText(
                 text = bibleVerse,
-                errorMessage = if (displayErrorMessageIfNecessary && bibleVerse.isEmpty()) "This field is required" else ""
+                errorMessage = if (displayErrorMessageIfNecessary && bibleVerse.isEmpty()) stringResource(
+                    R.string.this_field_is_required
+                ) else emptyString
             ) {
                 bibleVerse = it
             }
             BasicText(
-                text = "Select Difficulty",
+                text = stringResource(R.string.select_difficulty),
                 fontSize = 22
             )
             Row(
@@ -195,13 +210,13 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                     BasicRadioButton(selected = it == selectedOption, updateRadioButton = {
                         onOptionSelected(it)
                     }) {
-                        BasicText(modifier = Modifier.padding(16.dp), text = it)
+                        BasicText(modifier = Modifier.padding(16.dp), text = it.getName())
                     }
                 }
             }
             Column {
                 BasicText(
-                    text = "Your name",
+                    text = stringResource(R.string.your_name),
                     fontSize = 22
                 )
                 BasicText(
@@ -210,7 +225,7 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                     fontColor = darkGray
                 )
             }
-            BasicEditText(text = questionCreator) {
+            BasicEditText(text = questionCreator, keyboardOption = KeyboardOptions(imeAction = ImeAction.Done)) {
                 questionCreator = it
             }
             ButtonWithHold(modifier = Modifier.fillMaxWidth(),holdAction = {
@@ -233,7 +248,7 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                                 Answer(answerText = questionWrongAnswer3, correct = false)
                             ),
                             bibleVerse = bibleVerse,
-                            difficulty = QuestionDifficulty.valueOf(selectedOption.uppercase()),
+                            difficulty = QuestionDifficulty.valueOf(selectedOption.name),
                             createdBy = questionCreator
                         )
                     )
@@ -250,7 +265,7 @@ fun SuggestQuestionScreen(feedbackMessage: FeedbackMessage, sendSuggestion: (Que
                         painter = painterResource(id = R.drawable.baseline_send_24),
                         contentDescription = null
                     )
-                    BasicText(text = "Send question (Hold)", fontSize = 22)
+                    BasicText(text = stringResource(R.string.send_question_hold), fontSize = 22)
                 }
             }
         }

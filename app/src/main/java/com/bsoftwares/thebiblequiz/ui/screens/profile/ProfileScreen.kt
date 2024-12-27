@@ -133,7 +133,6 @@ fun InitializeProfileScreen(
             navController.navigate(Routes.LoginScreen.value) {
                 popUpTo(Routes.Home.value) { inclusive = true }
             }
-            homeViewModel.updateDialog(DialogType.EmptyValue)
         }
     }
 

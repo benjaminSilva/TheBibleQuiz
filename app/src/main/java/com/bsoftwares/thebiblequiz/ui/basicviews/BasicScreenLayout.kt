@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
+import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 
 @Composable
 fun BasicScreenBox(
@@ -50,7 +51,7 @@ fun BasicScreenBox(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(appBackground())) {
         content()
         if (!enabled) {
             Box(

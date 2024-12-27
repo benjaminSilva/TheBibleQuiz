@@ -75,6 +75,8 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         CoroutineScope(Dispatchers.Default + viewModelJob)
     }
 
+    private var delayedActinJob: Job? = null
+
     init {
         startCountdown()
         backGroundScope.launch {
@@ -311,6 +313,17 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         val seconds = (millisUntilTarget / 1000) % 60
 
         return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    fun delayedAction(function: () -> Unit) {
+        delayedActinJob = backGroundScope.launch {
+            delay(1000)
+            function()
+        }
+    }
+
+    fun cancelDelayedAction() {
+        delayedActinJob?.cancel()
     }
 
 }

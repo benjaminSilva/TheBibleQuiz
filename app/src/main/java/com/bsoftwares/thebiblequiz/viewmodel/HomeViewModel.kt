@@ -195,12 +195,17 @@ class HomeViewModel @Inject constructor(
         }
 
     fun signOut() = backGroundScope.launch {
-        updateDialog(DialogType.Loading)
+        delayedAction {
+            updateDialog(DialogType.Loading)
+        }
         repo.signOut().collectLatest {
             it.handleSuccessAndFailure(failureAction = {
+                cancelDelayedAction()
                 updateDialog()
             }) {
                 resetState()
+                cancelDelayedAction()
+                updateDialog()
             }
         }
     }

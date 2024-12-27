@@ -5,8 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -15,7 +13,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -27,7 +28,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bsoftwares.thebiblequiz.ui.navigation.SetupNavGraph
-import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.destination
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.google.android.gms.ads.AdRequest
@@ -76,24 +76,34 @@ class MainActivity : ComponentActivity() {
             val homeViewModel = hiltViewModel<HomeViewModel>()
             val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
 
-            NovaGincanaBiblicaTheme {
-                Box(modifier = Modifier.background(colorResource(id = R.color.background_color))) {
-                    navController = rememberNavController()
-                    if (localSession.premium || localSession.userInfo.userId.isEmpty()) {
-                        SetupNavGraph(navController = navController ,homeViewModel, navigateToLogin)
-                    } else {
-                        Column (modifier = Modifier.fillMaxSize()) {
-                            Box(modifier = Modifier.weight(0.9f)) {
-                                SetupNavGraph(navController = navController, homeViewModel, navigateToLogin)
-                            }
-                            AndroidView(modifier = Modifier.weight(.1f).fillMaxSize(), factory = { context ->
+            Box(
+                modifier = Modifier
+                    .background(colorResource(id = R.color.background_color))
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+            ) {
+                navController = rememberNavController()
+                if (localSession.premium || localSession.userInfo.userId.isEmpty()) {
+                    SetupNavGraph(navController = navController, homeViewModel, navigateToLogin)
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.weight(0.9f)) {
+                            SetupNavGraph(
+                                navController = navController,
+                                homeViewModel,
+                                navigateToLogin
+                            )
+                        }
+                        AndroidView(
+                            modifier = Modifier
+                                .weight(.1f)
+                                .fillMaxSize(),
+                            factory = { context ->
                                 AdView(context).apply {
                                     setAdSize(AdSize.BANNER)
                                     adUnitId = "ca-app-pub-9654853503358559/6108665274"
                                     loadAd(adRequest)
                                 }
                             })
-                        }
                     }
                 }
             }
