@@ -111,10 +111,12 @@ fun InitializeHomeScreen(navController: NavHostController, homeViewModel: HomeVi
         if (localSession.isReady()){
             val rightNow = Calendar.getInstance()
             hourOfTheDay = rightNow[Calendar.HOUR_OF_DAY]
-            delay(1000)
+            homeViewModel.cancelDelayedAction()
             homeViewModel.updateDialog()
         } else {
-            homeViewModel.updateDialog(DialogType.Loading)
+            homeViewModel.delayedAction {
+                homeViewModel.updateDialog(DialogType.Loading)
+            }
         }
     }
 

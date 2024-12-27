@@ -41,7 +41,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.NovaGincanaBiblica">
+            android:theme="@style/Theme.NovaGincanaBiblica"
+            android:windowSoftInputMode="adjustResize">
         </activity>
 
         <service

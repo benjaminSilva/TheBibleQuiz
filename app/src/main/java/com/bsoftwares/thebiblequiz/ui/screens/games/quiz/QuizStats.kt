@@ -88,7 +88,7 @@ fun QuizStats(
                         correctPoints = data.easyCorrect,
                         progress = calculatedData.easyFloat,
                         totalPoints = data.getTotalEasy().toString(),
-                        difficulty = stringResource(R.string.easy),
+                        difficulty = stringResource(R.string.easy_stats),
                         progressInt = calculatedData.easyInt
                     )
 
@@ -96,7 +96,7 @@ fun QuizStats(
                         correctPoints = data.mediumCorrect,
                         progress = calculatedData.mediumFloat,
                         totalPoints = data.getTotalMedium().toString(),
-                        difficulty = stringResource(R.string.medium),
+                        difficulty = stringResource(R.string.medium_stats),
                         progressInt = calculatedData.mediumInt
                     )
 
@@ -104,7 +104,7 @@ fun QuizStats(
                         correctPoints = data.hardCorrect,
                         progress = calculatedData.hardFLoat,
                         totalPoints = data.getTotalHard().toString(),
-                        difficulty = stringResource(R.string.hard),
+                        difficulty = stringResource(R.string.hard_stats),
                         progressInt = calculatedData.hardInt
                     )
 
@@ -112,7 +112,7 @@ fun QuizStats(
                         correctPoints = data.impossibleCorrect,
                         progress = calculatedData.impossibleFloat,
                         totalPoints = data.getTotalImpossible().toString(),
-                        difficulty = stringResource(R.string.impossible),
+                        difficulty = stringResource(R.string.impossible_stats),
                         progressInt = calculatedData.impossibleInt
                     )
                 }

@@ -158,7 +158,7 @@ fun BasicEditText(
     keyboardOption: KeyboardOptions = KeyboardOptions(
         imeAction = ImeAction.Next
     ),
-    keyboardAction: () -> Unit = {},
+    keyboardAction: (() -> Unit)? = null,
     updateText: (String) -> Unit
 ) {
     OutlinedTextField(
@@ -196,7 +196,7 @@ fun BasicEditText(
         keyboardOptions = keyboardOption,
         keyboardActions = KeyboardActions(
             onNext = {
-                keyboardAction()
+                keyboardAction?.invoke() ?: defaultKeyboardAction(imeAction = keyboardOption.imeAction)
             }
         )
     )

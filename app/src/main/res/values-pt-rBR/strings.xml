@@ -103,12 +103,12 @@
     <string name="i_want_to_share_this_verse_with_you">Quero compartilhar este verso com você:\n\n%1$s\n\n%2$s</string>
     <string name="choose_where_you_re_sharing_this">Escolha onde você quer compartilhar</string>
     <string name="total">Total</string>
-    <string name="easy">EASY/</string>
-    <string name="medium">MEDIUM/</string>
-    <string name="hard">HARD/</string>
-    <string name="impossible">IMPOSSIBLE/</string>
-    <string name="days_in_streak">Days in streak</string>
-    <string name="how_to_play_the_bible_quiz">How to play The Bible Quiz?</string>
+    <string name="easy_stats">FÁCIL/</string>
+    <string name="medium_stats">MÉDIO/</string>
+    <string name="hard_stats">DIFÍCIL/</string>
+    <string name="impossible_stats">IMPOSSÍVEL/</string>
+    <string name="days_in_streak">Respostas corresta em sequência</string>
+    <string name="how_to_play_the_bible_quiz">Como jogar o The Bible Quiz?</string>
     <string name="bible_quiz_description">Neste jogo, Você tem 30 segundos para responder uma pergunta. Poderá escolher uma dentre quatro respostas. Temos 4 dificuldades. Elas são:\n\n- Fácil\n- Médio\n- Difícil\n- Impossível\n\nVocê só tem uma change de responder. Responda com sabedoria.</string>
     <string name="leave_league">Saindo da Liga</string>
     <string name="are_you_sure_you_want_to_leave_this_league">Tem certeza que quer sair desta liga? Você perderá todos os pontos conquistados</string>
@@ -147,4 +147,18 @@
     <string name="by_the_grace_of_god">Pela graça de Deus</string>
     <string name="update_your_title">Atualize o seu título</string>
     <string name="update">Atualizar</string>
+    <string name="question_text">O texto da pergunta</string>
+    <string name="this_field_is_required">Este campo é necessário</string>
+    <string name="correct_answer_text">A resposta correta</string>
+    <string name="send_question_hold">Envie a pergunta (Segure)</string>
+    <string name="your_name">Seu nome</string>
+    <string name="select_difficulty">Selecione uma dificuldade</string>
+    <string name="first_wrong_answer">Primeira resposta errada</string>
+    <string name="second_wrong_answer">Segunda resposta errada</string>
+    <string name="third_wrong_answer">Terceira resposta errada</string>
+    <string name="bible_verse_with_the_answer">A referência Bíblica para resposta</string>
+    <string name="easy">Fácil</string>
+    <string name="medium">Média</string>
+    <string name="hard">Difícil</string>
+    <string name="impossible">Impossível</string>
 </resources>

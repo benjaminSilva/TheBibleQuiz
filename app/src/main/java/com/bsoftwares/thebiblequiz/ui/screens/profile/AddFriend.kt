@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +53,7 @@ fun AddFriendDialog(
         keyboardController?.show()
     }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.windowInsetsPadding(WindowInsets.ime)) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BasicContainer {
                 Column(

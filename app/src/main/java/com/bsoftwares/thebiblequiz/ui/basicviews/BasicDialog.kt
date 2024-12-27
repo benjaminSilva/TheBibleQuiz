@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +28,9 @@ import com.bsoftwares.thebiblequiz.R
 fun BasicDialog(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(.85f)
-        content()
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            content()
+        }
     }
 }
 
