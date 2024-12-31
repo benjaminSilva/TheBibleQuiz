@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
@@ -32,6 +33,7 @@ import kotlinx.coroutines.delay
 fun InitializeLoginScreen(navController: NavHostController, homeViewModel: HomeViewModel) {
 
     val localSession by homeViewModel.localSession.collectAsStateWithLifecycle()
+    val feedbackMessage by homeViewModel.feedbackMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(localSession) {
         if (localSession.userInfo.userId.isNotEmpty()) {
@@ -50,7 +52,10 @@ fun InitializeLoginScreen(navController: NavHostController, homeViewModel: HomeV
         }
     )
 
-    BasicScreenBox {
+    BasicScreenBox(
+        feedbackMessage = feedbackMessage,
+        conditionToDisplayFeedbackMessage = feedbackMessage == FeedbackMessage.NoGoogleAccountFoundOnDevice
+    ) {
         LoginScreen {
             homeViewModel.signIn(launcher)
         }
@@ -131,9 +136,28 @@ fun VeryCoolLogo(modifier: Modifier) {
     }
 
     Column(modifier = modifier.offset(x = (-30).dp)) {
-        BasicText(modifier = Modifier.width(175.dp).height(75.dp).align(Alignment.Start),text = THE, fontSize = 64)
-        BasicText(modifier = Modifier.width(175.dp).height(75.dp).align(Alignment.Start).offset(y = (-20).dp), text = BIBLE, fontSize = 64)
-        BasicText(modifier = Modifier.width(175.dp).height(75.dp).align(Alignment.Start).offset(y = (-40).dp), text = QUIZ, fontSize = 64)
+        BasicText(
+            modifier = Modifier
+                .width(175.dp)
+                .height(75.dp)
+                .align(Alignment.Start),
+            text = THE,
+            fontSize = 64
+        )
+        BasicText(
+            modifier = Modifier
+                .width(175.dp)
+                .height(75.dp)
+                .align(Alignment.Start)
+                .offset(y = (-20).dp), text = BIBLE, fontSize = 64
+        )
+        BasicText(
+            modifier = Modifier
+                .width(175.dp)
+                .height(75.dp)
+                .align(Alignment.Start)
+                .offset(y = (-40).dp), text = QUIZ, fontSize = 64
+        )
     }
 }
 

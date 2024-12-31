@@ -4,11 +4,13 @@ import android.content.Intent
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.LeagueRule
+import com.bsoftwares.thebiblequiz.data.models.RankingData
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.UserTitle
@@ -71,6 +73,8 @@ class HomeViewModel @Inject constructor(
 
     private val _sessionInLeague = MutableStateFlow(SessionInLeague())
     val sessionInLeague = _sessionInLeague.asStateFlow()
+
+    val leagueRanking = mutableStateListOf<RankingData>()
 
     private var leagueJob: Job? = null
 
@@ -191,7 +195,9 @@ class HomeViewModel @Inject constructor(
 
     fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) =
         viewModelScope.launch {
-            repo.signIn(launcher)
+            repo.signIn(launcher).collectLatestAndApplyOnMain {
+                emitFeedbackMessage(it)
+            }
         }
 
     fun signOut() = backGroundScope.launch {
@@ -297,13 +303,23 @@ class HomeViewModel @Inject constructor(
         autoCancellable {
             repo.loadLeagueUsers(league).collectLatest { resultOf ->
                 resultOf.handleSuccessAndFailure { league ->
-                    _currentLeague.emit(league.copy(listOfUsers = league.listOfUsers.sortedByDescending {
-                        when (league.leagueRule) {
-                            LeagueRule.QUIZ_AND_WORDLE -> it.totalPoints
-                            LeagueRule.QUIZ_ONLY -> it.pointsForQuiz
-                            LeagueRule.WORDLE_ONLY -> it.pointsForWordle
-                        }
-                    }))
+                    _currentLeague.emit(league)
+                    leagueRanking.clear()
+                    leagueRanking.addAll(league.listOfUsers.map { user ->
+                        RankingData(
+                            name = user.userName,
+                            id = user.userId,
+                            profilePicture = user.profileImage,
+                            title = user.title,
+                            pointsToDisplay = when(league.leagueRule) {
+                                LeagueRule.QUIZ_AND_WORDLE -> user.totalPoints
+                                LeagueRule.QUIZ_ONLY -> user.pointsForQuiz
+                                LeagueRule.WORDLE_ONLY -> user.pointsForWordle
+                            }
+                        )
+                    }.sortedByDescending {
+                        it.pointsToDisplay
+                    })
                     loadFriendsNotInLeague()
                     _sessionInLeague.emit(getSessionOfCurrentUser(league))
                 }

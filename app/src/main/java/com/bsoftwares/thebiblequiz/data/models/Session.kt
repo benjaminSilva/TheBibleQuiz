@@ -23,7 +23,9 @@ data class Session(
     val localLeagueRequestList: List<String> = listOf(),
     val fcmToken: String = "",
     val language: String = "",
-    val premium: Boolean = false
+    val premium: Boolean = false,
+    var leaderboardTotalAllTime: Int = 0,
+    var leaderboardTotalMonthly: Int = 0
 )
 
 fun Session.isReady() : Boolean = userInfo.userId.isNotEmpty()
@@ -49,7 +51,9 @@ data class QuestionStatsData(
     var impossibleCorrect: Int = 0,
     var impossibleWrong: Int = 0,
     var streak: Int = 0,
-    var answerSelected: String = ""
+    var answerSelected: String = "",
+    var quizTotalPointsAllTime: Int = 0,
+    var quizTotalPointsForTheMonths: Int = 0
 ) {
     @Exclude
     fun getTotalEasy(): Int = easyWrong + easyCorrect
@@ -80,7 +84,10 @@ data class WordleData(
     var winOnFirth: Int = 0,
     var winOnSixth: Int = 0,
     var lost: Int = 0,
-    var streak: Int = 0
+    var streak: Int = 0,
+    var wordleTotalPointsAllTime: Int = 0,
+    var wordleTotalPointsForTheMonth: Int = 0,
+    var playing: Boolean = false
 ) {
     fun getMax() =
         maxOf(winOnFirst, winOnSecond, winOnThird, winOnForth, winOnFirth, winOnSixth, lost)

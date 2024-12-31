@@ -83,7 +83,7 @@
     <string name="second_place">Segundo Lugar</string>
     <string name="points">%1$s Ponto(s)</string>
     <string name="third_place">Terceiro Lugar</string>
-    <string name="place">%1$s° Place</string>
+    <string name="place">%1$s°</string>
     <string name="p">%1$sP</string>
     <string name="add_a_friend">Adicione um amigo</string>
     <string name="add_user">Adicionar usuário</string>
@@ -161,4 +161,10 @@
     <string name="medium">Média</string>
     <string name="hard">Difícil</string>
     <string name="impossible">Impossível</string>
+    <string name="no_google_account">Alguma coisa deu errado. Aparentemente nenhuma conta Google elegível foi encontrada neste dispositivo</string>
+    <string name="my_stats">Minhas estatísticas</string>
+    <string name="question">Pergunta</string>
+    <string name="leaderboards">Classificação</string>
+    <string name="how_to_play_wordle">Como jogar Wordle</string>
+    <string name="word_puzzle_rules">Wordle é um popular jogo de palavras que oferece 6 tentativas para adivinhar uma palavra secreta. Após cada tentativa, quaisquer letras que aparecem na palavra mas estão no lugar errado são destacadas em amarelo, e letras que estão tanto na palavra quanto na posição correta aparecem em verde. Se uma letra aparece mais de uma vez, um destaque adicional em amarelo ou verde será mostrado conforme necessário.\nSua pontuação para Ligas e Rankings depende da tentativa em que você adivinha a palavra:\n\n1ª Tentativa → 6 Pontos\n2ª Tentativa → 5 Pontos\n3ª Tentativa → 3 Pontos\n4ª Tentativa → 2 Pontos\n5ª Tentativa → 2 Pontos\n6ª Tentativa → 1 Ponto\nFalha em adivinhar → -3 Pontos\n\nDepois de fazer sua primeira tentativa, certifique-se de terminar. Se você não completar o quebra-cabeça até o final do dia, você receberá uma penalidade de –3 pontos.</string>
 </resources>

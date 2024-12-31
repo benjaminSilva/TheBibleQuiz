@@ -13,6 +13,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.logInWith
 import kotlinx.coroutines.channels.awaitClose
@@ -21,8 +22,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
+import javax.inject.Inject
 
-class GoogleAuthUiClient(
+class GoogleAuthUiClient @Inject constructor(
+    private val crashlytics: FirebaseCrashlytics,
     private val oneTapClient: SignInClient
 ) {
 
@@ -39,6 +42,7 @@ class GoogleAuthUiClient(
             ).await()
         } catch (e: Exception) {
             e.printStackTrace()
+            crashlytics.log(e.message.toString())
             Log.d(TAG, e.message.toString())
             if (e is CancellationException) throw e
             null

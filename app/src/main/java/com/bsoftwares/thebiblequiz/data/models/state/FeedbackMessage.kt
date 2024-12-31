@@ -54,6 +54,7 @@ sealed class FeedbackMessage(
     object NewDay: FeedbackMessage(R.string.a_new_day_has_started)
     object GeneralErrorMessage: FeedbackMessage(R.string.something_went_wrong_try_it_again_later)
     object TitleUpdated: FeedbackMessage(R.string.your_title_was_updated)
+    object NoGoogleAccountFoundOnDevice: FeedbackMessage(R.string.no_google_account)
 }
 
 enum class LogTypes(val message: String) {

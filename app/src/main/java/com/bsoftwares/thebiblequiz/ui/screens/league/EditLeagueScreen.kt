@@ -102,7 +102,6 @@ fun InitializeLeagueEditScreen(navController: NavHostController, viewModel: Home
             }
 
             is EditLeagueDialog.ConfirmSave -> {
-
                 BasicPositiveNegativeDialog(onDismissRequest = {
                     viewModel.updateDialog()
                 }, positiveFunction = {
@@ -415,15 +414,7 @@ fun EditLeagueScreen(
 @Composable
 fun LeagueDurationView(league: League, updateDuration: (LeagueDuration) -> Unit) {
 
-    val listOfLeagueDurationOptions = listOf(
-        LeagueDuration.NO_END,
-        LeagueDuration.WEEKLY,
-        LeagueDuration.TWO_WEEKS,
-        LeagueDuration.MONTHLY,
-        LeagueDuration.THREE_MONTHS,
-        LeagueDuration.SIX_MONTHS,
-        LeagueDuration.YEARLY
-    )
+    val listOfLeagueDurationOptions = LeagueDuration.values()
 
     val (selectedOption, onOptionSelected) = remember {
         mutableStateOf(
@@ -466,11 +457,7 @@ fun LeagueDurationView(league: League, updateDuration: (LeagueDuration) -> Unit)
 @Composable
 fun LeaguePoints(league: League, updateRule: (LeagueRule) -> Unit) {
 
-    val listOfLeagueDurationOptions = listOf(
-        LeagueRule.QUIZ_AND_WORDLE,
-        LeagueRule.QUIZ_ONLY,
-        LeagueRule.WORDLE_ONLY
-    )
+    val listOfLeagueDurationOptions = LeagueRule.values()
 
     val (selectedOption, onOptionSelected) = remember {
         mutableStateOf(
@@ -527,6 +514,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
             ) {
                 BasicText(text = stringResource(R.string.select_your_icon), fontSize = 22)
                 LazyVerticalGrid(
+                    modifier = Modifier.height(150.dp),
                     columns = GridCells.Adaptive(minSize = 56.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -539,7 +527,7 @@ fun SelectNewIcon(league: League, updateLeagueIcon: (LeagueImages) -> Unit) {
                             }) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
+                                    .fillMaxWidth()
                                     .align(Alignment.Center)
                                     .background(basicContainerClean())
                                     .padding(8.dp)

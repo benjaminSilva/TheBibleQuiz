@@ -17,8 +17,8 @@ android {
         applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.0.2"
+        versionCode = 16
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -115,15 +115,15 @@ dependencies {
 
 
     //Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
 
     //Ads
-    implementation("com.google.android.gms:play-services-ads:23.5.0")
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
 
     //Koil
     implementation("io.coil-kt:coil-compose:2.4.0")

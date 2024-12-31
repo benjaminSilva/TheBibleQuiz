@@ -8,6 +8,8 @@ import com.bsoftwares.thebiblequiz.client.GoogleAuthUiClient
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepository
 import com.bsoftwares.thebiblequiz.data.repositories.BaseRepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
@@ -25,6 +27,7 @@ object AppModule {
     @Singleton
     @Provides
     fun getGoogleAuthClient(@ApplicationContext appContext: Context) = GoogleAuthUiClient(
+        crashlytics = Firebase.crashlytics,
         oneTapClient = Identity.getSignInClient(appContext)
     )
 
