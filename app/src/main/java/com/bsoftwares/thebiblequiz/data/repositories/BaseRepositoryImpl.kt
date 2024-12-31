@@ -17,7 +17,6 @@ import com.bsoftwares.thebiblequiz.data.models.RankingData
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.UserTitle
-import com.bsoftwares.thebiblequiz.data.models.WORDLE_STATE
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
@@ -610,7 +609,7 @@ class BaseRepositoryImpl @Inject constructor(
                 }
                 wordleTotalPointsAllTime += pointsToUpdateLeagues
                 wordleTotalPointsForTheMonth += pointsToUpdateLeagues
-                startedPlaying = WORDLE_STATE.USER_FINISHED
+                playing = false
             }
             val thisUser = usersReference.child(session.userInfo.userId)
             thisUser.child("wordle").child("wordleStats")
@@ -663,7 +662,7 @@ class BaseRepositoryImpl @Inject constructor(
                     .addOnFailureListener {
                         throw Exception(it.message.toString())
                     }
-                userWordleRef.child("wordleStats").child("startedPlaying").setValue(WORDLE_STATE.USER_HAS_STARTED).addOnFailureListener {
+                userWordleRef.child("wordleStats").child("playing").setValue(true).addOnFailureListener {
                     throw Exception(it.message.toString())
                 }
             } catch (e:Exception) {

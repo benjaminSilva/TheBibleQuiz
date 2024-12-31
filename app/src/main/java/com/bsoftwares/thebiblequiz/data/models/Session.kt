@@ -35,12 +35,6 @@ data class WordleGame(
     val wordleStats: WordleData = WordleData()
 )
 
-enum class WORDLE_STATE {
-    USER_HAVE_NOT_STARTED_YET,
-    USER_HAS_STARTED,
-    USER_FINISHED
-}
-
 data class UserData(
     val userId: String = "",
     val userName: String = "Guest",
@@ -93,7 +87,7 @@ data class WordleData(
     var streak: Int = 0,
     var wordleTotalPointsAllTime: Int = 0,
     var wordleTotalPointsForTheMonth: Int = 0,
-    var startedPlaying: WORDLE_STATE = WORDLE_STATE.USER_HAVE_NOT_STARTED_YET
+    var playing: Boolean = false
 ) {
     fun getMax() =
         maxOf(winOnFirst, winOnSecond, winOnThird, winOnForth, winOnFirth, winOnSixth, lost)

@@ -82,7 +82,7 @@ fun InitializeWordleScreen(navController: NavHostController, viewModel: WordleVi
             }) {
                 HowToPlayDialog(
                     stringResource(R.string.how_to_play_wordle),
-                    stringResource(R.string.wordle_is_a_popular_word_puzzle_that_gives_you_6_attempts_to_guess_a_secret_word_after_each_guess_any_letters_that_appear_in_the_word_but_are_in_the_wrong_place_are_highlighted_in_yellow_and_letters_that_are_both_in_the_word_and_in_the_correct_position_appear_in_green_if_a_letter_appears_more_than_once_an_additional_yellow_or_green_highlight_will_be_shown_as_needed_your_score_for_leagues_and_leaderboards_depends_on_the_attempt_in_which_you_guess_the_word_1st_attempt_6_points_2nd_attempt_5_points_3rd_attempt_3_points_4th_attempt_2_points_5th_attempt_2_points_6th_attempt_1_point_fail_to_guess_3_points_once_you_make_your_first_guess_be_sure_to_finish_if_you_don_t_complete_the_puzzle_by_the_end_of_the_day_you_ll_receive_a_3_point_penalty)
+                    stringResource(R.string.word_puzzle_rules)
                 )
             }
         }
