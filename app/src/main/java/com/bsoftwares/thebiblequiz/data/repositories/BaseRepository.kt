@@ -5,7 +5,9 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
+import com.bsoftwares.thebiblequiz.data.models.LeaderboardType
 import com.bsoftwares.thebiblequiz.data.models.League
+import com.bsoftwares.thebiblequiz.data.models.RankingData
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
@@ -19,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface BaseRepository {
     suspend fun signOut():  Flow<ResultOf<FeedbackMessage>>
-    suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>)
+    suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>): Flow<FeedbackMessage>
     suspend fun getSession(): Flow<ResultOf<Session>>
     suspend fun signIn(intent: Intent?)
     suspend fun getSignedInUserId(): String
@@ -57,4 +59,5 @@ interface BaseRepository {
     suspend fun userLeaveLeague(user: SessionInLeague, leagueId: String, isFromCurrentSession: Boolean): Flow<ResultOf<FeedbackMessage>>
     suspend fun loadFriendRequests(friends: List<String>): Flow<ResultOf<List<Session>>>
     suspend fun updateTitle(userId: String, leagueId: String, userTitle: UserTitle): Flow<ResultOf<FeedbackMessage>>
+    suspend fun loadLeaderboards(leaderboardType: LeaderboardType): Flow<ResultOf<List<RankingData>>>
 }

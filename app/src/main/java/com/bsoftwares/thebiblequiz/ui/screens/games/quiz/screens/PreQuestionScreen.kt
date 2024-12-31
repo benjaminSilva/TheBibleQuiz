@@ -43,7 +43,7 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.animateAngle
 import com.bsoftwares.thebiblequiz.ui.basicviews.animatePosition
 import com.bsoftwares.thebiblequiz.ui.navigation.navigateWithoutRemembering
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
-import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.HowToPlayQuizDialog
+import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.HowToPlayDialog
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.achivoFontFamily
 import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
@@ -83,7 +83,7 @@ fun InitializePreQuizScreen(
         BasicDialog(onDismissRequest = {
             soloViewModel.updateDialog()
         }) {
-            HowToPlayQuizDialog()
+            HowToPlayDialog(gameMode = stringResource(R.string.how_to_play_the_bible_quiz), rules = stringResource(R.string.bible_quiz_description))
         }
     }
 
@@ -165,8 +165,9 @@ fun PreSoloScreen(
                             }
                             .alpha(animateScreenAlpha),
                         text = currentQuestionDifficulty.name,
-                        fontSize = 60.sp,
+                        fontSize = 50.sp,
                         fontFamily = achivoFontFamily,
+                        maxLines = 1,
                         color = colorResource(id = R.color.contrast_color)
                     )
                     Text(
@@ -177,7 +178,7 @@ fun PreSoloScreen(
                                 animateNumberPosition
                             }
                             .alpha(animateScreenAlpha),
-                        text = "Question",
+                        text = stringResource(R.string.question),
                         fontSize = 45.sp,
                         fontFamily = achivoFontFamily,
                         color = colorResource(id = R.color.contrast_color)

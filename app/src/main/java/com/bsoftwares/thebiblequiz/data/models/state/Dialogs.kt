@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
-import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
+import com.bsoftwares.thebiblequiz.data.models.RankingData
 
 sealed class DialogType {
     object EmptyValue : DialogType()
@@ -98,10 +98,14 @@ sealed class QuizDialogType : DialogType() {
     object HowToPlay : QuizDialogType()
 }
 
+sealed class WordleDialogType : DialogType() {
+    object HowToPlay : WordleDialogType()
+}
+
 sealed class LeagueDialog : DialogType() {
     object FriendList : LeagueDialog()
     object TitleUpdate : LeagueDialog()
-    data class RemoveFriend(val sessionInLeague: SessionInLeague) : LeagueDialog()
+    data class RemoveFriend(val rankingData: RankingData) : LeagueDialog()
 }
 
 sealed class EditLeagueDialog : DialogType() {

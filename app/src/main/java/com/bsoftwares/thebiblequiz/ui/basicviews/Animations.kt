@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.bsoftwares.thebiblequiz.data.models.wordle.LetterState
+import com.bsoftwares.thebiblequiz.ui.screens.home.AnimationPhase
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
 import com.bsoftwares.thebiblequiz.ui.theme.animationDuration
 import com.bsoftwares.thebiblequiz.ui.theme.appBackground
@@ -129,6 +130,35 @@ fun animateAlpha(
         label = "alpha"
     )
 }
+
+@Composable
+fun animateAlphaByState(
+    phase: AnimationPhase,
+    duration: Int = animationDuration,
+): State<Float> {
+    return animateFloatAsState(
+        targetValue = when (phase) {
+            AnimationPhase.SHOWING -> 1f
+            AnimationPhase.OUT     -> 0f   // Slide out to the right
+            AnimationPhase.IN      -> 0f  // Start from left (slide in)
+        },
+        animationSpec = tween(
+            durationMillis = 250
+        ),
+        label = "alpha"
+    )
+}
+
+@Composable
+fun animateAsState(phase: AnimationPhase, toTheLeft: Boolean): State<IntOffset> = animateIntOffsetAsState(
+        targetValue = when (phase) {
+            AnimationPhase.SHOWING -> IntOffset.Zero
+            AnimationPhase.OUT     -> if (toTheLeft) IntOffset(-200, 0) else IntOffset(200, 0)   // Slide out to the right
+            AnimationPhase.IN      -> if (toTheLeft) IntOffset(200, 0) else IntOffset(-200, 0)  // Start from left (slide in)
+        },
+        animationSpec = tween(durationMillis = 250),
+        label = "offsetAnimation"
+    )
 
 @Composable
 fun animateScaleBouncy(

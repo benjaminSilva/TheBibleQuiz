@@ -23,7 +23,9 @@ data class Session(
     val localLeagueRequestList: List<String> = listOf(),
     val fcmToken: String = "",
     val language: String = "",
-    val premium: Boolean = false
+    val premium: Boolean = false,
+    var leaderboardTotalAllTime: Int = 0,
+    var leaderboardTotalMonthly: Int = 0
 )
 
 fun Session.isReady() : Boolean = userInfo.userId.isNotEmpty()
@@ -32,6 +34,12 @@ data class WordleGame(
     val listOfAttempts: List<WordleAttempt> = generateStartWordleAttemptList(),
     val wordleStats: WordleData = WordleData()
 )
+
+enum class WORDLE_STATE {
+    USER_HAVE_NOT_STARTED_YET,
+    USER_HAS_STARTED,
+    USER_FINISHED
+}
 
 data class UserData(
     val userId: String = "",
@@ -49,7 +57,9 @@ data class QuestionStatsData(
     var impossibleCorrect: Int = 0,
     var impossibleWrong: Int = 0,
     var streak: Int = 0,
-    var answerSelected: String = ""
+    var answerSelected: String = "",
+    var quizTotalPointsAllTime: Int = 0,
+    var quizTotalPointsForTheMonths: Int = 0
 ) {
     @Exclude
     fun getTotalEasy(): Int = easyWrong + easyCorrect
@@ -80,7 +90,10 @@ data class WordleData(
     var winOnFirth: Int = 0,
     var winOnSixth: Int = 0,
     var lost: Int = 0,
-    var streak: Int = 0
+    var streak: Int = 0,
+    var wordleTotalPointsAllTime: Int = 0,
+    var wordleTotalPointsForTheMonth: Int = 0,
+    var startedPlaying: WORDLE_STATE = WORDLE_STATE.USER_HAVE_NOT_STARTED_YET
 ) {
     fun getMax() =
         maxOf(winOnFirst, winOnSecond, winOnThird, winOnForth, winOnFirth, winOnSixth, lost)

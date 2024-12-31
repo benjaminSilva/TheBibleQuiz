@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +45,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
-import com.bsoftwares.thebiblequiz.data.models.LeagueRule
+import com.bsoftwares.thebiblequiz.data.models.RankingData
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.UserTitle
@@ -64,6 +64,7 @@ import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButton
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
+import com.bsoftwares.thebiblequiz.ui.theme.basicContainer
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
@@ -84,6 +85,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
     val friendsNotInThisLeague by viewModel.listOfFriendsNotInLeague.collectAsStateWithLifecycle()
     val currentSessionInLeague by viewModel.sessionInLeague.collectAsStateWithLifecycle()
     val feedbackMessage by viewModel.feedbackMessage.collectAsStateWithLifecycle()
+    val list = viewModel.leagueRanking
 
     var enabled by remember {
         mutableStateOf(enableClicks())
@@ -121,7 +123,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
             }
 
             is LeagueDialog.RemoveFriend -> {
-                val userToBeRemoved = (dialog as LeagueDialog.RemoveFriend).sessionInLeague
+                val userToBeRemoved = (dialog as LeagueDialog.RemoveFriend).rankingData
                 BasicPositiveNegativeDialog(
                     onDismissRequest = {
                         viewModel.updateDialog()
@@ -129,10 +131,15 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                     title = stringResource(R.string.removing_from_league),
                     description = stringResource(
                         R.string.are_you_sure_you_want_to_remove_from_the_league,
-                        userToBeRemoved.userName
+                        userToBeRemoved.name
                     ),
                     positiveFunction = {
-                        viewModel.leaveLeague(userToBeRemoved)
+                        viewModel.leaveLeague(
+                            SessionInLeague(
+                                userId = userToBeRemoved.id,
+                                userName = userToBeRemoved.name
+                            )
+                        )
                     }
                 )
             }
@@ -164,6 +171,7 @@ fun InitializeLeagueScreen(navController: NavHostController, viewModel: HomeView
                     }
                 }
             },
+            listForRanking = list,
             openUserProfile = {
                 enabled = disableClicks {
                     navController.navigate(Routes.Profile.withParameter(it))
@@ -181,6 +189,7 @@ fun LeagueScreen(
     sessionInLeague: SessionInLeague,
     navigateEditScreen: () -> Unit,
     openUserProfile: (String) -> Unit,
+    listForRanking: List<RankingData>,
     updateDialog: (DialogType) -> Unit
 ) {
 
@@ -237,13 +246,14 @@ fun LeagueScreen(
                 }
             }
 
-            fun longClickFunction(userName: SessionInLeague) {
+            fun longClickFunction(user: RankingData) {
                 when {
-                    sessionInLeague.adminUser && !userName.adminUser -> {
-                        updateDialog(LeagueDialog.RemoveFriend(sessionInLeague = userName))
+                    sessionInLeague.adminUser && user.id != sessionInLeague.userId -> {
+                        updateDialog(LeagueDialog.RemoveFriend(rankingData = user))
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
-                    sessionInLeague.userId == userName.userId -> {
+
+                    sessionInLeague.userId == user.id -> {
                         updateDialog(LeagueDialog.TitleUpdate)
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
@@ -251,63 +261,18 @@ fun LeagueScreen(
             }
 
             BasicContainer(modifier = Modifier.fillMaxSize()) {
-                Column(
+                RankingView(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .alpha(animateAlpha.value)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    league.listOfUsers.onEachIndexed { index, user ->
-                        when (index) {
-                            0 -> {
-                                FirstPosition(
-                                    session = user,
-                                    rule = league.leagueRule,
-                                    onLongClick = {
-                                        longClickFunction(user)
-                                    }) {
-                                    openUserProfile(user.userId)
-                                }
-                            }
-
-                            1 -> SecondPosition(
-                                session = user,
-                                rule = league.leagueRule, onLongClick = {
-                                    longClickFunction(user)
-                                }
-                            ) {
-                                openUserProfile(user.userId)
-                            }
-
-                            2 -> OthersPositions(
-                                session = user,
-                                backGroundColor = lightBrown,
-                                placementString = stringResource(R.string.third_place),
-                                textColor = closeToBlack,
-                                rule = league.leagueRule, onLongClick = {
-                                    longClickFunction(user)
-                                }
-                            ) {
-                                openUserProfile(user.userId)
-                            }
-
-                            else -> OthersPositions(
-                                backGroundColor = basicContainerClean(),
-                                session = user,
-                                placementString = stringResource(R.string.place, index + 1),
-                                textColor = contrastColor(),
-                                rule = league.leagueRule, onLongClick = {
-                                    longClickFunction(user)
-                                }
-                            ) {
-                                openUserProfile(user.userId)
-                            }
-                        }
-
-                    }
-                    Spacer(modifier = Modifier.height(44.dp))
-                }
+                        .alpha(animateAlpha.value),
+                    listOfData = listForRanking,
+                    longClickFunction = {
+                        longClickFunction(it)
+                    },
+                    openUserProfile = {
+                        openUserProfile(it)
+                    },
+                    fromLeagueAndIsAdmin = sessionInLeague.adminUser
+                )
             }
         }
         if (sessionInLeague.adminUser) {
@@ -326,6 +291,81 @@ fun LeagueScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun RankingView(
+    modifier: Modifier,
+    listOfData: List<RankingData>,
+    longClickFunction: (RankingData) -> Unit,
+    openUserProfile: (String) -> Unit,
+    fromLeagueAndIsAdmin: Boolean = false
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 8.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Spacer(modifier = Modifier.height(4.dp))
+        listOfData.onEachIndexed { index, user ->
+            when (index) {
+                0 -> {
+                    OthersPositions(
+                        backGroundColor = wrongPlace,
+                        rankingData = user,
+                        placementString = stringResource(R.string.place, index + 1),
+                        textColor = closeToBlack,
+                        onLongClick = {
+                            longClickFunction(user)
+                        }
+                    ) {
+                        openUserProfile(user.id)
+                    }
+                }
+
+                1 -> {
+                    OthersPositions(
+                        backGroundColor = gray,
+                        rankingData = user,
+                        placementString = stringResource(R.string.place, index + 1),
+                        textColor = closeToBlack,
+                        onLongClick = {
+                            longClickFunction(user)
+                        }
+                    ) {
+                        openUserProfile(user.id)
+                    }
+                }
+
+                2 -> OthersPositions(
+                    backGroundColor = lightBrown,
+                    rankingData = user,
+                    placementString = stringResource(R.string.place, index + 1),
+                    textColor = closeToBlack,
+                    onLongClick = {
+                        longClickFunction(user)
+                    }
+                ) {
+                    openUserProfile(user.id)
+                }
+
+                else -> OthersPositions(
+                    backGroundColor = basicContainerClean(),
+                    rankingData = user,
+                    placementString = stringResource(R.string.place, index + 1),
+                    textColor = contrastColor(),
+                    onLongClick = {
+                        longClickFunction(user)
+                    }
+                ) {
+                    openUserProfile(user.id)
+                }
+            }
+
+        }
+        Spacer(modifier = Modifier.height(if (fromLeagueAndIsAdmin) 70.dp else 4.dp))
     }
 }
 
@@ -389,198 +429,82 @@ fun AddFriendsDialog(friendsList: List<Session>, addSelectedFriends: (List<Sessi
 }
 
 @Composable
-fun FirstPosition(
-    session: SessionInLeague,
-    rule: LeagueRule,
-    onLongClick: () -> Unit,
-    openUserProfile: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicText(text = stringResource(R.string.first_place), fontSize = 26)
-        BasicContainer(
-            backGroundColor = wrongPlace,
-            onClick = openUserProfile,
-            onLongClick = onLongClick
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box {
-                        AsyncImage(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape),
-                            model = session.profileImage,
-                            contentDescription = null
-                        )
-                        Image(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .size(12.dp)
-                                .rotate(-45f),
-                            painter = painterResource(id = R.drawable.crown_svgrepo_com),
-                            colorFilter = ColorFilter.tint(darkYellow),
-                            contentDescription = null
-                        )
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        BasicText(text = session.userName, fontSize = 22, fontColor = closeToBlack)
-                        BasicText(text = session.title.getString(), fontColor = closeToBlack)
-                    }
-                }
-                BasicContainer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(88.dp)
-                ) {
-                    BasicText(
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        text = stringResource(
-                            R.string.points, when (rule) {
-                                LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
-                                LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
-                                LeagueRule.WORDLE_ONLY -> session.pointsForWordle
-                            }
-                        ),
-                        fontSize = 48
-                    )
-                }
-            }
-        }
-    }
-
-}
-
-@Composable
-fun SecondPosition(
-    session: SessionInLeague,
-    rule: LeagueRule,
-    onLongClick: () -> Unit,
-    openUserProfile: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicText(text = stringResource(R.string.second_place), fontSize = 22)
-        BasicContainer(
-            backGroundColor = gray,
-            onClick = openUserProfile,
-            onLongClick = onLongClick
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AsyncImage(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape),
-                        model = session.profileImage,
-                        contentDescription = null
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        BasicText(text = session.userName, fontSize = 22, fontColor = closeToBlack)
-                        BasicText(text = session.title.getString(), fontColor = closeToBlack)
-                    }
-                }
-                BasicContainer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(66.dp)
-                ) {
-                    BasicText(
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        text = stringResource(
-                            R.string.points, when (rule) {
-                                LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
-                                LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
-                                LeagueRule.WORDLE_ONLY -> session.pointsForWordle
-                            }
-                        ),
-                        fontSize = 36
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun OthersPositions(
     backGroundColor: Color,
     placementString: String,
-    session: SessionInLeague,
+    rankingData: RankingData,
     textColor: Color,
-    rule: LeagueRule, onLongClick: () -> Unit,
+    onLongClick: () -> Unit,
     openUserProfile: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicText(
-            text = placementString,
-            fontSize = 18
-        )
-        BasicContainer(
-            backGroundColor = backGroundColor,
-            onClick = openUserProfile,
-            onLongClick = onLongClick
+    BasicContainer(
+        backGroundColor = backGroundColor,
+        onClick = openUserProfile,
+        onLongClick = onLongClick
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
-                        .weight(0.2f)
-                        .aspectRatio(1f),
-                    model = session.profileImage,
-                    contentDescription = null
+            Box (modifier = Modifier.width(22.dp).align(Alignment.CenterVertically)) {
+                BasicText(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    text = placementString,
+                    fontColor = textColor,
+                    fontSize = 22
                 )
-                Column(modifier = Modifier
+            }
+            AsyncImage(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
                     .align(Alignment.CenterVertically)
                     .fillMaxWidth()
-                    .weight(0.7f)) {
+                    .weight(0.2f)
+                    .aspectRatio(1f),
+                model = rankingData.profilePicture,
+                contentDescription = null
+            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
+                    .weight(0.7f)
+            ) {
+                BasicText(
+                    text = rankingData.name,
+                    fontSize = 22,
+                    fontColor = textColor
+                )
+                if (rankingData.title != null) {
                     BasicText(
-                        text = session.userName,
-                        fontSize = 22,
-                        fontColor = textColor
-                    )
-                    BasicText(
-                        text = session.title.getString(),
+                        text = rankingData.title?.getString(),
                         fontColor = textColor
                     )
                 }
-                BasicText(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
-                        .weight(0.3f),
-                    text = stringResource(
-                        R.string.p, when (rule) {
-                            LeagueRule.QUIZ_AND_WORDLE -> session.totalPoints
-                            LeagueRule.QUIZ_ONLY -> session.pointsForQuiz
-                            LeagueRule.WORDLE_ONLY -> session.pointsForWordle
-                        }
-                    ),
-                    fontSize = 22,
-                    textAlign = TextAlign.End,
-                    fontColor = textColor
-                )
             }
+            BasicText(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
+                    .weight(0.3f),
+                text = stringResource(
+                    R.string.p, rankingData.pointsToDisplay
+                ),
+                fontSize = 22,
+                textAlign = TextAlign.End,
+                fontColor = textColor
+            )
         }
     }
 }
 
 @Composable
-fun UpdateTitleDialog(session: SessionInLeague ,onDismissRequest: () -> Unit, updateTitle: (UserTitle) -> Unit) {
+fun UpdateTitleDialog(
+    session: SessionInLeague,
+    onDismissRequest: () -> Unit,
+    updateTitle: (UserTitle) -> Unit
+) {
 
     val listOfLeagueDurationOptions = UserTitle.values()
 
@@ -601,7 +525,7 @@ fun UpdateTitleDialog(session: SessionInLeague ,onDismissRequest: () -> Unit, up
         },
         negativeIcon = painterResource(R.drawable.baseline_arrow_back_24)
     ) {
-        LazyColumn (verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items(listOfLeagueDurationOptions) { option ->
                 BasicRadioButton(
                     modifier = Modifier.height(50.dp),
@@ -648,7 +572,7 @@ fun PreviewLeagueScreen() {
                 )
             ), sessionInLeague = SessionInLeague(), navigateEditScreen = {
 
-            }, openUserProfile = {}
+            }, listForRanking = listOf(), openUserProfile = {}
         ) {}
     }
 }
@@ -678,7 +602,7 @@ fun PreviewLeagueScreenIfAdmin() {
                 )
             ), sessionInLeague = SessionInLeague(adminUser = true), navigateEditScreen = {
 
-            }, openUserProfile = {}
+            }, listForRanking = listOf(), openUserProfile = {}
         ) {
 
         }

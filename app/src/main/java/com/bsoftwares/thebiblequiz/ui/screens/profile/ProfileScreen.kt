@@ -45,7 +45,6 @@ import com.bsoftwares.thebiblequiz.R
 import com.bsoftwares.thebiblequiz.data.models.League
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.isReady
-import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.ProfileDialogType
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
@@ -136,90 +135,79 @@ fun InitializeProfileScreen(
         }
     }
 
-    var displayDialog by remember {
-        mutableStateOf(false)
-    }
-
-    LaunchedEffect(dialog) {
-        if (dialog != DialogType.EmptyValue) {
-            displayDialog = true
+    when (dialog) {
+        ProfileDialogType.Quiz -> {
+            BasicDialog(onDismissRequest = {
+                homeViewModel.updateDialog()
+            }) {
+                QuizStats(
+                    data = displaySession.quizStats,
+                    calculatedData = calculatedQuizData,
+                    isFromProfileScreen = true
+                ) {
+                    homeViewModel.updateDialog()
+                }
+            }
         }
-    }
 
-    if (displayDialog) {
-        when (dialog) {
-            ProfileDialogType.Quiz -> {
-                BasicDialog(onDismissRequest = {
+        ProfileDialogType.Wordle -> {
+            BasicDialog(onDismissRequest = {
+                homeViewModel.updateDialog()
+            }) {
+                WordleStats(
+                    wordleStats = displaySession.wordle.wordleStats,
+                    progresses = calculatedWordleData,
+                    isFromProfileScreen = true
+                ) {
                     homeViewModel.updateDialog()
-                }) {
-                    QuizStats(
-                        data = displaySession.quizStats,
-                        calculatedData = calculatedQuizData,
-                        isFromProfileScreen = true
-                    ) {
-                        homeViewModel.updateDialog()
-                    }
                 }
             }
+        }
 
-            ProfileDialogType.Wordle -> {
-                BasicDialog(onDismissRequest = {
-                    homeViewModel.updateDialog()
-                }) {
-                    WordleStats(
-                        wordleStats = displaySession.wordle.wordleStats,
-                        progresses = calculatedWordleData,
-                        isFromProfileScreen = true
-                    ) {
+        ProfileDialogType.AddFriend -> {
+            BasicDialog(onDismissRequest = {
+                homeViewModel.updateDialog()
+                homeViewModel.resetErrorMessage()
+            }) {
+                AddFriendDialog(
+                    errorMessage = feedbackMessage.get(),
+                    goBackClick = {
                         homeViewModel.updateDialog()
-                    }
-                }
-            }
-
-            ProfileDialogType.AddFriend -> {
-                BasicDialog(onDismissRequest = {
-                    homeViewModel.updateDialog()
+                    },
+                    addUser = {
+                        homeViewModel.addFriend(it)
+                    }) {
                     homeViewModel.resetErrorMessage()
-                }) {
-                    AddFriendDialog(
-                        errorMessage = feedbackMessage.get(),
-                        goBackClick = {
-                            homeViewModel.updateDialog()
-                        },
-                        addUser = {
-                            homeViewModel.addFriend(it)
-                        }) {
-                        homeViewModel.resetErrorMessage()
-                    }
                 }
             }
-
-            ProfileDialogType.RemoveFriend -> {
-                BasicPositiveNegativeDialog(
-                    dialogIcon = null,
-                    title = stringResource(R.string.friend_removal),
-                    description = stringResource(R.string.are_you_sure_you_want_to_remove_this_friend),
-                    onDismissRequest = {
-                        homeViewModel.updateDialog()
-                    },
-                    positiveFunction = {
-                        homeViewModel.removeFriend(displaySession.userInfo.userId)
-                    },
-                    positiveIcon = painterResource(R.drawable.baseline_delete_24)
-                )
-            }
-
-            ProfileDialogType.StartPremium -> {
-                PaywallScreen(enablePremium = {
-                    homeViewModel.updateToPremium()
-                }) {
-                    homeViewModel.updateDialog()
-                }
-            }
-
-            else -> Unit
         }
+
+        ProfileDialogType.RemoveFriend -> {
+            BasicPositiveNegativeDialog(
+                dialogIcon = null,
+                title = stringResource(R.string.friend_removal),
+                description = stringResource(R.string.are_you_sure_you_want_to_remove_this_friend),
+                onDismissRequest = {
+                    homeViewModel.updateDialog()
+                },
+                positiveFunction = {
+                    homeViewModel.removeFriend(displaySession.userInfo.userId)
+                },
+                positiveIcon = painterResource(R.drawable.baseline_delete_24)
+            )
+        }
+
+        ProfileDialogType.StartPremium -> {
+            PaywallScreen(enablePremium = {
+                homeViewModel.updateToPremium()
+            }) {
+                homeViewModel.updateDialog()
+            }
+        }
+
+        else -> Unit
     }
+
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage == FeedbackMessage.LeagueCreated) {
@@ -271,7 +259,9 @@ fun InitializeProfileScreen(
                     }
                 },
                 possibleToAdd = homeViewModel.checkIfSessionIsNotFriendsWithLocal(displaySession),
-                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(displaySession),
+                notFriendRequest = homeViewModel.checkIfSessionDoesntAlreadyHaveAFriendRequest(
+                    displaySession
+                ),
                 createNewLeague = {
                     homeViewModel.createNewLeague(context.getString(R.string.new_league_name))
                 },
@@ -341,7 +331,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth()
@@ -521,7 +511,7 @@ fun ProfileScreen(
                     }
                 }
             }
-            BasicText(text = "My stats", fontSize = 22)
+            BasicText(text = stringResource(R.string.my_stats), fontSize = 22)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -568,7 +558,23 @@ fun ProfileScreen(
                     }
                 }
             }
-
+            BasicContainer {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    BasicText(
+                        text = "Total points so far: ${session.leaderboardTotalAllTime} Points",
+                        fontSize = 16
+                    )
+                    BasicText(
+                        text = "Total points for this Month: ${session.leaderboardTotalMonthly} Points",
+                        fontSize = 16
+                    )
+                }
+            }
             if (isFromLocalSession) {
                 BasicText(text = stringResource(R.string.leagues), fontSize = 22)
                 BasicContainer {

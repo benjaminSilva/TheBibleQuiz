@@ -11,16 +11,20 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.compose.ui.text.intl.Locale
 import com.bsoftwares.thebiblequiz.client.GoogleAuthUiClient
 import com.bsoftwares.thebiblequiz.data.models.BibleVerse
+import com.bsoftwares.thebiblequiz.data.models.LeaderboardType
 import com.bsoftwares.thebiblequiz.data.models.League
+import com.bsoftwares.thebiblequiz.data.models.RankingData
 import com.bsoftwares.thebiblequiz.data.models.Session
 import com.bsoftwares.thebiblequiz.data.models.SessionInLeague
 import com.bsoftwares.thebiblequiz.data.models.UserTitle
+import com.bsoftwares.thebiblequiz.data.models.WORDLE_STATE
 import com.bsoftwares.thebiblequiz.data.models.quiz.Question
 import com.bsoftwares.thebiblequiz.data.models.quiz.QuestionDifficulty
 import com.bsoftwares.thebiblequiz.data.models.state.ConnectivityStatus
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.LogTypes
 import com.bsoftwares.thebiblequiz.data.models.state.ResultOf
+import com.bsoftwares.thebiblequiz.data.models.toRankedData
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
@@ -171,6 +175,8 @@ class BaseRepositoryImpl @Inject constructor(
                             }
                         }
                     }
+                    quizTotalPointsAllTime += pointsToUpdateLeagues
+                    quizTotalPointsForTheMonths += pointsToUpdateLeagues
                 }
 
                 try {
@@ -189,14 +195,19 @@ class BaseRepositoryImpl @Inject constructor(
                                 }.await()
                         }
                     }
+                    val newLeaderboardData = mapOf(
+                        "leaderboardTotalAllTime" to session.leaderboardTotalAllTime + pointsToUpdateLeagues,
+                        "leaderboardTotalMonthly" to session.leaderboardTotalMonthly + pointsToUpdateLeagues
+                    )
                     usersReference.child(session.userInfo.userId).child(quizStats)
                         .setValue(currentUserStats)
                         .addOnFailureListener {
                             throw it
-                        }
-                        .await()
-
-
+                        }.await()
+                    usersReference.child(session.userInfo.userId).updateChildren(newLeaderboardData)
+                        .addOnFailureListener {
+                            throw it
+                        }.await()
                 } catch (exception: Exception) {
                     trySend(
                         ResultOf.LogMessage(
@@ -205,8 +216,31 @@ class BaseRepositoryImpl @Inject constructor(
                         )
                     )
                 }
-
             }
+        }
+
+    override suspend fun loadLeaderboards(leaderboardType: LeaderboardType): Flow<ResultOf<List<RankingData>>> =
+        channelFlow {
+            usersReference.orderByChild(leaderboardType.path).limitToLast(30)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val topList = mutableListOf<Session>()
+                        val childrenReversed = snapshot.children.reversed()
+                        for (childSnapshot in childrenReversed) {
+                            val session = childSnapshot.getValue(Session::class.java)
+                            if (session != null) {
+                                topList.add(session)
+                            }
+                        }
+                        trySend(ResultOf.Success(topList.toRankedData(leaderboardType)))
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+
+                })
+
+            awaitClose {}
         }
 
     override fun updateGameModeValue(key: String, value: Boolean) {
@@ -219,14 +253,19 @@ class BaseRepositoryImpl @Inject constructor(
         emit(sharedPreferences.getBoolean(key, false))
     }
 
-    override suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) {
-        val signInIntentSender = googleAuthUiClient.signIn()
-        launcher.launch(
-            IntentSenderRequest.Builder(
-                signInIntentSender ?: return
-            ).build()
-        )
-    }
+    override suspend fun signIn(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) =
+        flow {
+            val signInIntentSender = googleAuthUiClient.signIn()
+            if (signInIntentSender == null) {
+                emit(FeedbackMessage.NoGoogleAccountFoundOnDevice)
+            } else {
+                launcher.launch(
+                    IntentSenderRequest.Builder(
+                        signInIntentSender
+                    ).build()
+                )
+            }
+        }
 
     override suspend fun signOut(): Flow<ResultOf<FeedbackMessage>> = channelFlow {
         try {
@@ -569,6 +608,9 @@ class BaseRepositoryImpl @Inject constructor(
                     streak = 0
                     lost += 1
                 }
+                wordleTotalPointsAllTime += pointsToUpdateLeagues
+                wordleTotalPointsForTheMonth += pointsToUpdateLeagues
+                startedPlaying = WORDLE_STATE.USER_FINISHED
             }
             val thisUser = usersReference.child(session.userInfo.userId)
             thisUser.child("wordle").child("wordleStats")
@@ -578,6 +620,18 @@ class BaseRepositoryImpl @Inject constructor(
                         channel.trySend(FeedbackMessage.Error(this))
                     }
                 }
+
+            val newLeaderboardData = mapOf(
+                "leaderboardTotalAllTime" to session.leaderboardTotalAllTime + pointsToUpdateLeagues,
+                "leaderboardTotalMonthly" to session.leaderboardTotalMonthly + pointsToUpdateLeagues
+            )
+
+            thisUser.updateChildren(newLeaderboardData)
+                .addOnFailureListener {
+                    it.message?.apply {
+                        channel.trySend(FeedbackMessage.Error(this))
+                    }
+                }.await()
 
             if (session.localListLeagues.isNotEmpty()) {
                 session.localListLeagues.forEach {
@@ -602,13 +656,22 @@ class BaseRepositoryImpl @Inject constructor(
         attemptList: List<WordleAttempt>
     ): Flow<FeedbackMessage> = channelFlow {
         if (session.userInfo.userId.isNotEmpty()) {
-            usersReference.child(session.userInfo.userId).child("wordle").child("listOfAttempts")
-                .setValue(attemptList)
-                .addOnFailureListener {
-                    it.message?.apply {
-                        channel.trySend(FeedbackMessage.Error(this))
+            try {
+                val userWordleRef = usersReference.child(session.userInfo.userId).child("wordle")
+                userWordleRef.child("listOfAttempts")
+                    .setValue(attemptList)
+                    .addOnFailureListener {
+                        throw Exception(it.message.toString())
                     }
+                userWordleRef.child("wordleStats").child("startedPlaying").setValue(WORDLE_STATE.USER_HAS_STARTED).addOnFailureListener {
+                    throw Exception(it.message.toString())
                 }
+            } catch (e:Exception) {
+                e.message?.apply {
+                    channel.trySend(FeedbackMessage.Error(this))
+                }
+            }
+
             awaitClose { channel.close() }
         }
     }
@@ -731,7 +794,10 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createNewLeague(session: Session, initialLeagueName: String): Flow<ResultOf<League>> =
+    override suspend fun createNewLeague(
+        session: Session,
+        initialLeagueName: String
+    ): Flow<ResultOf<League>> =
         channelFlow {
             val leagueId = UUID.randomUUID().toString()
             val userId = session.userInfo.userId
@@ -983,9 +1049,14 @@ class BaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateTitle(userId: String, leagueId: String, userTitle: UserTitle): Flow<ResultOf<FeedbackMessage>> = callbackFlow {
+    override suspend fun updateTitle(
+        userId: String,
+        leagueId: String,
+        userTitle: UserTitle
+    ): Flow<ResultOf<FeedbackMessage>> = callbackFlow {
 
-        leaguesDatabaseReference.child(leagueId).child(stringLeagueUsers).child(userId).child("title").setValue(userTitle).addOnSuccessListener {
+        leaguesDatabaseReference.child(leagueId).child(stringLeagueUsers).child(userId)
+            .child("title").setValue(userTitle).addOnSuccessListener {
             trySend(ResultOf.Success(FeedbackMessage.TitleUpdated))
         }.addOnFailureListener {
             trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))

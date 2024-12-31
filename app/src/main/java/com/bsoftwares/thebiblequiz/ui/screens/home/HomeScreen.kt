@@ -466,12 +466,43 @@ fun HomeScreen(
                 }
             }
 
+            BasicContainer(modifier = Modifier
+                .fillMaxWidth()
+                .alpha(alpha = animationLayoutList[5].value)
+                .offset {
+                    animationPositionList[5].value
+                },
+                onClick = {
+                    navigate(Routes.Leaderboards)
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.crown_svgrepo_com),
+                        modifier = Modifier
+                            .size(32.dp),
+                        contentDescription = null
+                    )
+                    BasicText(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
+                        text = stringResource(R.string.leaderboards),
+                        fontSize = 24,
+                        lineHeight = 22
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(alpha = animationLayoutList[5].value)
+                    .alpha(alpha = animationLayoutList[6].value)
                     .offset {
-                        animationPositionList[5].value
+                        animationPositionList[6].value
                     },
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -541,9 +572,9 @@ fun HomeScreen(
             }
             BasicContainer(modifier = Modifier
                 .fillMaxWidth()
-                .alpha(alpha = animationLayoutList[6].value)
+                .alpha(alpha = animationLayoutList[7].value)
                 .offset {
-                    animationPositionList[6].value
+                    animationPositionList[7].value
                 },
                 onClick = {
                     uriHandler.openUri("https://www.gofundme.com/f/the-bible-quiz-project")

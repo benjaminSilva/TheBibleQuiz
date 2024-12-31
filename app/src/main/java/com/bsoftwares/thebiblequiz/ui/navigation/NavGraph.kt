@@ -17,7 +17,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.get
 import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.bsoftwares.thebiblequiz.ui.screens.InitializeLoginScreen
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
@@ -29,11 +28,13 @@ import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.InitializeQuizS
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleResult
 import com.bsoftwares.thebiblequiz.ui.screens.games.wordle.InitializeWordleScreen
 import com.bsoftwares.thebiblequiz.ui.screens.home.InitializeHomeScreen
+import com.bsoftwares.thebiblequiz.ui.screens.home.InitializeLeaderboardScreen
 import com.bsoftwares.thebiblequiz.ui.screens.league.InitializeLeagueEditScreen
 import com.bsoftwares.thebiblequiz.ui.screens.league.InitializeLeagueScreen
 import com.bsoftwares.thebiblequiz.ui.screens.profile.InitializeProfileScreen
 import com.bsoftwares.thebiblequiz.viewmodel.BibleQuizViewModel
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
+import com.bsoftwares.thebiblequiz.viewmodel.LeaderboardViewModel
 import com.bsoftwares.thebiblequiz.viewmodel.WordleViewModel
 
 const val MY_URI = "https://profile-deeplink.com"
@@ -99,6 +100,13 @@ fun SetupNavGraph(navController: NavHostController, homeViewModel: HomeViewModel
                 route = Routes.EditLeague.value
             ) {
                 InitializeLeagueEditScreen(navController = navController, viewModel = homeViewModel)
+            }
+
+            composable(
+                route = Routes.Leaderboards.value
+            ) {
+                val leaderboardViewModel = it.sharedViewModel<LeaderboardViewModel>(navController = navController)
+                InitializeLeaderboardScreen(navController = navController, leaderboardViewModel = leaderboardViewModel)
             }
         }
 
