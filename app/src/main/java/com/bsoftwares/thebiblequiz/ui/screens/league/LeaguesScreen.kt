@@ -30,9 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -40,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -54,27 +53,28 @@ import com.bsoftwares.thebiblequiz.data.models.state.DialogType
 import com.bsoftwares.thebiblequiz.data.models.state.FeedbackMessage
 import com.bsoftwares.thebiblequiz.data.models.state.LeagueDialog
 import com.bsoftwares.thebiblequiz.data.models.state.getPainter
+import com.bsoftwares.thebiblequiz.ui.basicviews.AutoResizeText
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicContainer
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicPositiveNegativeDialog
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
+import com.bsoftwares.thebiblequiz.ui.basicviews.FontSizeRange
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
 import com.bsoftwares.thebiblequiz.ui.screens.Routes
 import com.bsoftwares.thebiblequiz.ui.screens.games.quiz.screens.BasicRadioButton
 import com.bsoftwares.thebiblequiz.ui.screens.profile.FriendItem
 import com.bsoftwares.thebiblequiz.ui.theme.NovaGincanaBiblicaTheme
-import com.bsoftwares.thebiblequiz.ui.theme.basicContainer
 import com.bsoftwares.thebiblequiz.ui.theme.basicContainerClean
 import com.bsoftwares.thebiblequiz.ui.theme.closeToBlack
 import com.bsoftwares.thebiblequiz.ui.theme.container_in_container
 import com.bsoftwares.thebiblequiz.ui.theme.contrastColor
-import com.bsoftwares.thebiblequiz.ui.theme.darkYellow
 import com.bsoftwares.thebiblequiz.ui.theme.disableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.enableClicks
 import com.bsoftwares.thebiblequiz.ui.theme.gray
 import com.bsoftwares.thebiblequiz.ui.theme.lightBrown
 import com.bsoftwares.thebiblequiz.ui.theme.wrongPlace
+import com.bsoftwares.thebiblequiz.ui.theme.zillasFontFamily
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 
@@ -447,11 +447,12 @@ fun OthersPositions(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box (modifier = Modifier.width(22.dp).align(Alignment.CenterVertically)) {
-                BasicText(
-                    modifier = Modifier.align(Alignment.CenterStart),
+                AutoResizeText(
                     text = placementString,
-                    fontColor = textColor,
-                    fontSize = 22
+                    color = textColor,
+                    fontSizeRange = FontSizeRange(5.sp, 25.sp),
+                    maxLines = 1,
+                    fontFamily = zillasFontFamily
                 )
             }
             AsyncImage(

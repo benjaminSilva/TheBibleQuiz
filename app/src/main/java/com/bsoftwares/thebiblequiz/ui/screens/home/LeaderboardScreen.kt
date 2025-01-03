@@ -109,8 +109,8 @@ fun LeaderboardsScreen(
     val alphaAnimation by animateAlphaByState(phase)
     val offsetAnimation by animateAsState(phase = phase, toTheLeft = toTheLeft)
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+    Column(modifier = Modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             BasicContainer (modifier = Modifier.align(Alignment.CenterStart), onClick = {
                 goBack()
             }) {
@@ -123,12 +123,11 @@ fun LeaderboardsScreen(
                     contentDescription = null
                 )
             }
-            BasicText(modifier = Modifier.padding(start = 8.dp).align(Alignment.Center), text = "Leaderboards", fontSize = 28)
+            BasicText(modifier = Modifier.align(Alignment.Center), text = "Leaderboards", fontSize = 28)
         }
         BasicContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 4.dp)
                 .weight(0.85f)
         ) {
             RankingView(
@@ -147,7 +146,6 @@ fun LeaderboardsScreen(
         BasicContainer(
             modifier = Modifier
                 .height(100.dp)
-                .padding(horizontal = 8.dp)
         ) {
             Column(
                 modifier = Modifier.padding(8.dp),

@@ -292,7 +292,7 @@ fun ButtonWithHold(modifier: Modifier = Modifier,holdAction: () -> Unit, content
         mutableStateOf(false)
     }
 
-    var localDensity = LocalDensity.current
+    val localDensity = LocalDensity.current
 
     var heightForLoaderView by remember {
         mutableStateOf(0.dp)

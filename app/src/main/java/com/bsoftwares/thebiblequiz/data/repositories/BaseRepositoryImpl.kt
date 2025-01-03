@@ -27,6 +27,8 @@ import com.bsoftwares.thebiblequiz.data.models.toRankedData
 import com.bsoftwares.thebiblequiz.data.models.wordle.Wordle
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttempt
 import com.bsoftwares.thebiblequiz.data.models.wordle.WordleAttemptState
+import com.bsoftwares.thebiblequiz.ui.theme.emptyString
+import com.google.firebase.BuildConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -95,14 +97,23 @@ class BaseRepositoryImpl @Inject constructor(
     private val stringPointsForWordle = "pointsForWordle"
     private val stringFcmToken = "fcmToken"
     private val hasPlayedWordleGame = "hasPlayedWordleGame"
+    private val hasPlayedQuizGame = "hasPlayedQuizGame"
     private val quizStats = "quizStats"
     private val premium = "premium"
+    private val friendList = "friendList"
+    private val friendListRequest = "friendRequests"
+    private val listOfAttempts = "listOfAttempts"
+    private val wordlePath = "wordle"
+    private val wordleStatsPath = "wordleStats"
+    private val day = "day"
+    val String.path: String
+        get() = if (BuildConfig.DEBUG) "test/$this" else this
 
     private val TAG = "SessionChangesListener"
 
 
     override suspend fun loadDailyQuestion(day: Int): Flow<ResultOf<Question>> = callbackFlow {
-        val ref = quizReference.child(Locale.current.language).child("day$day")
+        val ref = quizReference.child(Locale.current.language.path).child("day$day")
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Question>()?.apply {
@@ -182,7 +193,7 @@ class BaseRepositoryImpl @Inject constructor(
                     if (session.localListLeagues.isNotEmpty() && pointsToUpdateLeagues != 0) {
                         session.localListLeagues.forEach {
                             val pointsRef =
-                                leaguesDatabaseReference.child(it).child(stringLeagueUsers)
+                                leaguesDatabaseReference.child(it.path).child(stringLeagueUsers)
                                     .child(session.userInfo.userId).child(stringPointsForQuiz)
                             val oldPoints = pointsRef.get().addOnFailureListener { error ->
                                 throw error
@@ -198,12 +209,12 @@ class BaseRepositoryImpl @Inject constructor(
                         "leaderboardTotalAllTime" to session.leaderboardTotalAllTime + pointsToUpdateLeagues,
                         "leaderboardTotalMonthly" to session.leaderboardTotalMonthly + pointsToUpdateLeagues
                     )
-                    usersReference.child(session.userInfo.userId).child(quizStats)
+                    usersReference.child(session.userInfo.userId.path).child(quizStats)
                         .setValue(currentUserStats)
                         .addOnFailureListener {
                             throw it
                         }.await()
-                    usersReference.child(session.userInfo.userId).updateChildren(newLeaderboardData)
+                    usersReference.child(session.userInfo.userId.path).updateChildren(newLeaderboardData)
                         .addOnFailureListener {
                             throw it
                         }.await()
@@ -220,7 +231,7 @@ class BaseRepositoryImpl @Inject constructor(
 
     override suspend fun loadLeaderboards(leaderboardType: LeaderboardType): Flow<ResultOf<List<RankingData>>> =
         channelFlow {
-            usersReference.orderByChild(leaderboardType.path).limitToLast(30)
+            usersReference.orderByChild(leaderboardType.path.path).limitToLast(30)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val topList = mutableListOf<Session>()
@@ -268,7 +279,7 @@ class BaseRepositoryImpl @Inject constructor(
 
     override suspend fun signOut(): Flow<ResultOf<FeedbackMessage>> = channelFlow {
         try {
-            usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue("").await()
+            usersReference.child(getSignedInUserId().path).child(stringFcmToken).setValue("").await()
             googleAuthUiClient.signOut()
             trySend(ResultOf.Success(FeedbackMessage.NoMessage))
         } catch (e: Exception) {
@@ -280,7 +291,7 @@ class BaseRepositoryImpl @Inject constructor(
         session: Session,
         newValue: Boolean
     ): Flow<FeedbackMessage> = channelFlow {
-        usersReference.child(session.userInfo.userId).child(premium).setValue(newValue)
+        usersReference.child(session.userInfo.userId.path).child(premium).setValue(newValue)
             .addOnSuccessListener {
                 if (newValue) {
                     trySend(FeedbackMessage.YouAreNowPremium)
@@ -358,7 +369,7 @@ class BaseRepositoryImpl @Inject constructor(
     private fun listenToSessionChanges(userId: String): Flow<ResultOf<Session>> = channelFlow {
         Log.d(TAG, "Coroutine started for userId: $userId")
 
-        val userRef = usersReference.child(userId)
+        val userRef = usersReference.child(userId.path)
 
         val postListener = createValueEventListener(
             onSuccess = { session ->
@@ -385,7 +396,7 @@ class BaseRepositoryImpl @Inject constructor(
 
     // Function to create a new session if it doesn't exist
     private suspend fun createOrUpdateSession(session: Session): ResultOf<Session> {
-        val userRef = usersReference.child(session.userInfo.userId)
+        val userRef = usersReference.child(session.userInfo.userId.path)
         val existingSession = userRef.get().await().getValue<Session>()
 
         return if (existingSession == null) {
@@ -409,8 +420,8 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun getSignedInUserId(): String = googleAuthUiClient.getSignerUserId()
 
     override suspend fun updateHasPlayedBibleQuiz() {
-        usersReference.child(getSignedInUserId()).child("hasPlayedQuizGame").setValue(true)
-        updateGameModeValue("hasPlayedQuizGame", true)
+        usersReference.child(getSignedInUserId().path).child(hasPlayedQuizGame).setValue(true)
+        updateGameModeValue(hasPlayedQuizGame, true)
     }
 
     override suspend fun deleteLeague(leagueId: String): Flow<ResultOf<FeedbackMessage>> =
@@ -425,7 +436,7 @@ class BaseRepositoryImpl @Inject constructor(
 
     override suspend fun observeThisLeague(currentLeague: League): Flow<ResultOf<League>> =
         callbackFlow {
-            val ref = leaguesDatabaseReference.child(currentLeague.leagueId)
+            val ref = leaguesDatabaseReference.child(currentLeague.leagueId.path)
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<League>()?.apply {
@@ -478,7 +489,7 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSession(userId: String): Flow<ResultOf<Session>> = flow {
-        val sessionRef = usersReference.child(userId)
+        val sessionRef = usersReference.child(userId.path)
         val session = sessionRef.get().await().getValue<Session>()
         if (session != null) {
             emit(ResultOf.Success(session.withLoadedFriends(sessionRef.get().await())))
@@ -488,10 +499,10 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     fun Session.withLoadedFriends(dataSnapshot: DataSnapshot): Session =
-        copy(localFriendList = dataSnapshot.child("friendList").children.mapNotNull {
+        copy(localFriendList = dataSnapshot.child(friendList).children.mapNotNull {
             it.key
         },
-            localFriendRequestList = dataSnapshot.child("friendRequests").children.mapNotNull {
+            localFriendRequestList = dataSnapshot.child(friendListRequest).children.mapNotNull {
                 it.key
             },
             localListLeagues = dataSnapshot.child(stringLeagues).children.mapNotNull {
@@ -503,14 +514,14 @@ class BaseRepositoryImpl @Inject constructor(
 
 
     override suspend fun getDay(): Flow<ResultOf<Pair<Int, Boolean>>> = callbackFlow {
-        val ref = firebaseRef.child("day")
-        val currentDay = sharedPreferences.getInt("day", 0)
+        val ref = firebaseRef.child(day.path)
+        val currentDay = sharedPreferences.getInt(day, 0)
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Int>()?.apply {
-                    val isNewDay = this > currentDay
+                    val isNewDay = this != currentDay
                     if (isNewDay) {
-                        sharedPreferences.edit().putInt("day", this).apply()
+                        sharedPreferences.edit().putInt(day, this).apply()
                     }
                     trySend(ResultOf.Success(this to isNewDay))
                 }
@@ -525,7 +536,7 @@ class BaseRepositoryImpl @Inject constructor(
     }.distinctUntilChanged()
 
     override suspend fun getDailyBibleVerse(day: Int): Flow<ResultOf<BibleVerse>> = callbackFlow {
-        val ref = bibleVerseReference.child(Locale.current.language).child("day$day")
+        val ref = bibleVerseReference.child(Locale.current.language.path).child("day$day")
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<BibleVerse>()?.apply {
@@ -542,7 +553,7 @@ class BaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getWordle(day: Int): Flow<ResultOf<Wordle>> = callbackFlow {
-        val ref = wordleReference.child(Locale.current.language).child("day$day")
+        val ref = wordleReference.child(Locale.current.language.path).child("day$day")
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 dataSnapshot.getValue<Wordle>()?.apply {
@@ -611,8 +622,8 @@ class BaseRepositoryImpl @Inject constructor(
                 wordleTotalPointsForTheMonth += pointsToUpdateLeagues
                 playing = false
             }
-            val thisUser = usersReference.child(session.userInfo.userId)
-            thisUser.child("wordle").child("wordleStats")
+            val thisUser = usersReference.child(session.userInfo.userId.path)
+            thisUser.child(wordlePath).child(wordleStatsPath)
                 .setValue(currentUserStats)
                 .addOnFailureListener {
                     it.message?.apply {
@@ -634,14 +645,14 @@ class BaseRepositoryImpl @Inject constructor(
 
             if (session.localListLeagues.isNotEmpty()) {
                 session.localListLeagues.forEach {
-                    val pointsRef = leaguesDatabaseReference.child(it).child(stringLeagueUsers)
+                    val pointsRef = leaguesDatabaseReference.child(it.path).child(stringLeagueUsers)
                         .child(session.userInfo.userId).child(stringPointsForWordle)
                     val oldPoints = pointsRef.get().await().value as Long
                     pointsRef.setValue(oldPoints + pointsToUpdateLeagues)
                 }
             }
 
-            thisUser.child("hasPlayerWordleGame").setValue(true).addOnFailureListener {
+            thisUser.child(hasPlayedWordleGame).setValue(true).addOnFailureListener {
                 it.message?.apply {
                     channel.trySend(FeedbackMessage.Error(this))
                 }
@@ -656,13 +667,13 @@ class BaseRepositoryImpl @Inject constructor(
     ): Flow<FeedbackMessage> = channelFlow {
         if (session.userInfo.userId.isNotEmpty()) {
             try {
-                val userWordleRef = usersReference.child(session.userInfo.userId).child("wordle")
-                userWordleRef.child("listOfAttempts")
+                val userWordleRef = usersReference.child(session.userInfo.userId.path).child(wordlePath)
+                userWordleRef.child(listOfAttempts)
                     .setValue(attemptList)
                     .addOnFailureListener {
                         throw Exception(it.message.toString())
                     }
-                userWordleRef.child("wordleStats").child("playing").setValue(true).addOnFailureListener {
+                userWordleRef.child(wordleStatsPath).child("playing").setValue(true).addOnFailureListener {
                     throw Exception(it.message.toString())
                 }
             } catch (e:Exception) {
@@ -678,8 +689,8 @@ class BaseRepositoryImpl @Inject constructor(
     override suspend fun getAttempts(session: Session): Flow<ResultOf<List<WordleAttempt>>> =
         callbackFlow {
             val ref =
-                usersReference.child(session.userInfo.userId).child("wordle")
-                    .child("listOfAttempts")
+                usersReference.child(session.userInfo.userId.path).child(wordlePath)
+                    .child(listOfAttempts)
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue<List<WordleAttempt>>()?.apply {
@@ -743,7 +754,7 @@ class BaseRepositoryImpl @Inject constructor(
             }
         }
 
-        val friendRef = usersReference.child(friendId)
+        val friendRef = usersReference.child(friendId.path)
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 when {
@@ -751,17 +762,17 @@ class BaseRepositoryImpl @Inject constructor(
                         trySend(ResultOf.Success(FeedbackMessage.UserDoesntExist))
                     }
 
-                    dataSnapshot.child("friendList").child(userId).exists() -> {
+                    dataSnapshot.child(friendList).child(userId).exists() -> {
                         trySend(ResultOf.Success(FeedbackMessage.YouAreFriendsAlready))
                     }
 
-                    dataSnapshot.child("friendRequests").hasChild(userId) -> {
+                    dataSnapshot.child(friendListRequest).hasChild(userId) -> {
                         trySend(ResultOf.Success(FeedbackMessage.YouHaveAlreadySent))
                     }
 
                     else -> {
                         // Attempt to send the friend request
-                        dataSnapshot.child("friendRequests").child(userId).ref.setValue(userId)
+                        dataSnapshot.child(friendListRequest).child(userId).ref.setValue(userId)
                             .addOnSuccessListener {
                                 trySend(ResultOf.Success(FeedbackMessage.FriendRequestSent))
                                 close()
@@ -812,7 +823,7 @@ class BaseRepositoryImpl @Inject constructor(
                 leagueName = initialLeagueName,
                 startCycleDate = System.currentTimeMillis()
             )
-            val ref = leaguesDatabaseReference.child(leagueId)
+            val ref = leaguesDatabaseReference.child(leagueId.path)
             ref.setValue(league).addOnFailureListener {
                 it.message?.apply {
                     channel.trySend(ResultOf.Failure(FeedbackMessage.Error(message = this)))
@@ -845,7 +856,7 @@ class BaseRepositoryImpl @Inject constructor(
 
             }
         }
-        val ref = leaguesDatabaseReference.child(league.leagueId)
+        val ref = leaguesDatabaseReference.child(league.leagueId.path)
         ref.addListenerForSingleValueEvent(listener)
         awaitClose { ref.removeEventListener(listener) }
     }
@@ -854,12 +865,12 @@ class BaseRepositoryImpl @Inject constructor(
         channelFlow {
             val userId = session.userInfo.userId
             val listOfLeagues =
-                usersReference.child(userId).child(stringLeagues).get().await().children
+                usersReference.child(userId.path).child(stringLeagues).get().await().children
             val listOfInvitation =
-                usersReference.child(userId).child(stringLeagueInvitation).get().await().children
+                usersReference.child(userId.path).child(stringLeagueInvitation).get().await().children
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    channel.trySend(ResultOf.Success(Pair(listOfInvitation.mapNotNull {
+                    trySend(ResultOf.Success(Pair(listOfInvitation.mapNotNull {
                         it.key?.run {
                             snapshot.child(this).getValue<League>()?.run {
                                 copy(endCycleString = transformEndCycleToString())
@@ -926,7 +937,7 @@ class BaseRepositoryImpl @Inject constructor(
             )
         }
 
-        leaguesDatabaseReference.child(league.leagueId).updateChildren(update)
+        leaguesDatabaseReference.child(league.leagueId.path).updateChildren(update)
             .addOnSuccessListener {
                 channel.trySend(
                     ResultOf.Success(
@@ -952,14 +963,14 @@ class BaseRepositoryImpl @Inject constructor(
         delay(2000)
         val userId = getSignedInUserId()
         if (userId.isNotEmpty()) {
-            usersReference.child(userId).child(stringFcmToken).setValue(token)
+            usersReference.child(userId.path).child(stringFcmToken).setValue(token)
         }
     }
 
     override suspend fun loadToken() {
         globalToken = FirebaseMessaging.getInstance().token.await()
-        if (getSignedInUserId() != "") {
-            usersReference.child(getSignedInUserId()).child(stringFcmToken).setValue(globalToken)
+        if (getSignedInUserId() != emptyString) {
+            usersReference.child(getSignedInUserId().path).child(stringFcmToken).setValue(globalToken)
         }
     }
 
@@ -994,7 +1005,7 @@ class BaseRepositoryImpl @Inject constructor(
         leagueId: String
     ): Flow<ResultOf<FeedbackMessage>> = channelFlow {
         val userId = session.userInfo.userId
-        val userRef = usersReference.child(userId)
+        val userRef = usersReference.child(userId.path)
         userRef.child(stringLeagueInvitation).removeValue()
         if (hasAccepted) {
             userRef.child(stringLeagues).child(leagueId).setValue(leagueId)
@@ -1018,14 +1029,14 @@ class BaseRepositoryImpl @Inject constructor(
         try {
             // Await both database operations
             leaguesDatabaseReference
-                .child(leagueId)
+                .child(leagueId.path)
                 .child(stringLeagueUsers)
                 .child(user.userId)
                 .ref
                 .awaitRemoveValue() // Custom suspend function for removeValue
 
             usersReference
-                .child(user.userId)
+                .child(user.userId.path)
                 .child(stringLeagues)
                 .child(leagueId)
                 .ref
@@ -1054,7 +1065,7 @@ class BaseRepositoryImpl @Inject constructor(
         userTitle: UserTitle
     ): Flow<ResultOf<FeedbackMessage>> = callbackFlow {
 
-        leaguesDatabaseReference.child(leagueId).child(stringLeagueUsers).child(userId)
+        leaguesDatabaseReference.child(leagueId.path).child(stringLeagueUsers).child(userId)
             .child("title").setValue(userTitle).addOnSuccessListener {
             trySend(ResultOf.Success(FeedbackMessage.TitleUpdated))
         }.addOnFailureListener {
@@ -1080,7 +1091,7 @@ class BaseRepositoryImpl @Inject constructor(
 
         list.onEach {
 
-            usersReference.child(it.userInfo.userId).child(stringLeagueInvitation)
+            usersReference.child(it.userInfo.userId.path).child(stringLeagueInvitation)
                 .child(league.leagueId)
                 .setValue(league.leagueId).addOnSuccessListener {
                     trySend(ResultOf.Success(FeedbackMessage.FriendInvited))
@@ -1113,14 +1124,14 @@ class BaseRepositoryImpl @Inject constructor(
                 val listOfFriends = mutableListOf<Session>()
                 friendRequests.forEach { userId ->
                     if (dataSnapshot.hasChild(userId)) {
-                        dataSnapshot.child(userId).getValue<Session>()?.apply {
+                        dataSnapshot.child(userId.path).getValue<Session>()?.apply {
                             listOfRequests.add(this.withLoadedFriends(dataSnapshot.child(userId)))
                         }
                     }
                 }
                 friends.forEach { userId ->
                     if (dataSnapshot.hasChild(userId)) {
-                        dataSnapshot.child(userId).getValue<Session>()?.apply {
+                        dataSnapshot.child(userId.path).getValue<Session>()?.apply {
                             listOfFriends.add(this.withLoadedFriends(dataSnapshot.child(userId)))
                         }
                     }
@@ -1132,7 +1143,7 @@ class BaseRepositoryImpl @Inject constructor(
                 trySend(ResultOf.Failure(FeedbackMessage.InternetIssues))
             }
         }
-        usersReference.addValueEventListener(postListener)
+        usersReference.addListenerForSingleValueEvent(postListener)
         awaitClose { usersReference.removeEventListener(postListener) }
     }
 
@@ -1143,7 +1154,7 @@ class BaseRepositoryImpl @Inject constructor(
 
         try {
             friends.forEach { friendId ->
-                val dataSnapshot = usersReference.child(friendId).get().await()
+                val dataSnapshot = usersReference.child(friendId.path).get().await()
                 if (dataSnapshot.exists()) {
                     // Safely map the data snapshot to a Session object
                     val session = dataSnapshot.getValue(Session::class.java)
@@ -1173,9 +1184,9 @@ class BaseRepositoryImpl @Inject constructor(
         val ref = usersReference
         val postListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val friendsRef = dataSnapshot.child(userId).child("friendList")
-                val friendRequest = dataSnapshot.child(userId).child("friendRequests")
-                val friendsListOfRequester = dataSnapshot.child(friendId).child("friendList")
+                val friendsRef = dataSnapshot.child(userId.path).child(friendList)
+                val friendRequest = dataSnapshot.child(userId.path).child(friendListRequest)
+                val friendsListOfRequester = dataSnapshot.child(friendId.path).child(friendList)
 
                 // Remove from the requests
                 friendRequest.child(friendId).ref.removeValue()
@@ -1202,8 +1213,8 @@ class BaseRepositoryImpl @Inject constructor(
             val userId = session.userInfo.userId
             val postListener = object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val usersList = dataSnapshot.child(userId).child("friendList")
-                    val friendsList = dataSnapshot.child(friendId).child("friendList")
+                    val usersList = dataSnapshot.child(userId.path).child(friendList)
+                    val friendsList = dataSnapshot.child(friendId.path).child(friendList)
                     usersList.child(friendId).ref.removeValue()
                     friendsList.child(userId).ref.removeValue()
                     trySend(ResultOf.Success(FeedbackMessage.FriendRemoved))

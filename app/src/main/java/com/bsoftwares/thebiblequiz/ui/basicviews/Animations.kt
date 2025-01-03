@@ -94,15 +94,17 @@ fun animatePosition(
 
 @Composable
 fun animateScale(
-
+    condition: Boolean,
+    startValue: Float,
     endValue: Float,
+    duration: Int,
     delay: Int = startDelayAnimation
 ): State<Float> {
     return animateFloatAsState(
-        targetValue = endValue,
+        targetValue = if (condition) startValue else endValue,
         animationSpec = repeatable(
             iterations = 2,
-            animation = tween(durationMillis = 500, delayMillis = delay),
+            animation = tween(durationMillis = duration, delayMillis = delay),
             repeatMode = RepeatMode.Reverse
         ),
         label = "scale"
@@ -134,7 +136,7 @@ fun animateAlpha(
 @Composable
 fun animateAlphaByState(
     phase: AnimationPhase,
-    duration: Int = animationDuration,
+    duration: Int = 250,
 ): State<Float> {
     return animateFloatAsState(
         targetValue = when (phase) {
@@ -143,7 +145,7 @@ fun animateAlphaByState(
             AnimationPhase.IN      -> 0f  // Start from left (slide in)
         },
         animationSpec = tween(
-            durationMillis = 250
+            durationMillis = duration
         ),
         label = "alpha"
     )
@@ -222,26 +224,6 @@ fun animateColor(
 }
 
 @Composable
-fun animateDp(
-    condition: Boolean,
-    startValue: Dp = 0.dp,
-    endValue: Dp = 0.dp,
-    duration: Int = animationDuration,
-    delay: Int = startDelayAnimation,
-    easing: Easing = LinearOutSlowInEasing
-): State<Dp> {
-    return animateDpAsState(
-        targetValue = if (condition) startValue else endValue,
-        animationSpec = tween(
-            durationMillis = duration,
-            delayMillis = delay,
-            easing = easing
-        ),
-        label = "dp"
-    )
-}
-
-@Composable
 fun generateSubSequentialAlphaAnimations(
     numberOfViews: Int,
     condition: Boolean,
@@ -276,52 +258,6 @@ fun generateSubSequentialPositionAnimations(
                 startValue = offsetStart,
                 endValue = IntOffset.Zero,
                 duration = duration,
-                delay = delay
-            )
-        )
-    }
-    return list
-}
-
-@Composable
-fun generateSubSequentialColorAnimation(
-    numberOfViews: Int,
-    condition: Boolean,
-    startValue: Color,
-    endValue: List<LetterState>,
-    duration: Int = animationDuration,
-): List<State<Color>> {
-    val list = mutableListOf<State<Color>>()
-    var delay = 0
-    for (i in 0..numberOfViews) {
-        delay += 300
-        list.add(
-            animateColor(
-                condition = condition,
-                startValue = startValue,
-                endValue = endValue[i],
-                duration = duration,
-                delay = delay
-            )
-        )
-    }
-    return list
-}
-
-@Composable
-fun generateSubSequentialScaleAnimation(
-    numberOfViews: Int,
-    condition: Boolean,
-    endValue: Float,
-    duration: Int = animationDuration,
-): List<State<Float>> {
-    val list = mutableListOf<State<Float>>()
-    var delay = 0
-    for (i in 0..numberOfViews) {
-        delay += 300
-        list.add(
-            animateScale(
-                endValue = endValue,
                 delay = delay
             )
         )

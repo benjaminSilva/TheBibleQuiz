@@ -81,9 +81,10 @@ fun InitializeQuizResultScreen(
 
     val context = LocalContext.current
 
-    val correctOrWrongString = if (session.quizStats.answerSelected == correctAnswer.answerText) stringResource(
-        R.string.i_answered_the_question_correctly_today
-    ) else stringResource(R.string.i_got_the_answer_wrong)
+    val correctOrWrongString =
+        if (session.quizStats.answerSelected == correctAnswer.answerText) stringResource(
+            R.string.i_answered_the_question_correctly_today
+        ) else stringResource(R.string.i_got_the_answer_wrong)
 
     val intent = Intent.createChooser(Intent().apply {
         action = Intent.ACTION_SEND

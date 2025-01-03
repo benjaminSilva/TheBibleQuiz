@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize(),
                             factory = { context ->
                                 AdView(context).apply {
-                                    setAdSize(AdSize.BANNER)
+                                    setAdSize(AdSize.SMART_BANNER)
                                     adUnitId = "ca-app-pub-9654853503358559/6108665274"
                                     loadAd(adRequest)
                                 }

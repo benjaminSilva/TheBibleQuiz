@@ -32,6 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +55,8 @@ import com.bsoftwares.thebiblequiz.ui.basicviews.BasicScreenBox
 import com.bsoftwares.thebiblequiz.ui.basicviews.BasicText
 import com.bsoftwares.thebiblequiz.ui.basicviews.FontSizeRange
 import com.bsoftwares.thebiblequiz.ui.basicviews.animateAlpha
+import com.bsoftwares.thebiblequiz.ui.basicviews.animateAngle
+import com.bsoftwares.thebiblequiz.ui.basicviews.animateScale
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialAlphaAnimations
 import com.bsoftwares.thebiblequiz.ui.basicviews.generateSubSequentialPositionAnimations
 import com.bsoftwares.thebiblequiz.ui.navigation.navigateWithoutRemembering
@@ -77,6 +83,13 @@ fun InitializeQuizScreen(
     val localSession by soloViewModel.localSession.collectAsStateWithLifecycle()
     val isNewDay by soloViewModel.isNewDay.collectAsStateWithLifecycle()
 
+    val haptic = LocalHapticFeedback.current
+
+
+    LaunchedEffect(remainingTime) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
     LaunchedEffect(isNewDay) {
         if (isNewDay) {
             navController.popBackStack()
@@ -94,7 +107,7 @@ fun InitializeQuizScreen(
     
     LaunchedEffect(navigateNextScreen) {
         if (navigateNextScreen) {
-            if (!localSession.premium && localSession.hasPlayerWordleGame) {
+            if (!localSession.premium && localSession.hasPlayedWordleGame) {
                 navController.navigateWithoutRemembering(
                     route = Routes.AdScreen,
                     baseRoute = Routes.QuizMode
@@ -151,9 +164,12 @@ fun SoloQuestionScreen(
     screenClickable: Boolean,
     answerClick: (Answer) -> Unit
 ) {
+    val textSizeChange by animateScale(condition = startAnimation, startValue = 1f, endValue = 1.2f, duration = 30000)
+    val animateRotation by animateAngle(condition = startAnimation, startValue = -15f, endValue = 10f, duration = 30000, easing = LinearEasing)
 
     val listOfAnimations =
         generateSubSequentialAlphaAnimations(numberOfViews = 4, condition = startAnimation)
+
     val listOfPositionAnimations = generateSubSequentialPositionAnimations(
         numberOfViews = 4,
         condition = startAnimation,
@@ -209,7 +225,7 @@ fun SoloQuestionScreen(
                         AutoResizeText(
                             text = currentQuestion.question,
                             modifier = Modifier
-                                .align(Alignment.Center),
+                                .align(Alignment.Center).scale(textSizeChange).rotate(animateRotation),
                             fontSizeRange = FontSizeRange(12.sp, 28.sp),
                             fontFamily = achivoFontFamily,
                             maxLines = 4
