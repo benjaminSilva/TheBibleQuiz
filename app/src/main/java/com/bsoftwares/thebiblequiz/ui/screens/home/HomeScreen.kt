@@ -383,7 +383,7 @@ fun HomeScreen(
                         animationPositionList[3].value
                     },
                 onClick = {
-                    if (localSession.hasPlayerWordleGame)
+                    if (localSession.hasPlayedWordleGame)
                         navigate(Routes.WordleResults)
                     else
                         navigate(Routes.WordleMode)
@@ -420,7 +420,7 @@ fun HomeScreen(
                         shape = RoundedCornerShape(4.dp),
                         backGroundColor = container_in_container()
                     ) {
-                        if (localSession.hasPlayerWordleGame) {
+                        if (localSession.hasPlayedWordleGame) {
                             Image(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.baseline_check_24_bw),

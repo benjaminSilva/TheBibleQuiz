@@ -10,7 +10,7 @@ import com.google.firebase.database.Exclude
 data class Session(
     val userInfo: UserData = UserData(),
     val hasPlayedQuizGame: Boolean = false,
-    val hasPlayerWordleGame: Boolean = false,
+    val hasPlayedWordleGame: Boolean = false,
     val quizStats: QuestionStatsData = QuestionStatsData(),
     val wordle: WordleGame = WordleGame(),
     @Exclude

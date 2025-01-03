@@ -115,6 +115,12 @@ fun InitializeProfileScreen(
         mutableStateOf(listOf<Session>())
     }
 
+    LaunchedEffect(friends) {
+        if (userId == localSession.userInfo.userId) {
+            listOfFriends = friends
+        }
+    }
+
     LaunchedEffect(Unit) {
         if (userId == localSession.userInfo.userId) {
             displaySession = localSession
@@ -242,10 +248,9 @@ fun InitializeProfileScreen(
                 updateVisibleSession = {
                     enabled = disableClicks {
                         if (it == null) {
-                            navController.popBackStack(
-                                Routes.Profile.withParameter(localSession.userInfo.userId),
-                                inclusive = false
-                            )
+                            navController.navigate(Routes.Profile.withParameter(localSession.userInfo.userId)) {
+                                popUpTo(Routes.Profile.value)
+                            }
                         } else {
                             navController.navigate(Routes.Profile.withParameter(it.userInfo.userId))
                         }
@@ -803,7 +808,7 @@ fun FriendRequest(
 
             Row(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
                     modifier = Modifier

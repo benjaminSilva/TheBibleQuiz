@@ -312,7 +312,7 @@ open class BaseViewModel(private val repo: BaseRepository, private val initializ
         val minutes = (millisUntilTarget / (1000 * 60)) % 60
         val seconds = (millisUntilTarget / 1000) % 60
 
-        return String.format(Locale.US,"%02d:%02d:%02d", hours, minutes, seconds)
+        return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
     }
 
     fun delayedAction(function: () -> Unit) {
