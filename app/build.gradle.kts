@@ -132,8 +132,8 @@ dependencies {
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
     //Money
-    implementation("com.revenuecat.purchases:purchases:7.2.7")
-    implementation("com.revenuecat.purchases:purchases-ui:7.2.7")
-    implementation("com.android.billingclient:billing-ktx:6.1.0")
+    implementation("com.revenuecat.purchases:purchases:8.10.7")
+    implementation("com.revenuecat.purchases:purchases-ui:8.10.7")
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
 }

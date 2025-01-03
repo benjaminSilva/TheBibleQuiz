@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bsoftwares.thebiblequiz.ui.navigation.SetupNavGraph
+import com.bsoftwares.thebiblequiz.ui.theme.appBackground
 import com.bsoftwares.thebiblequiz.ui.theme.destination
 import com.bsoftwares.thebiblequiz.viewmodel.HomeViewModel
 import com.google.android.gms.ads.AdRequest
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
 
             Box(
                 modifier = Modifier
-                    .background(colorResource(id = R.color.background_color))
+                    .background(appBackground())
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
                 navController = rememberNavController()
