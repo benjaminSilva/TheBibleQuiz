@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NovaGincanaBiblica" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.NovaGincanaBiblica" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/background_color</item>
+
+    </style>
 
     <style name="Theme.SplashScreenApp" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/white</item>
-
+        <item name="android:statusBarColor">@color/background_color</item>
     </style>
 
     <style name="SplashScreenTheme" parent="Theme.SplashScreenApp">

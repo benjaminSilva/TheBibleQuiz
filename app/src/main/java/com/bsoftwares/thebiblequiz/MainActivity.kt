@@ -7,17 +7,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -51,8 +47,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        enableEdgeToEdge()
-
         lifecycleScope.launch {
             val token = Firebase.messaging.token.await()
             Log.d("FCM token:", token)
@@ -82,7 +76,6 @@ class MainActivity : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .background(appBackground())
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
                 navController = rememberNavController()
                 if (localSession.premium || localSession.userInfo.userId.isEmpty()) {

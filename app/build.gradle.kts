@@ -11,14 +11,14 @@ plugins {
 
 android {
     namespace = "com.bsoftwares.thebiblequiz"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.bsoftwares.thebiblequiz"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 17
-        versionName = "1.1.1"
+        targetSdk = 34
+        versionCode = 18
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
